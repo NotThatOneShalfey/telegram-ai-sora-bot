@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/telegram_video_bot}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:mysecretpassword}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+telegram:
+  bot:
+    name: ${TELEGRAM_BOT_USERNAME:video_generationTest_bot}
+    token: ${TELEGRAM_BOT_TOKEN:}
+    webhook-path: ${TELEGRAM_BOT_WEBHOOK_PATH:/telegram}
+    webhook-base-url: ${TELEGRAM_BOT_WEBHOOK_BASE_URL:}
+
+kieai:
+  api-key: ${KIEAI_API_KEY:}
+
+logging:
+  level:
+    com.example.tgbot: DEBUG

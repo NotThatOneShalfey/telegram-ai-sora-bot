@@ -1,0 +1,15 @@
+package com.example.tgbot.bot;
+
+
+public enum BotState {
+
+    INITIAL,
+
+    WAITING_FOR_PACKAGE_SELECTION,
+
+    WAITING_FOR_FORMAT_SELECTION,
+
+    WAITING_FOR_TEXT_DESCRIPTION,
+
+    WAITING_FOR_IMAGE_UPLOAD
+}
