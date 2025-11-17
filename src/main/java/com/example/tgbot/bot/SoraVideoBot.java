@@ -57,7 +57,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     @Value("${telegram.bot.token}")
     private String botToken;
 
-    @Value("${telegram.bot.webhook-path:/telegram}")
+    @Value("${telegram.bot.webhook-path:}")
     private String webhookPath;
 
     @PostConstruct
@@ -82,7 +82,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     @Override
     public org.telegram.telegrambots.meta.api.methods.BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-
+        log.debug("Update Received: {}", update);
         taskExecutor.execute(() -> {
             try {
                 processUpdate(update);
