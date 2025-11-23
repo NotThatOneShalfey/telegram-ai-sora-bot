@@ -43,3 +43,4 @@ jobs:
           docker rm telegram_video_bot_app || true
           docker rmi ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
           docker compose up -d
+          docker ps

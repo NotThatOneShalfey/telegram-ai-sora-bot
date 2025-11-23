@@ -18,6 +18,7 @@ import reactor.netty.http.client.HttpClient;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -116,39 +117,44 @@ public class VideoGenerationService {
     }
 
     private Mono<String> pollForCompletionV2(String taskId) {
-        return Mono.delay(Duration.ofSeconds(3))
+        AtomicInteger pollExpandCounter = new AtomicInteger(1);
+        // Первичный запрос через 15 секунд
+        return Mono.delay(Duration.ofSeconds(15))
                 .then(fetchTaskStatus(taskId))
-                .expand(r -> {
+                .flatMap(r -> {
                     RecordInfoResponse.DataBlock d = r.getData();
                     String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
+                    log.trace("-> Poll #1 for response, taskId={}, state={}", taskId, state);
                     switch (state) {
                         case "success":
                             return Mono.empty(); // задача завершена
-                        case "failed":
+                        case "failure":
                             return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
                         case "waiting":
                         case "queuing":
                         case "generating":
                         default:
-                            // повторный опрос через 30 секунд
-                            return fetchTaskStatus(taskId).delayElement(Duration.ofMinutes(2));
+                            // Повторный запрос через 2 минуты
+                            return Mono.delay(Duration.ofMinutes(2))
+                                    .then(fetchTaskStatus(taskId));
                     }
                 })
-                .last()
                 .expand(r -> {
                     RecordInfoResponse.DataBlock d = r.getData();
                     String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
+                    log.trace("-> Poll #{} for response, taskId={}, state={}", pollExpandCounter.incrementAndGet(), taskId, state);
                     switch (state) {
                         case "success":
                             return Mono.empty(); // задача завершена
-                        case "failed":
+                        case "failure":
                             return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
                         case "waiting":
                         case "queuing":
                         case "generating":
                         default:
                             // повторный опрос через 30 секунд
-                            return Mono.delay(Duration.ofSeconds(30)).then(fetchTaskStatus(taskId));
+                            return Mono.delay(Duration.ofSeconds(30))
+                                    .then(fetchTaskStatus(taskId));
                     }
                 })
                 .last()
