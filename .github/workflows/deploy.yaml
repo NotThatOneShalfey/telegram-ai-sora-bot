@@ -45,9 +45,7 @@ jobs:
           KIEAI_API_KEY=${{ secrets.KEIAI_API_KEY }}
 
     - name: Set up Docker Compose
-      uses: docker/compose@v4
-      with:
-        install: true
+      uses: docker/setup-compose-action@v2
 
     - name: Build with Docker Compose
       run: docker-compose build
