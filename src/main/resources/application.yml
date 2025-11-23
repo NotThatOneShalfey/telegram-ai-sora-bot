@@ -27,7 +27,7 @@ kieai:
 
 logging:
   level:
-    com.example.tgbot: DEBUG
+    com.example.tgbot: trace
 
 server:
   port: 8080
