@@ -91,17 +91,21 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void processUpdate(Update update) {
+        log.trace("Call processUpdate");
         try {
             if (update.hasCallbackQuery()) {
+                log.trace("update has CallbackQuery");
                 handleCallback(update.getCallbackQuery());
                 return;
             }
             if (update.hasMessage()) {
+                log.trace("update has Message");
                 Message message = update.getMessage();
                 Long chatId = message.getChatId();
                 UserSession session = sessions.computeIfAbsent(chatId, id -> new UserSession(BotState.INITIAL, null));
 
                 if (message.hasText()) {
+                    log.trace("Message has Text");
                     String text = message.getText();
                     if ("/start".equalsIgnoreCase(text)) {
                         handleStart(chatId);
@@ -116,6 +120,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                             sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.");
                     }
                 } else if (message.hasPhoto()) {
+                    log.trace("Message has Photo");
                     if (session.getState() == BotState.WAITING_FOR_IMAGE_UPLOAD) {
                         handleImageUpload(chatId, message, session);
                     } else {
@@ -328,6 +333,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void handleImageUpload(Long chatId, Message message, UserSession session) throws TelegramApiException {
+        log.trace("Call handleImageUpload");
         User user = userService.findOrCreateUser(chatId);
         // Apply per-user rate limiting
         if (!rateLimiterService.tryConsume(chatId)) {
