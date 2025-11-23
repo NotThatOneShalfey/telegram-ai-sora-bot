@@ -98,33 +98,35 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 handleCallback(update.getCallbackQuery());
                 return;
             }
+
             if (update.hasMessage()) {
-                log.trace("update has Message");
                 Message message = update.getMessage();
                 Long chatId = message.getChatId();
                 UserSession session = sessions.computeIfAbsent(chatId, id -> new UserSession(BotState.INITIAL, null));
+                // Обработка стартового сообщения
+                if (message.hasText() && message.getText().equalsIgnoreCase("/start")) {
+                    handleStart(chatId);
+                    return;
+                }
 
-                if (message.hasText()) {
-                    log.trace("Message has Text");
-                    String text = message.getText();
-                    if ("/start".equalsIgnoreCase(text)) {
-                        handleStart(chatId);
-                        return;
-                    }
-                    switch (session.getState()) {
-                        case WAITING_FOR_TEXT_DESCRIPTION:
-                            handleTextDescription(chatId, text, session);
-                            break;
-                        default:
-                            // unknown message in current state
-                            sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.");
-                    }
-                } else if (message.hasPhoto()) {
-                    log.trace("Message has Photo");
+                // Если в сообщении есть документ (так можно посылать фото) и указано, что это image
+                if ((message.hasDocument() && message.getDocument().getMimeType().contains("image"))
+                        || message.hasPhoto()) {
+                    log.trace("Message has Photo or Image");
                     if (session.getState() == BotState.WAITING_FOR_IMAGE_UPLOAD) {
                         handleImageUpload(chatId, message, session);
                     } else {
                         sendMainMenu(chatId, "Фото получено, но я ожидаю другую команду. Выберите действие из меню.");
+                    }
+                } else if (message.hasText()) { // Если нет документа или фото, но есть текст
+                    log.trace("Message has text but no photo or doc");
+                    switch (session.getState()) {
+                        case WAITING_FOR_TEXT_DESCRIPTION:
+                            handleTextDescription(chatId, message.getText(), session);
+                            break;
+                        default:
+                            // unknown message in current state
+                            sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.");
                     }
                 }
             }
@@ -372,7 +374,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
             org.telegram.telegrambots.meta.api.objects.File file = execute(getFileRequest);
             String filePath = file.getFilePath();
             String imageUrl = "https://api.telegram.org/file/bot" + getBotToken() + "/" + filePath;
-            String prompt = message.getCaption() == null ? "" : message.getCaption();
+            // Здесь хардкод просто анимирования картинки, без промпта sora не знает, что делать с картинкой
+            String prompt = message.getCaption() == null ? "Анимируй" : message.getCaption();
 
             session.setState(BotState.INITIAL);
             videoGenerationService.generateVideoFromImage("16:9", prompt, imageUrl)

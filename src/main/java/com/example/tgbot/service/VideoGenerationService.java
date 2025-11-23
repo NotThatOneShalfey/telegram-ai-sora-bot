@@ -41,77 +41,34 @@ public class VideoGenerationService {
     }
 
     public Mono<String> generateVideoFromText(String format, String prompt) {
-
-
-        String aspectRatio = "portrait";
-        if (format != null) {
-            switch (format) {
-                case "16:9":
-                    aspectRatio = "landscape";
-                    break;
-                case "9:16":
-                    aspectRatio = "portrait";
-                    break;
-                default:
-                    aspectRatio = "portrait";
-            }
-        }
-
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
-        input.put("aspect_ratio", aspectRatio);
+        input.put("aspect_ratio", getAspectRatio(format));
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "sora-2-text-to-video");
         payload.put("input", input);
 
-        return webClient.post()
-                .uri("/jobs/createTask")
-                .bodyValue(payload)
-                .retrieve()
-                .onStatus(s -> !s.is2xxSuccessful(), resp ->
-                        resp.bodyToMono(String.class).defaultIfEmpty("")
-                                .map(body -> new IllegalStateException("Kie.ai createTask HTTP " + resp.statusCode() + " body: " + body))
-                )
-                .bodyToMono(CreateTaskResponse.class)
-                .doOnNext(r -> log.debug("createTask resp: {}", r))
-                .flatMap(r -> {
-                    String taskId = r.getData() != null ? r.getData().getTaskId() : null;
-                    if (taskId == null || taskId.isBlank()) {
-                        return Mono.error(new IllegalStateException("Kie.ai did not return taskId; resp=" + r));
-                    }
-                    return pollForCompletion(taskId);
-                });
+        return getTaskResponse(payload);
     }
 
     public Mono<String> generateVideoFromImage(String format, String prompt, String imageUrl) {
-        // Correctly map aspect ratios: 16:9 -> landscape; 9:16 -> portrait【129760953625935†L135-L140】
-        String aspectRatio = "portrait";
-        if (format != null) {
-            switch (format) {
-                case "16:9":
-                    aspectRatio = "landscape";
-                    break;
-                case "9:16":
-                    aspectRatio = "portrait";
-                    break;
-                default:
-                    aspectRatio = "portrait";
-            }
-        }
-
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
             input.put("prompt", prompt);
         }
         input.put("image_urls", new String[]{imageUrl});
-        input.put("aspect_ratio", aspectRatio);
+        input.put("aspect_ratio", getAspectRatio(format));
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "sora-2-image-to-video");
         payload.put("input", input);
-        log.debug(payload.toString());
+
+        return getTaskResponse(payload);
+    }
+
+    private Mono<String> getTaskResponse(Map<String, Object> payload) {
         return webClient.post()
                 .uri("/jobs/createTask")
                 .bodyValue(payload)
@@ -127,7 +84,7 @@ public class VideoGenerationService {
                     if (taskId == null || taskId.isBlank()) {
                         return Mono.error(new IllegalStateException("Kie.ai did not return taskId; resp=" + r));
                     }
-                    return pollForCompletion(taskId);
+                    return pollForCompletionV2(taskId);
                 });
     }
 
@@ -158,6 +115,46 @@ public class VideoGenerationService {
                 .map(this::extractUrlFromRecordInfo);
     }
 
+    private Mono<String> pollForCompletionV2(String taskId) {
+        return Mono.delay(Duration.ofSeconds(3))
+                .then(fetchTaskStatus(taskId))
+                .expand(r -> {
+                    RecordInfoResponse.DataBlock d = r.getData();
+                    String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
+                    switch (state) {
+                        case "success":
+                            return Mono.empty(); // задача завершена
+                        case "failed":
+                            return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
+                        case "waiting":
+                        case "queuing":
+                        case "generating":
+                        default:
+                            // повторный опрос через 30 секунд
+                            return fetchTaskStatus(taskId).delayElement(Duration.ofMinutes(2));
+                    }
+                })
+                .last()
+                .expand(r -> {
+                    RecordInfoResponse.DataBlock d = r.getData();
+                    String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
+                    switch (state) {
+                        case "success":
+                            return Mono.empty(); // задача завершена
+                        case "failed":
+                            return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
+                        case "waiting":
+                        case "queuing":
+                        case "generating":
+                        default:
+                            // повторный опрос через 30 секунд
+                            return Mono.delay(Duration.ofSeconds(30)).then(fetchTaskStatus(taskId));
+                    }
+                })
+                .last()
+                .map(this::extractUrlFromRecordInfo);
+
+    }
 
     private Mono<RecordInfoResponse> fetchTaskStatus(String taskId) {
         return webClient.get()
@@ -194,5 +191,18 @@ public class VideoGenerationService {
         } catch (Exception e) {
             throw new IllegalStateException("Failed to parse resultJson: " + resultJsonStr, e);
         }
+    }
+
+    private String getAspectRatio(String format) {
+        // Correctly map aspect ratios: 16:9 -> landscape; 9:16 -> portrait【129760953625935†L135-L140】
+        String aspectRatio = "portrait";
+        if (format != null) {
+            aspectRatio = switch (format) {
+                case "16:9" -> "landscape";
+                case "9:16" -> "portrait";
+                default -> "portrait";
+            };
+        }
+        return aspectRatio;
     }
 }
