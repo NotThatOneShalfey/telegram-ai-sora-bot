@@ -366,8 +366,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             org.telegram.telegrambots.meta.api.objects.File file = execute(getFileRequest);
             String filePath = file.getFilePath();
             String imageUrl = "https://api.telegram.org/file/bot" + getBotToken() + "/" + filePath;
-            log.debug(imageUrl);
-            String prompt = "";
+            String prompt = message.getCaption() == null ? "" : message.getCaption();
 
             session.setState(BotState.INITIAL);
             videoGenerationService.generateVideoFromImage("16:9", prompt, imageUrl)
