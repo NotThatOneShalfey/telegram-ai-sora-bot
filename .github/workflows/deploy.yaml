@@ -26,8 +26,8 @@ jobs:
     - name: Push Docker images
       run: |
         # Тегируем и пушим образы
-        docker tag telegram-ai-sora-bot-app:latest ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
-        docker push ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
+        docker tag telegram-ai-sora-bot-app:latest ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:${{ github.sha }}
+        docker push ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:${{ github.sha }}
 
     - name: Deploy to server
       uses: appleboy/ssh-action@master
@@ -38,9 +38,8 @@ jobs:
         password: ${{ secrets.CLOUD_SERVER_PASSWORD }}
         script: |
           cd docker/docker_containers
-          docker image pull ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
+          docker image pull ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:${{ github.sha }}
           docker stop telegram_video_bot_app || true
           docker rm telegram_video_bot_app || true
-          docker rmi ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
           docker compose up -d
           docker ps
