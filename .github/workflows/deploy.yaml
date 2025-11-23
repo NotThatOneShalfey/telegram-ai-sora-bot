@@ -32,14 +32,10 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        push: false # false, чтобы только собрать образ локально
+        push: false
         file: ./Dockerfile 
         load: true 
-        tags: notthatoneshalfey/telegram-ai-sora-bot-app:latest # Название вашего образа
-        # Для передачи env-переменных можно использовать `secrets.ENV_VAR` или `with`
-        # Здесь пример использования файла .env
-        # `env` в файле Dockerfile может быть переопределен здесь
-        # Пример использования файла .env
+        tags: notthatoneshalfey/telegram-ai-sora-bot-app:latest
         build-args: |
           SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
           SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -49,7 +45,7 @@ jobs:
           KIEAI_API_KEY=${{ secrets.KEIAI_API_KEY }}
 
     - name: Set up Docker Compose
-      uses: docker/compose@v2
+      uses: docker/compose@v4
       with:
         install: true
 
