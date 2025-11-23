@@ -1,0 +1,57 @@
+name: Deploy to server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_LOGIN }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false # false, чтобы только собрать образ локально
+        file: ./Dockerfile 
+        load: true 
+        tags: notthatoneshalfey/telegram-ai-sora-bot-app:latest # Название вашего образа
+        # Для передачи env-переменных можно использовать `secrets.ENV_VAR` или `with`
+        # Здесь пример использования файла .env
+        # `env` в файле Dockerfile может быть переопределен здесь
+        # Пример использования файла .env
+        build-args: |
+          SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
+          TELEGRAM_BOT_USERNAME=${{ secrets.TG_BOT_USERNAME }}
+          TELEGRAM_BOT_TOKEN=${{ secrets.TG_BOT_TOKEN }}
+          KIEAI_API_KEY=${{ secrets.KEIAI_API_KEY }}
+
+    - name: Set up Docker Compose
+      uses: docker/compose@v2
+      with:
+        install: true
+
+    - name: Build with Docker Compose
+      run: docker-compose build
