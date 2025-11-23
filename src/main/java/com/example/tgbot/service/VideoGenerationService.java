@@ -123,11 +123,11 @@ public class VideoGenerationService {
                 .flatMap(r -> {
                     RecordInfoResponse.DataBlock d = r.getData();
                     String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
-                    log.trace("-> Poll #1 for response, taskId={}, state={}", taskId, state);
+                    log.trace("-> Poll #1 for response, taskId={}, response={}", taskId, r);
                     switch (state) {
                         case "success":
                             return Mono.empty(); // задача завершена
-                        case "failure":
+                        case "fail":
                             return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
                         case "waiting":
                         case "queuing":
@@ -141,11 +141,11 @@ public class VideoGenerationService {
                 .expand(r -> {
                     RecordInfoResponse.DataBlock d = r.getData();
                     String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
-                    log.trace("-> Poll #{} for response, taskId={}, state={}", pollExpandCounter.incrementAndGet(), taskId, state);
+                    log.trace("-> Poll #{} for response, taskId={}, response={}", pollExpandCounter.incrementAndGet(), taskId, r);
                     switch (state) {
                         case "success":
                             return Mono.empty(); // задача завершена
-                        case "failure":
+                        case "fail":
                             return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
                         case "waiting":
                         case "queuing":

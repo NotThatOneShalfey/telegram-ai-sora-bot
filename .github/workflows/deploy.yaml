@@ -41,5 +41,6 @@ jobs:
           docker image pull ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:${{ github.sha }}
           docker stop telegram_video_bot_app || true
           docker rm telegram_video_bot_app || true
+          sed -i "s|image :${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:.*|${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:${{ github.sha }}|" docker-compose.yaml
           docker compose up -d
           docker ps
