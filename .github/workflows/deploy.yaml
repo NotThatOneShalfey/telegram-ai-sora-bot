@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,20 +28,16 @@ jobs:
         # Тегируем и пушим образы
         docker tag telegram-ai-sora-bot-app:latest ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
         docker push ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
-
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.CLOUD_SERVER_HOST }}
-          username: ${{ secrets.CLOUD_SERVER_USERNAME }}
-          password: ${{ secrets.CLOUD_SERVER_PASSWORD }}
-          script: |
-            cd docker
-            docker compose pull
-            docker stop telegram-ai-sora-bot-app || true
-            docker rm telegram-ai-sora-bot-app || true
-            docker compose up -d
+        steps:
+        - name: Deploy to server
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.CLOUD_SERVER_HOST }}
+            username: ${{ secrets.CLOUD_SERVER_USERNAME }}
+            password: ${{ secrets.CLOUD_SERVER_PASSWORD }}
+            script: |
+              cd docker
+              docker compose pull
+              docker stop telegram-ai-sora-bot-app || true
+              docker rm telegram-ai-sora-bot-app || true
+              docker compose up -d
