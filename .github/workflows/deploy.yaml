@@ -13,33 +13,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    - name: Build with Maven
-      run: mvn clean package -DskipTests
-
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_LOGIN }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        file: ./Dockerfile 
-        load: true 
-        tags: notthatoneshalfey/telegram-ai-sora-bot-app:latest
-        build-args: |
-          SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
-          SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
-          TELEGRAM_BOT_USERNAME=${{ secrets.TG_BOT_USERNAME }}
-          TELEGRAM_BOT_TOKEN=${{ secrets.TG_BOT_TOKEN }}
-          KIEAI_API_KEY=${{ secrets.KEIAI_API_KEY }}
+    - name: Build Docker images
+      run: |
+        docker compose build
+
+    - name: Push Docker images
+      run: |
+        # Тегируем и пушим образы
+        docker tag telegram-ai-sora-bot-app:latest ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
+        docker push ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
+        
+        docker tag postgres:14 ${{ secrets.DOCKER_LOGIN }}/postgres:14
+        docker push ${{ secrets.DOCKER_LOGIN }}/postgres:14
