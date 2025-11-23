@@ -111,7 +111,7 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "sora-2-image-to-video");
         payload.put("input", input);
-
+        log.debug(payload.toString());
         return webClient.post()
                 .uri("/jobs/createTask")
                 .bodyValue(payload)
