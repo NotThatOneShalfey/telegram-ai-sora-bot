@@ -32,7 +32,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        push: false
+        push: true
         file: ./Dockerfile 
         load: true 
         tags: notthatoneshalfey/telegram-ai-sora-bot-app:latest
@@ -43,6 +43,3 @@ jobs:
           TELEGRAM_BOT_USERNAME=${{ secrets.TG_BOT_USERNAME }}
           TELEGRAM_BOT_TOKEN=${{ secrets.TG_BOT_TOKEN }}
           KIEAI_API_KEY=${{ secrets.KEIAI_API_KEY }}
-
-    - name: Build with Docker Compose
-      run: docker-compose build
