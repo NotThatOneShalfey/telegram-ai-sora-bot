@@ -39,6 +39,6 @@ jobs:
         script: |
           cd docker/docker_containers
           docker image pull ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
-          docker stop telegram-ai-sora-bot-app || true
-          docker rm telegram-ai-sora-bot-app || true
+          docker stop telegram_video_bot_app || true
+          docker rm telegram_video_bot_app || true
           docker compose up -d
