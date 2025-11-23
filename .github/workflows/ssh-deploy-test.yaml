@@ -17,8 +17,8 @@ jobs:
           username: ${{ secrets.CLOUD_SERVER_USERNAME }}
           password: ${{ secrets.CLOUD_SERVER_PASSWORD }}
           script: |
-            cd docker
-            docker compose pull
+            cd docker/docker_containers
+            docker image pull ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
             docker stop telegram-ai-sora-bot-app || true
             docker rm telegram-ai-sora-bot-app || true
             docker compose up -d
