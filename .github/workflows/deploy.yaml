@@ -41,4 +41,5 @@ jobs:
           docker image pull ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
           docker stop telegram_video_bot_app || true
           docker rm telegram_video_bot_app || true
+          docker rmi ${{ secrets.DOCKER_LOGIN }}/telegram-ai-sora-bot-app:latest
           docker compose up -d
