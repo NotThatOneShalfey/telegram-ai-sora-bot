@@ -33,6 +33,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.CLOUD_SERVER_HOST }}
+        port: 22
         username: ${{ secrets.CLOUD_SERVER_USERNAME }}
         password: ${{ secrets.CLOUD_SERVER_PASSWORD }}
         script: |
