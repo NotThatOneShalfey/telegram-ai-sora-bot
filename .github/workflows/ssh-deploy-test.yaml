@@ -1,0 +1,24 @@
+name: Deploy to test
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.CLOUD_SERVER_HOST }}
+          port: 22
+          username: ${{ secrets.CLOUD_SERVER_USERNAME }}
+          password: ${{ secrets.CLOUD_SERVER_PASSWORD }}
+          script: |
+            cd docker
+            docker compose pull
+            docker stop telegram-ai-sora-bot-app || true
+            docker rm telegram-ai-sora-bot-app || true
+            docker compose up -d

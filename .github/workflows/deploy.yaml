@@ -1,9 +1,9 @@
 name: Deploy to server
 
-on:
-  push:
-    branches:
-      - master
+on: []
+#  push:
+#    branches:
+#      - master
 
 jobs:
   build-and-deploy:
