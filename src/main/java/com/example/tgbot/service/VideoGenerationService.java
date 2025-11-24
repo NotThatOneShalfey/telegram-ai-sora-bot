@@ -18,6 +18,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.compile;
 
 @Service
 @Slf4j
@@ -146,7 +150,7 @@ public class VideoGenerationService {
                         case "success":
                             return Mono.empty(); // задача завершена
                         case "fail":
-                            return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
+                            return Mono.error(new IllegalStateException(processFailedRequest(d.getFailMsg())));
                         case "waiting":
                         case "queuing":
                         case "generating":
@@ -159,6 +163,18 @@ public class VideoGenerationService {
                 .last()
                 .map(this::extractUrlFromRecordInfo);
 
+    }
+
+    private String processFailedRequest(String reason) {
+        Pattern sensitiveContentPattern = Pattern.compile("harassment|discrimination|bullying|");
+        String errorMessage = "\uD83D\uDEA7 Генерация временно недоступна \uD83D\uDEA7\n" +
+                "Мы уже работаем над этим - попробуйте чуть позже или обратитесь в поддержку @helper_sora2";
+        if (sensitiveContentPattern.matcher(reason).find()) {
+            errorMessage = "\uD83D\uDD12 Ваш запрос заблокирован системой безопасности.\n" +
+                    "Похоже, в тексте есть фразы, которые модели нельзя генерировать.\n" +
+                    "Попробуйте переформулировать без чувствительного контента \uD83D\uDE4F";
+        }
+        return errorMessage;
     }
 
     private Mono<RecordInfoResponse> fetchTaskStatus(String taskId) {
