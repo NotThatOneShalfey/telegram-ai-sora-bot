@@ -113,14 +113,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 // Если в сообщении есть документ (так можно посылать фото) и указано, что это image
                 if ((message.hasDocument() && message.getDocument().getMimeType().contains("image"))
                         || message.hasPhoto()) {
-                    log.trace("Message has Photo or Image");
                     if (session.getState() == BotState.WAITING_FOR_IMAGE_UPLOAD) {
                         handleImageUpload(chatId, message, session);
                     } else {
                         sendMainMenu(chatId, "Фото получено, но я ожидаю другую команду. Выберите действие из меню.");
                     }
                 } else if (message.hasText()) { // Если нет документа или фото, но есть текст
-                    log.trace("Message has text but no photo or doc");
                     switch (session.getState()) {
                         case WAITING_FOR_TEXT_DESCRIPTION:
                             handleTextDescription(chatId, message.getText(), session);
@@ -141,11 +139,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
         // Persist or retrieve the user
         User user = userService.findOrCreateUser(chatId);
         sessions.put(chatId, new UserSession(BotState.WAITING_FOR_PACKAGE_SELECTION, null));
-        String text = "Привет! Это бот Sora 2 - генератор видео с помощью ИИ\n\n" +
-                "Тут ты можешь посмотреть примеры и как правильно их отправлять : ССЫЛКА\n" +
-                "Инструкция как пользоваться ботом: ССЫЛКА\n" +
-                "Пользовательское соглашение (ссылка)\n" +
-                "Политика конфиденциальности (ссылка)";
+        String text = "\uD83C\uDFAC Привет! Я Sora 2 — твой ИИ для создания видео." +
+                "\u2028\u2028Я могу сгенерировать 10-секундный ролик по твоему описанию или картинке." +
+                "\u2028\u2028\uD83D\uDCA1 Как это работает:" +
+                "\u20281️⃣ Отправь мне текст или изображение с идеей видео." +
+                "\u20282️⃣ Я превращу твою идею в короткий красивый ролик." +
+                "\u2028\u2028\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(packageKeyboard());
         execute(message);
@@ -171,9 +170,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 sendAfterPurchase(chatId, 50);
                 break;
             case "package_gift":
-
                 userService.addBalance(user, 1);
-                sendAfterPurchase(chatId, 1);
+                sendAfterGift(chatId);
                 break;
             case "main_generate_text":
                 if (user.getBalance() <= 0) {
@@ -193,7 +191,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 break;
             case "main_recharge":
-
                 session.setState(BotState.WAITING_FOR_PACKAGE_SELECTION);
                 SendMessage pkgMsg = new SendMessage(String.valueOf(chatId), "Выберите пакет для пополнения баланса:");
                 pkgMsg.setReplyMarkup(packageKeyboard());
@@ -231,9 +228,33 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void sendAfterPurchase(Long chatId, int purchasedAmount) throws TelegramApiException {
         User user = userService.findOrCreateUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
-        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
-                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
-                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
+        String text = String.format("\uD83C\uDF89 Спасибо за оплату!\u2028\u2028Ты пополнил баланс и получил %d генераций видео. " +
+                "✨\u2028Теперь можно создавать ролики по тексту или картинке — 10 секунд, 720p.\n" +
+                "\n" +
+                "***", purchasedAmount);
+//        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
+//                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
+//                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
+        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        msg.setReplyMarkup(mainMenuKeyboard());
+        execute(msg);
+    }
+
+    private void sendAfterVideoGeneration(Long chatId) throws TelegramApiException {
+        User user = userService.findOrCreateUser(chatId);
+        String text = "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты.\u2028Как только ролик будет готов, я пришлю его сюда! \uD83C\uDFAC\u2028\u2028\u2028***";
+        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        msg.setReplyMarkup(mainMenuKeyboard());
+        execute(msg);
+    }
+
+    private void sendAfterGift(Long chatId) throws TelegramApiException {
+        User user = userService.findOrCreateUser(chatId);
+        sessions.get(chatId).setState(BotState.INITIAL);
+        String text = "\uD83C\uDF81 Поздравляем!\u2028\u2028Ты получил 1 бесплатную генерацию видео! ✨\u2028Теперь можешь создать ролик по тексту или картинке.\u2028\u2028";
+//        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
+//                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
+//                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), text);
         msg.setReplyMarkup(mainMenuKeyboard());
         execute(msg);
@@ -251,27 +272,31 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendFormatSelection(Long chatId, int balance) throws TelegramApiException {
-        String text = String.format("Модель для генерации: Sora 2\nУ вас доступно %d генераций\nВыберите формат", balance);
+        String text = "\uD83D\uDCFD️Выберете удобный формат\uD83D\uDCFD️";
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(formatKeyboard());
         execute(message);
     }
 
     private void sendDescriptionPrompt(Long chatId, int balance) throws TelegramApiException {
-        String text = String.format(
-                "Модель для генерации Sora 2\nУ вас доступно %d генераций\nВведите описание своего видео.\n\n" +
-                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
-                "Гайд по генерации видео", balance);
+        String text = "✏\uFE0F Отправь мне сообщение и я сгенерирую видео!\n" +
+                "\n" +
+                "***\n";
+//        String text = String.format(
+//                "Модель для генерации Sora 2\nУ вас доступно %d генераций\nВведите описание своего видео.\n\n" +
+//                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
+//                "Гайд по генерации видео", balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(backToMenuKeyboard());
         execute(message);
     }
 
     private void sendImageUploadPrompt(Long chatId, int balance) throws TelegramApiException {
-        String text = String.format(
-                "Модель для генерации: Sora 2\nУ вас доступно %d генераций\n" +
-                "Отправьте изображение для генерации видео (JPEG, PNG, WEBP).\n\n" +
-                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА", balance);
+        String text = "✏\uFE0F Отправь мне сообщение вместе с изображением и я сгенерирую видео!";
+//        String text = String.format(
+//                "Модель для генерации: Sora 2\nУ вас доступно %d генераций\n" +
+//                "Отправьте изображение для генерации видео (JPEG, PNG, WEBP).\n\n" +
+//                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА", balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(backToMenuKeyboard());
         execute(message);
@@ -297,10 +322,10 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
 
-        SendMessage waitMsg = new SendMessage(String.valueOf(chatId), "Генерирую видео, пожалуйста подождите... Это может занять несколько минут.");
-        execute(waitMsg);
-        String format = session.getSelectedFormat();
+        // Посылаем ответ, если все нормально
+        sendAfterVideoGeneration(chatId);
 
+        String format = session.getSelectedFormat();
         session.setState(BotState.INITIAL);
 
         videoGenerationService.generateVideoFromText(format, prompt)
@@ -370,9 +395,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
             sendMainMenu(chatId, "У вас нет доступных генераций. Пополните баланс.");
             return;
         }
-
-        SendMessage waitMsg = new SendMessage(String.valueOf(chatId), "Генерирую видео из изображения, пожалуйста подождите...");
-        execute(waitMsg);
+        // Посылаем ответ, если все нормально
+        sendAfterVideoGeneration(chatId);
 
         try {
             org.telegram.telegrambots.meta.api.methods.GetFile getFileRequest = new org.telegram.telegrambots.meta.api.methods.GetFile();
@@ -457,11 +481,21 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return markup;
     }
 
+    private InlineKeyboardMarkup secondaryMenuKeyboard() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        rows.add(List.of(createButton("Сгенерировать новое видео по тексту", "main_generate_text")));
+        rows.add(List.of(createButton("Сгенерировать новое видео по картинке", "main_generate_image")));
+        rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
+        return markup;
+    }
+
     private InlineKeyboardMarkup formatKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         // Two buttons in one row
-        rows.add(List.of(createButton("16:9", "format_16_9"), createButton("9:16", "format_9_16")));
-        rows.add(List.of(createButton("назад", "format_back")));
+        rows.add(List.of(createButton("\uD83D\uDDA5️ Горизонтальное", "format_9_16"), createButton("\uD83D\uDCF1 Вертикальное", "format_16_9")));
+        rows.add(List.of(createButton("Назад", "format_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
