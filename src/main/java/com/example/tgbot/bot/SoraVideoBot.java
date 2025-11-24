@@ -324,6 +324,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
 
     private void handleTextDescription(Long chatId, String prompt, UserSession session) throws TelegramApiException {
+        // Хардкод на длину промпта
+        if (prompt.length() > 9999) {
+            SendMessage promptTooLong = new SendMessage(String.valueOf(chatId),
+                    "\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
+                            "Попробуйте сократить текст до 10000 символов.");
+            execute(promptTooLong);
+            return;
+        }
         User user = userService.findOrCreateUser(chatId);
         if (!rateLimiterService.tryConsume(chatId)) {
             SendMessage rateLimitMsg = new SendMessage(String.valueOf(chatId),
@@ -352,11 +360,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 .subscribe(
                         url -> {
                             SendVideo msg = new SendVideo(String.valueOf(chatId), new InputFile(url));
-                            msg.setCaption("Ваше сгенерированное видео");
+                            //msg.setCaption("Ваше сгенерированное видео");
                             try {
                                 execute(msg);
                                 msg.setSupportsStreaming(true);
-                                sendMainMenu(chatId, "Генерация завершена. Выберите следующее действие:");
+                                sendAfterGeneration(chatId, prompt);
                             } catch (TelegramApiException e) {
                                 log.error("Error sending video", e);
                                 SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить видео: " + e.getMessage());
@@ -382,6 +390,16 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private void handleImageUpload(Long chatId, Message message, UserSession session) throws TelegramApiException {
         log.trace("Call handleImageUpload");
+        // Здесь хардкод просто анимирования картинки, без промпта sora не знает, что делать с картинкой
+        String prompt = message.getCaption() == null ? "Анимируй" : message.getCaption();
+        // Хардкод на длину промпта
+        if (prompt.length() > 9999) {
+            SendMessage promptTooLong = new SendMessage(String.valueOf(chatId),
+                    "\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
+                            "Попробуйте сократить текст до 10000 символов.");
+            execute(promptTooLong);
+            return;
+        }
         User user = userService.findOrCreateUser(chatId);
         // Apply per-user rate limiting
         if (!rateLimiterService.tryConsume(chatId)) {
@@ -424,18 +442,16 @@ public class SoraVideoBot extends TelegramWebhookBot {
             org.telegram.telegrambots.meta.api.objects.File file = execute(getFileRequest);
             String filePath = file.getFilePath();
             String imageUrl = "https://api.telegram.org/file/bot" + getBotToken() + "/" + filePath;
-            // Здесь хардкод просто анимирования картинки, без промпта sora не знает, что делать с картинкой
-            String prompt = message.getCaption() == null ? "Анимируй" : message.getCaption();
 
             session.setState(BotState.INITIAL);
             videoGenerationService.generateVideoFromImage("16:9", prompt, imageUrl)
                     .subscribe(bytes -> {
                         SendVideo msg = new SendVideo(String.valueOf(chatId), new InputFile(bytes));
-                        msg.setCaption("Ваше сгенерированное видео");
+                        //msg.setCaption("Ваше сгенерированное видео");
                         try {
                             execute(msg);
                             msg.setSupportsStreaming(true);
-                            sendMainMenu(chatId, "Генерация завершена. Выберите следующее действие:");
+                            sendAfterGeneration(chatId, prompt);
                         } catch (TelegramApiException e) {
                             log.error("Error sending video", e);
                             SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить видео: " + e.getMessage());
