@@ -141,12 +141,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
         // Persist or retrieve the user
         User user = userService.findOrCreateUser(chatId);
         sessions.put(chatId, new UserSession(BotState.WAITING_FOR_PACKAGE_SELECTION, null));
-        String text = "\uD83C\uDFAC Привет! Я Sora 2 — твой ИИ для создания видео." +
-                "\u2028\u2028Я могу сгенерировать 10-секундный ролик по твоему описанию или картинке." +
-                "\u2028\u2028\uD83D\uDCA1 Как это работает:" +
-                "\u20281️⃣ Отправь мне текст или изображение с идеей видео." +
-                "\u20282️⃣ Я превращу твою идею в короткий красивый ролик." +
-                "\u2028\u2028\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
+        String text = "\uD83C\uDFAC Привет! Я Sora 2 — твой ИИ для создания видео. " +
+                "Я могу сгенерировать 10-секундный ролик по твоему описанию или картинке. " +
+                "\uD83D\uDCA1 Как это работает:\n" +
+                "1️⃣ Отправь мне текст или изображение с идеей видео.\n" +
+                "2️⃣ Я превращу твою идею в короткий красивый ролик.\n" +
+                "\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(packageKeyboard());
         execute(message);
@@ -282,8 +282,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendFormatSelection(Long chatId, int balance) throws TelegramApiException {
-        String text = "\uD83D\uDCFD️Выбирете удобный формат\uD83D\uDCFD️";
-        SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
+        SendMessage message = new SendMessage(String.valueOf(chatId), centerText(text, text.length()+20));
         message.setReplyMarkup(formatKeyboard());
         execute(message);
     }
