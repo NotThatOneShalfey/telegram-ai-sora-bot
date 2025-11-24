@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.regex.Pattern;
 
 
 @Component
@@ -323,7 +324,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                         },
                         error -> {
                             log.error("Video generation failed", error);
-                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось сгенерировать видео: " + error.getMessage());
+                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
                             try {
                                 execute(errorMsg);
                                 userService.addBalance(user, 1);
@@ -348,10 +349,15 @@ public class SoraVideoBot extends TelegramWebhookBot {
             sendMainMenu(chatId, "У вас нет доступных генераций. Пополните баланс.");
             return;
         }
-        String fileId = message.getPhoto().stream()
-                .max((a, b) -> Integer.compare(a.getFileSize(), b.getFileSize()))
-                .map(PhotoSize::getFileId)
-                .orElse(null);
+        String fileId = null;
+        if (message.hasPhoto()) {
+            fileId = message.getPhoto().stream()
+                    .max((a, b) -> Integer.compare(a.getFileSize(), b.getFileSize()))
+                    .map(PhotoSize::getFileId)
+                    .orElse(null);
+        } else if (message.hasDocument()) {
+            fileId = message.getDocument().getFileId();
+        }
         if (fileId == null) {
             SendMessage errMsg = new SendMessage(String.valueOf(chatId), "Не удалось получить файл изображения.");
             execute(errMsg);
@@ -398,7 +404,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                         }
                     }, error -> {
                         log.error("Video generation from image failed", error);
-                        SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось сгенерировать видео из изображения: " + error.getMessage());
+                        SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
                         try {
                             execute(errorMsg);
                             userService.addBalance(user, 1);
@@ -412,6 +418,21 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(errMsg);
             userService.addBalance(user, 1);
         }
+    }
+
+    private String processFailedRequest(String reason) {
+        Pattern sensitiveContentPattern = Pattern.compile("harassment|discrimination|bullying|prohibited content");
+        Pattern photorealisticPeoplePattern = Pattern.compile("photorealistic people");
+        String errorMessage = "\uD83D\uDEA7 Генерация временно недоступна \uD83D\uDEA7\n" +
+                "Мы уже работаем над этим - попробуйте чуть позже или обратитесь в поддержку @helper_sora2";
+        if (sensitiveContentPattern.matcher(reason).find()) {
+            errorMessage = "\uD83D\uDD12 Ваш запрос заблокирован системой безопасности.\n" +
+                    "Похоже, в тексте есть фразы, которые модели нельзя генерировать.\n" +
+                    "Попробуйте переформулировать без чувствительного контента \uD83D\uDE4F";
+        } else if (photorealisticPeoplePattern.matcher(reason).find()) {
+            errorMessage = "Простите, но мы пока не можем генерировать видео по фото реальных людей. Мы исправимся, а пока попробуйте сгенерировать что-нибудь другое.";
+        }
+        return errorMessage;
     }
 
     private InlineKeyboardMarkup packageKeyboard() {
