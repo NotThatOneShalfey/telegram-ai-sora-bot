@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.*;
@@ -244,7 +246,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         User user = userService.findOrCreateUser(chatId);
         String text = "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты.\u2028Как только ролик будет готов, я пришлю его сюда! \uD83C\uDFAC\u2028\u2028\u2028***";
         SendMessage msg = new SendMessage(String.valueOf(chatId), text);
-        msg.setReplyMarkup(mainMenuKeyboard());
+        msg.setReplyMarkup(secondaryMenuKeyboard());
         execute(msg);
     }
 
@@ -292,12 +294,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendImageUploadPrompt(Long chatId, int balance) throws TelegramApiException {
-        String text = "✏\uFE0F Отправь мне сообщение вместе с изображением и я сгенерирую видео!";
+        String text = "✏\uFE0F Отправь мне сообщение вместе с изображением и я сгенерирую видео!\n"
+                + getQuotaMessageEntityElement(balance);
 //        String text = String.format(
 //                "Модель для генерации: Sora 2\nУ вас доступно %d генераций\n" +
 //                "Отправьте изображение для генерации видео (JPEG, PNG, WEBP).\n\n" +
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА", balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backToMenuKeyboard());
         execute(message);
     }
@@ -476,6 +480,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         rows.add(List.of(createButton("Сгенерировать видео по тексту", "main_generate_text")));
         rows.add(List.of(createButton("Сгенерировать видео по картинке", "main_generate_image")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
+        rows.add(List.of(createButton("Поддержка", "menu_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -486,6 +491,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         rows.add(List.of(createButton("Сгенерировать новое видео по тексту", "main_generate_text")));
         rows.add(List.of(createButton("Сгенерировать новое видео по картинке", "main_generate_image")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
+        rows.add(List.of(createButton("Поддержка", "menu_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -515,5 +521,21 @@ public class SoraVideoBot extends TelegramWebhookBot {
         button.setText(text);
         button.setCallbackData(callbackData);
         return button;
+    }
+
+    private String centerText(String text, int lineLength) {
+        String[] lines = text.split("\n");
+        StringBuilder sb = new StringBuilder();
+        for (String line : lines) {
+            int padding = (lineLength - line.length()) / 2;
+            sb.append(" ".repeat(Math.max(0, padding)));
+            sb.append(line);
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String getQuotaMessageEntityElement(int balance) {
+        return "> \uD83D\uDC8EУ вас осталось : %d генераций. \n> \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
     }
 }
