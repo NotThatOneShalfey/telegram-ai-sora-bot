@@ -545,6 +545,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String getQuotaMessageEntityElement(int balance) {
-        return "> \uD83D\uDC8EУ вас осталось : %d генераций. \n> \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
+        return "\\> \uD83D\uDC8EУ вас осталось : %d генераций. \n> \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
     }
 }
