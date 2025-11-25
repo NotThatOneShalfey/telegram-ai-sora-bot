@@ -36,6 +36,7 @@ public class UserSession {
 
     // Идем от последнего
     public SendMessage getLastMessageBeforeCall(Integer unixTime) {
+        log.trace("Message history = {}", orderedMessages);
         // Конвертим Unix время в localDateTime
         LocalDateTime ldt = Instant.ofEpochSecond(unixTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
         Iterator<OrderedMessageClass> iterator = orderedMessages.descendingIterator();
