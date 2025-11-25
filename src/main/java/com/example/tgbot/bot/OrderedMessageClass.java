@@ -1,15 +1,16 @@
 package com.example.tgbot.bot;
 
 
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDateTime;
 
 public class OrderedMessageClass implements Comparable<OrderedMessageClass> {
-    LocalDateTime timeSent;
-    SendMessage message;
+    private final LocalDateTime timeSent;
+    @Getter
+    private final SendMessage message;
 
     public OrderedMessageClass(SendMessage message, LocalDateTime dateTimeSent) {
         timeSent = dateTimeSent;

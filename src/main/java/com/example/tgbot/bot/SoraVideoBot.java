@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
@@ -20,7 +19,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +149,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(packageKeyboard());
-        session.putInMessageHistory(message);
+        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -180,7 +178,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "main_generate_text":
                 if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "У вас недостаточно генераций. Пожалуйста, пополните баланс.", session);
+                    sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                            "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
                     sendFormatSelection(chatId, user.getBalance(), session);
@@ -188,7 +187,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "main_generate_image":
                 if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "У вас недостаточно генераций. Пожалуйста, пополните баланс.", session);
+                    sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                            "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setState(BotState.WAITING_FOR_IMAGE_UPLOAD);
                     session.setSelectedFormat(null);
@@ -213,7 +213,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "format_back":
                 session.setState(BotState.INITIAL);
-                sendLastMessage(callback.getMessage().getDate(), session);
+                sendLastMessage(session);
                 break;
             case "menu_back":
                 session.setState(BotState.INITIAL);
@@ -246,7 +246,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
         msg.disableWebPagePreview();
-        session.putInMessageHistory(msg);
+        session.putMessageHistory(msg);
         execute(msg);
     }
 
@@ -258,7 +258,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(secondaryMenuKeyboard());
         msg.disableWebPagePreview();
-        session.putInMessageHistory(msg);
+        session.putMessageHistory(msg);
         execute(msg);
     }
 
@@ -274,7 +274,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
         msg.disableWebPagePreview();
-        session.putInMessageHistory(msg);
+        session.putMessageHistory(msg);
         execute(msg);
     }
 
@@ -284,9 +284,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
         if (text == null) {
             text = "Главное меню";
         }
-        SendMessage message = new SendMessage(String.valueOf(chatId), text + "\n\nОсталось генераций: " + user.getBalance());
+        SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(mainMenuKeyboard());
-        session.putInMessageHistory(message);
+        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -295,7 +295,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(secondaryMenuKeyboard());
-        session.putInMessageHistory(message);
+        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -303,7 +303,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
         SendMessage message = new SendMessage(String.valueOf(chatId), centerText(text, text.length()+20));
         message.setReplyMarkup(formatKeyboard());
-        session.putInMessageHistory(message);
+        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -318,7 +318,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
-        session.putInMessageHistory(message);
+        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -333,7 +333,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
-        session.putInMessageHistory(message);
+        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -355,7 +355,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         if (user.getBalance() <= 0) {
-            sendMainMenu(chatId, "У вас нет доступных генераций. Пополните баланс.", session);
+            sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                    "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
         try {
@@ -424,7 +425,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         if (user.getBalance() <= 0) {
-            sendMainMenu(chatId, "У вас нет доступных генераций. Пополните баланс.", session);
+            sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                    "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
         String fileId = null;
@@ -590,12 +592,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return markup;
     }
 
-    private void sendLastMessage(Integer unixTime, UserSession session) throws TelegramApiException {
-        SendMessage msg = session.getLastMessageBeforeCall(unixTime);
-        if (msg == null) {
-            log.trace("Something get wrong, last message is null");
-        }
-        execute(session.getLastMessageBeforeCall(unixTime));
+    private void sendLastMessage(UserSession session) throws TelegramApiException {
+        execute(session.getLastMessageBeforeCall());
     }
 
     private String getQuotaMessageEntityElement(int balance) {
