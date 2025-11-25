@@ -243,6 +243,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage msg = new SendMessage(String.valueOf(chatId), text);
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
+        msg.disableWebPagePreview();
         execute(msg);
     }
 
@@ -253,6 +254,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage msg = new SendMessage(String.valueOf(chatId), text);
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(secondaryMenuKeyboard());
+        msg.disableWebPagePreview();
         execute(msg);
     }
 
@@ -267,6 +269,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage msg = new SendMessage(String.valueOf(chatId), text);
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
+        msg.disableWebPagePreview();
         execute(msg);
     }
 
@@ -282,7 +285,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterGeneration(Long chatId, String prompt) throws TelegramApiException {
-        String text = "✅ Видео готово\\!\n\uD83D\uDCBE Промпт:\n\\> " + prompt;
+        String text = "✅ Видео готово\\!\n\uD83D\uDCBE Промпт:\n> " + prompt;
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(secondaryMenuKeyboard());
@@ -306,6 +309,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backToMenuKeyboard());
+        message.disableWebPagePreview();
         execute(message);
     }
 
@@ -319,6 +323,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backToMenuKeyboard());
+        message.disableWebPagePreview();
         execute(message);
     }
 
