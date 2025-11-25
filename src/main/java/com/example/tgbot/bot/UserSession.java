@@ -31,6 +31,7 @@ public class UserSession {
     }
 
     public SendMessage getLastMessageBeforeCall() {
+        log.trace("История сообщений: {}", messageHistory);
         if (messageHistory.isEmpty()) {
             return null;
         }
@@ -41,6 +42,7 @@ public class UserSession {
         } else {
             exactElement = messageHistory.lower(lastMessage);
         }
+        messageHistory.remove(exactElement);
         return exactElement.getMessage();
     }
 }
