@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.Instant;
@@ -16,6 +17,7 @@ import java.util.TreeSet;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Slf4j
 public class UserSession {
     private BotState state;
     private String selectedFormat; // e.g. "16:9" or "9:16"
@@ -29,6 +31,7 @@ public class UserSession {
             orderedMessages.remove(orderedMessages.first());
         }
         orderedMessages.add(omc);
+        log.trace("Message added to history: {}.{}", message.getChatId(), message.getText());
     }
 
     // Идем от последнего

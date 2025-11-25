@@ -588,6 +588,10 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendLastMessage(Integer unixTime, UserSession session) throws TelegramApiException {
+        SendMessage msg = session.getLastMessageBeforeCall(unixTime);
+        if (msg == null) {
+            log.trace("Something get wrong, last message is null");
+        }
         execute(session.getLastMessageBeforeCall(unixTime));
     }
 
