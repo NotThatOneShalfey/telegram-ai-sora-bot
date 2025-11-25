@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDateTime;
 
-@ToString
 public class OrderedMessageClass implements Comparable<OrderedMessageClass> {
     LocalDateTime timeSent;
     SendMessage message;
@@ -32,5 +31,12 @@ public class OrderedMessageClass implements Comparable<OrderedMessageClass> {
             return -1;
         }
         return 0;
+    }
+    @Override
+    public String toString() {
+        return "OrderedMessageClass(" +
+                "timeSent=" + timeSent + "," +
+                "message=" + message.getText() +
+                ")";
     }
 }

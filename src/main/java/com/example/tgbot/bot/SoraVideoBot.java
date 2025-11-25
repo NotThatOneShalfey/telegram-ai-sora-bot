@@ -110,7 +110,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 UserSession session = sessions.computeIfAbsent(chatId, id -> new UserSession(BotState.INITIAL, null));
                 // Обработка стартового сообщения
                 if (message.hasText() && message.getText().equalsIgnoreCase("/start")) {
-                    handleStart(chatId);
+                    handleStart(chatId, session);
                     return;
                 }
 
@@ -139,7 +139,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
 
-    private void handleStart(Long chatId) throws TelegramApiException {
+    private void handleStart(Long chatId, UserSession session) throws TelegramApiException {
         // Persist or retrieve the user
         User user = userService.findOrCreateUser(chatId);
         sessions.put(chatId, new UserSession(BotState.WAITING_FOR_PACKAGE_SELECTION, null));
@@ -151,6 +151,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(packageKeyboard());
+        session.putInMessageHistory(message);
         execute(message);
     }
 
