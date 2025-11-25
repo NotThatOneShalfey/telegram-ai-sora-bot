@@ -31,10 +31,16 @@ public class UserSession {
     }
 
     public SendMessage getLastMessageBeforeCall() {
-        OrderedMessageClass lastMessage = messageHistory.last();
-        if (messageHistory.size() < 2) {
-            return lastMessage.getMessage();
+        if (messageHistory.isEmpty()) {
+            return null;
         }
-        return messageHistory.lower(lastMessage).getMessage();
+        OrderedMessageClass lastMessage = messageHistory.last();
+        OrderedMessageClass exactElement;
+        if (messageHistory.size() < 2) {
+            exactElement = lastMessage;
+        } else {
+            exactElement = messageHistory.lower(lastMessage);
+        }
+        return exactElement.getMessage();
     }
 }

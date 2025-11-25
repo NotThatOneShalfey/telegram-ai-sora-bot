@@ -213,7 +213,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "format_back":
                 session.setState(BotState.INITIAL);
-                sendLastMessage(session);
+                sendLastMessage(chatId, session);
                 break;
             case "menu_back":
                 session.setState(BotState.INITIAL);
@@ -592,8 +592,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return markup;
     }
 
-    private void sendLastMessage(UserSession session) throws TelegramApiException {
-        execute(session.getLastMessageBeforeCall());
+    private void sendLastMessage(Long chatId, UserSession session) throws TelegramApiException {
+        SendMessage msg = session.getLastMessageBeforeCall();
+        if (msg == null) {
+            msg = new SendMessage(String.valueOf(chatId), "Простите, не могу найти историю сообщений...");
+        }
+        execute(msg);
     }
 
     private String getQuotaMessageEntityElement(int balance) {
