@@ -22,10 +22,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static jdk.vm.ci.meta.JavaKind.Char;
 
 
 @Component
