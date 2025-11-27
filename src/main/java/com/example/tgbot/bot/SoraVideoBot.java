@@ -254,7 +254,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
         User user = userService.findOrCreateUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
         String text = "Простите, оплата временно недоступна.";
-        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        text = text + getQuotaMessageEntityElement(user.getBalance());
+        SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setReplyMarkup(mainMenuKeyboard());
         session.putMessageHistory(msg);
         execute(msg);
@@ -623,6 +624,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             }
             sb.append(c);
         }
+        log.trace("Сообщение после установки экранирования: {}", sb);
         return sb.toString();
     }
 }
