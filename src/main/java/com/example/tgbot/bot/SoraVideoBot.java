@@ -157,16 +157,19 @@ public class SoraVideoBot extends TelegramWebhookBot {
         log.debug("Received callback {} from {}", data, chatId);
         switch (data) {
             case "package_1":
-                userService.addBalance(user, 1);
-                sendAfterPurchase(chatId, 1, session);
+                //userService.addBalance(user, 1);
+                //sendAfterPurchase(chatId, 1, session);
+                sendAfterPurchaseTemp(chatId, session);
                 break;
             case "package_5":
-                userService.addBalance(user, 5);
-                sendAfterPurchase(chatId, 5, session);
+//                userService.addBalance(user, 5);
+//                sendAfterPurchase(chatId, 5, session);
+                sendAfterPurchaseTemp(chatId, session);
                 break;
             case "package_50":
-                userService.addBalance(user, 50);
-                sendAfterPurchase(chatId, 50, session);
+//                userService.addBalance(user, 50);
+//                sendAfterPurchase(chatId, 50, session);
+                sendAfterPurchaseTemp(chatId, session);
                 break;
             case "package_gift":
                 userService.addBalance(user, 1);
@@ -242,6 +245,17 @@ public class SoraVideoBot extends TelegramWebhookBot {
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
         msg.disableWebPagePreview();
+        session.putMessageHistory(msg);
+        execute(msg);
+    }
+
+    // TODO Это убрать как только оплату прикрутим
+    private void sendAfterPurchaseTemp(Long chatId, UserSession session) throws TelegramApiException {
+        User user = userService.findOrCreateUser(chatId);
+        sessions.get(chatId).setState(BotState.INITIAL);
+        String text = "Простите, оплата временно недоступна.";
+        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        msg.setReplyMarkup(mainMenuKeyboard());
         session.putMessageHistory(msg);
         execute(msg);
     }
@@ -513,7 +527,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         rows.add(List.of(createButton("1 видео (10 секунд) 69 руб", "package_1")));
         rows.add(List.of(createButton("5 видео (10 секунд) 300 руб", "package_5")));
         rows.add(List.of(createButton("50 видео (10 секунд) 2500 руб", "package_50")));
-        rows.add(List.of(createButton("Получить подарок", "package_gift")));
+        //rows.add(List.of(createButton("Получить подарок", "package_gift")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
