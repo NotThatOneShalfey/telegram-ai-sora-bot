@@ -19,12 +19,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static jdk.vm.ci.meta.JavaKind.Char;
 
 
 @Component
@@ -57,8 +58,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     @Value("${telegram.bot.webhook-path:}")
     private String webhookPath;
-
-    private final
 
     @PostConstruct
     void init() {
@@ -233,16 +232,16 @@ public class SoraVideoBot extends TelegramWebhookBot {
         User user = userService.findOrCreateUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
         String text = String.format("""
-                \uD83C\uDF89 Спасибо за оплату\\!
+                \uD83C\uDF89 Спасибо за оплату!
 
-                Ты пополнил баланс и получил %d генераций видео\\.
-                ✨ Теперь можно создавать ролики по тексту или картинке — 10 секунд, 720p\\.
+                Ты пополнил баланс и получил %d генераций видео.
+                ✨ Теперь можно создавать ролики по тексту или картинке — 10 секунд, 720p.
                 """, purchasedAmount);
         text = text + getQuotaMessageEntityElement(user.getBalance());
 //        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
-        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
         msg.disableWebPagePreview();
@@ -252,9 +251,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private void sendAfterVideoGeneration(Long chatId, UserSession session) throws TelegramApiException {
         User user = userService.findOrCreateUser(chatId);
-        String text = "⏳ Отлично\\! Я получил твоё описание\\. Генерация видео займёт \\~3 минуты\\. Как только ролик будет готов, я пришлю его сюда\\! \uD83C\uDFAC"
+        String text = "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только ролик будет готов, я пришлю его сюда! \uD83C\uDFAC"
                 + getQuotaMessageEntityElement(user.getBalance());
-        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(secondaryMenuKeyboard());
         msg.disableWebPagePreview();
@@ -265,12 +264,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void sendAfterGift(Long chatId, int balance, UserSession session) throws TelegramApiException {
         User user = userService.findOrCreateUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
-        String text = "\uD83C\uDF81 Поздравляем\\!\n\nТы получил 1 бесплатную генерацию видео\\!✨\nТеперь можешь создать ролик по тексту или картинке\\."
+        String text = "\uD83C\uDF81 Поздравляем!\n\nТы получил 1 бесплатную генерацию видео!✨\nТеперь можешь создать ролик по тексту или картинке."
                 + getQuotaMessageEntityElement(balance);
 //        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
-        SendMessage msg = new SendMessage(String.valueOf(chatId), text);
+        SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
         msg.disableWebPagePreview();
@@ -291,8 +290,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterGeneration(Long chatId, String prompt, UserSession session) throws TelegramApiException {
-        String text = "✅ Видео готово\\!\n\uD83D\uDCBE Промпт:\n> " + prompt;
-        SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        String text = "✅ Видео готово!\n\uD83D\uDCBE Промпт:\n> " + prompt;
+        SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(secondaryMenuKeyboard());
         session.putMessageHistory(message);
@@ -308,13 +307,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendDescriptionPrompt(Long chatId, int balance, UserSession session) throws TelegramApiException {
-        String text = "✏ Отправь мне сообщение и я сгенерирую видео\\!"
+        String text = "✏ Отправь мне сообщение и я сгенерирую видео!"
                 + getQuotaMessageEntityElement(balance);
 //        String text = String.format(
 //                "Модель для генерации Sora 2\nУ вас доступно %d генераций\nВведите описание своего видео.\n\n" +
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Гайд по генерации видео", balance);
-        SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
@@ -323,13 +322,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendImageUploadPrompt(Long chatId, int balance, UserSession session) throws TelegramApiException {
-        String text = "✏ Отправь мне сообщение вместе с изображением и я сгенерирую видео\\!"
+        String text = "✏ Отправь мне сообщение вместе с изображением и я сгенерирую видео!"
                 + getQuotaMessageEntityElement(balance);
 //        String text = String.format(
 //                "Модель для генерации: Sora 2\nУ вас доступно %d генераций\n" +
 //                "Отправьте изображение для генерации видео (JPEG, PNG, WEBP).\n\n" +
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА", balance);
-        SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
@@ -601,6 +600,18 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String getQuotaMessageEntityElement(int balance) {
-        return "\n\n> \uD83D\uDC8EУ вас осталось : %d генераций\\. \n> \uD83D\uDCE9 Примеры и советы: https://t\\.me/sora2examples".formatted(balance);
+        return "\n\n> \uD83D\uDC8EУ вас осталось : %d генераций. \n> \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
+    }
+
+    private String makeCharacterEscapingForMarkdown(String str) {
+        Set<Character> charsToEscape = new HashSet<>(Arrays.asList('_', '*', '[', ']', '(', ')', '~', '`', '>' , '#', '+', '-', '=', '|', '{', '}', '.'));
+        StringBuilder sb = new StringBuilder();
+        for (char c : str.toCharArray()) {
+            if (charsToEscape.contains(c)) {
+                sb.append("\\");
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 }
