@@ -302,7 +302,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterGeneration(Long chatId, String prompt, UserSession session) throws TelegramApiException {
-        String text = "✅ Видео готово!\n\uD83D\uDCBE Промпт:\n> " + prompt;
+        String text = "✅ Видео готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(secondaryMenuKeyboard());
@@ -612,7 +612,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String getQuotaMessageEntityElement(int balance) {
-        return "\n\n> \uD83D\uDC8EУ вас осталось : %d генераций. \n> \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
+        return "\n\n > \uD83D\uDC8EУ вас осталось : %d генераций. \n > \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
     }
 
     private String makeCharacterEscapingForMarkdown(String str) {
