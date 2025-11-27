@@ -616,7 +616,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String makeCharacterEscapingForMarkdown(String str) {
-        Set<Character> charsToEscape = new HashSet<>(Arrays.asList('_', '*', '[', ']', '(', ')', '~', '`', '>' , '#', '+', '-', '=', '|', '{', '}', '.'));
+        Set<Character> charsToEscape = new HashSet<>(Arrays.asList('_', '*', '[', ']', '(', ')', '~', '`', '>' , '#', '+', '-', '=', '|', '{', '}', '.', '!'));
         StringBuilder sb = new StringBuilder();
         for (char c : str.toCharArray()) {
             if (charsToEscape.contains(c)) {
