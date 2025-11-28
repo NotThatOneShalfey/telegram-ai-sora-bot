@@ -3,7 +3,7 @@ name: Build Docker images and Deploy to cloud server
 on:
   push:
     branches:
-      - master
+      - release
 
 jobs:
   build-and-deploy:

@@ -620,7 +620,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         StringBuilder sb = new StringBuilder();
         for (char c : str.toCharArray()) {
             if (charsToEscape.contains(c)) {
-                sb.append("\\");
+                sb.append("\\\\");
             }
             sb.append(c);
         }
