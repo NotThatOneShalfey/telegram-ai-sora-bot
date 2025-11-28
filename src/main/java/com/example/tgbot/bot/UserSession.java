@@ -32,6 +32,7 @@ public class UserSession {
 
     public SendMessage getLastMessageBeforeCall() {
         log.trace("История сообщений: {}", messageHistory);
+
         if (messageHistory.isEmpty()) {
             return null;
         }
