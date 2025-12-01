@@ -1,1 +1,4 @@
 .env
+pgdata
+docker-compose.dev.yml
+docker-compose.release.yml

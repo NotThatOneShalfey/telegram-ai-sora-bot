@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/telegram_video_bot}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:mysecretpassword}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -16,18 +16,18 @@ spring:
 
 telegram:
   bot:
-    name: ${TELEGRAM_BOT_USERNAME:video_generationTest_bot}
-    token: ${TELEGRAM_BOT_TOKEN:}
-    webhook-path: ${TELEGRAM_BOT_WEBHOOK_PATH:}
-    webhook-base-url: ${TELEGRAM_BOT_WEBHOOK_BASE_URL:}
+    name: ${TELEGRAM_BOT_USERNAME}
+    token: ${TELEGRAM_BOT_TOKEN}
+    webhook-path: ${TELEGRAM_BOT_WEBHOOK_PATH}
+    webhook-base-url: ${TELEGRAM_BOT_WEBHOOK_BASE_URL}
 
 
 kieai:
-  api-key: ${KIEAI_API_KEY:}
+  api-key: ${KIEAI_API_KEY}
 
 logging:
   level:
-    com.example.tgbot: trace
+    com.example.tgbot: ${APPLICATION_LOGGING_LEVEL}
 
 server:
-  port: 8080
+  port: ${APPLICATION_PORT}
