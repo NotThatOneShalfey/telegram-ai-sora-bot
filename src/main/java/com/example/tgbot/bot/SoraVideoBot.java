@@ -649,7 +649,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         String providerToken = "381764678:TEST:145017"; // Получите у выбранного платежного провайдера
 
         List<LabeledPrice> prices = new ArrayList<>();
-        prices.add(new LabeledPrice("Товар X", 500)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
+        prices.add(new LabeledPrice("Товар X", 8100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
 
         SendInvoice invoice = SendInvoice.builder()
                 .chatId(chatId.toString())
