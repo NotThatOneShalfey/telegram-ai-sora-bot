@@ -11,13 +11,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramBot;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,6 +102,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 return;
             }
 
+            // Если подтверждение оплаты
+            if (update.hasPreCheckoutQuery()) {
+                handlePreCheckout(update.getPreCheckoutQuery().getId());
+                return;
+            }
+
             if (update.hasMessage()) {
                 Message message = update.getMessage();
                 Long chatId = message.getChatId();
@@ -106,6 +116,10 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 if (message.hasText() && message.getText().equalsIgnoreCase("/start")) {
                     handleStart(chatId, session);
                     return;
+                }
+                // Обработка оплаты
+                if (message.hasText() && message.getText().equalsIgnoreCase("/pay")) {
+                    sendInvoice(chatId);
                 }
 
                 // Если в сообщении есть документ (так можно посылать фото) и указано, что это image
@@ -626,5 +640,43 @@ public class SoraVideoBot extends TelegramWebhookBot {
         }
         log.trace("Сообщение после установки экранирования: {}", sb);
         return sb.toString();
+    }
+
+    private void sendInvoice(Long chatId) {
+        String title = "Пример оплаты";
+        String description = "Описание товара или услуги";
+        String payload = "ваш_уникальный_payload"; // Можно использовать для идентификации заказа
+        String providerToken = "381764678:TEST:145017"; // Получите у выбранного платежного провайдера
+
+        List<LabeledPrice> prices = new ArrayList<>();
+        prices.add(new LabeledPrice("Товар X", 500)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
+
+        SendInvoice invoice = SendInvoice.builder()
+                .chatId(chatId.toString())
+                .title(title)
+                .description(description)
+                .payload(payload)
+                .providerToken(providerToken)
+                .startParameter("test") // параметр для запусков
+                .prices(prices)
+                .currency("RUB") // валюта
+                .build();
+        try {
+            execute(invoice);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handlePreCheckout(String preCheckoutQueryId) {
+        // Подтверждаем оплату
+        try {
+            execute(AnswerPreCheckoutQuery.builder()
+                    .preCheckoutQueryId(preCheckoutQueryId)
+                    .ok(true)
+                    .build());
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 }
