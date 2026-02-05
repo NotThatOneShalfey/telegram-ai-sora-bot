@@ -119,7 +119,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 // Обработка оплаты
                 if (message.hasText() && message.getText().equalsIgnoreCase("/pay")) {
-                    sendInvoice(chatId);
+                    sendInvoice(chatId, 81*100);
+                    return;
                 }
 
                 // Если в сообщении есть документ (так можно посылать фото) и указано, что это image
@@ -173,17 +174,20 @@ public class SoraVideoBot extends TelegramWebhookBot {
             case "package_1":
                 //userService.addBalance(user, 1);
                 //sendAfterPurchase(chatId, 1, session);
-                sendAfterPurchaseTemp(chatId, session);
+                //sendAfterPurchaseTemp(chatId, session);
+                sendInvoice(chatId, 81*100);
                 break;
             case "package_5":
 //                userService.addBalance(user, 5);
 //                sendAfterPurchase(chatId, 5, session);
-                sendAfterPurchaseTemp(chatId, session);
+                //sendAfterPurchaseTemp(chatId, session);
+                sendInvoice(chatId, 350*100);
                 break;
             case "package_50":
 //                userService.addBalance(user, 50);
 //                sendAfterPurchase(chatId, 50, session);
-                sendAfterPurchaseTemp(chatId, session);
+                //sendAfterPurchaseTemp(chatId, session);
+                sendInvoice(chatId, 3000*100);
                 break;
             case "package_gift":
                 userService.addBalance(user, 1);
@@ -539,9 +543,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private InlineKeyboardMarkup packageKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        rows.add(List.of(createButton("1 видео (10 секунд) 69 руб", "package_1")));
-        rows.add(List.of(createButton("5 видео (10 секунд) 300 руб", "package_5")));
-        rows.add(List.of(createButton("50 видео (10 секунд) 2500 руб", "package_50")));
+        rows.add(List.of(createButton("1 видео (10 секунд) 81 руб", "package_1")));
+        rows.add(List.of(createButton("5 видео (10 секунд) 350 руб", "package_5")));
+        rows.add(List.of(createButton("50 видео (10 секунд) 3000 руб", "package_50")));
         //rows.add(List.of(createButton("Получить подарок", "package_gift")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
@@ -642,15 +646,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return sb.toString();
     }
 
-    private void sendInvoice(Long chatId) {
+    private void sendInvoice(Long chatId, Integer amount) {
         String title = "Пример оплаты";
-        String description = "Описание товара или услуги";
+        String description = "Покупка генерации видео";
         String payload = "ваш_уникальный_payload"; // Можно использовать для идентификации заказа
         String providerToken = "381764678:TEST:145017"; // Получите у выбранного платежного провайдера
 
         List<LabeledPrice> prices = new ArrayList<>();
         prices.add(new LabeledPrice("Товар X", 8100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
-
         SendInvoice invoice = SendInvoice.builder()
                 .chatId(chatId.toString())
                 .title(title)
