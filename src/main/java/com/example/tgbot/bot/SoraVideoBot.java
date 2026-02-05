@@ -104,6 +104,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
             // Если подтверждение оплаты
             if (update.hasPreCheckoutQuery()) {
+                log.trace("update has preCheckoutQuery");
                 handlePreCheckout(update.getPreCheckoutQuery().getId());
                 return;
             }
@@ -119,7 +120,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 // Обработка оплаты
                 if (message.hasText() && message.getText().equalsIgnoreCase("/pay")) {
-                    sendInvoice(chatId, 81);
+                    sendInvoice(chatId, 81, "\"1 видео\"");
                     return;
                 }
 
@@ -175,19 +176,19 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 //userService.addBalance(user, 1);
                 //sendAfterPurchase(chatId, 1, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 81);
+                sendInvoice(chatId, 81, "\"1 генерация\"");
                 break;
             case "package_5":
 //                userService.addBalance(user, 5);
 //                sendAfterPurchase(chatId, 5, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 350);
+                sendInvoice(chatId, 350, "\"5 генераций\"");
                 break;
             case "package_50":
 //                userService.addBalance(user, 50);
 //                sendAfterPurchase(chatId, 50, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 3000);
+                sendInvoice(chatId, 3000, "\"50 генераций\"");
                 break;
             case "package_gift":
                 userService.addBalance(user, 1);
@@ -646,14 +647,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return sb.toString();
     }
 
-    private void sendInvoice(Long chatId, Integer amount) {
+    private void sendInvoice(Long chatId, Integer amount, String productName) {
         String title = "Покупка пакета";
         String description = "Покупка генерации видео";
         String payload = "ваш_уникальный_payload"; // Можно использовать для идентификации заказа
         String providerToken = "381764678:TEST:145017"; // Получите у выбранного платежного провайдера
 
         List<LabeledPrice> prices = new ArrayList<>();
-        prices.add(new LabeledPrice("Товар X", amount*100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
+        prices.add(new LabeledPrice("Пакет " + productName, amount*100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
         SendInvoice invoice = SendInvoice.builder()
                 .chatId(chatId.toString())
                 .title(title)
