@@ -675,10 +675,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void handlePreCheckout(String preCheckoutQueryId) {
         // Подтверждаем оплату
         try {
-            execute(AnswerPreCheckoutQuery.builder()
+            AnswerPreCheckoutQuery answer = AnswerPreCheckoutQuery.builder()
                     .preCheckoutQueryId(preCheckoutQueryId)
                     .ok(true)
-                    .build());
+                    .build();
+            execute(answer);
+            log.trace("AnswerPreCheckoutQuery: {}", answer);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
