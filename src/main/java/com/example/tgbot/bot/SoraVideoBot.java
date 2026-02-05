@@ -119,7 +119,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 // Обработка оплаты
                 if (message.hasText() && message.getText().equalsIgnoreCase("/pay")) {
-                    sendInvoice(chatId, 81*100);
+                    sendInvoice(chatId, 81);
                     return;
                 }
 
@@ -175,19 +175,19 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 //userService.addBalance(user, 1);
                 //sendAfterPurchase(chatId, 1, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 81*100);
+                sendInvoice(chatId, 81);
                 break;
             case "package_5":
 //                userService.addBalance(user, 5);
 //                sendAfterPurchase(chatId, 5, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 350*100);
+                sendInvoice(chatId, 350);
                 break;
             case "package_50":
 //                userService.addBalance(user, 50);
 //                sendAfterPurchase(chatId, 50, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 3000*100);
+                sendInvoice(chatId, 3000);
                 break;
             case "package_gift":
                 userService.addBalance(user, 1);
@@ -647,13 +647,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendInvoice(Long chatId, Integer amount) {
-        String title = "Пример оплаты";
+        String title = "Покупка пакета";
         String description = "Покупка генерации видео";
         String payload = "ваш_уникальный_payload"; // Можно использовать для идентификации заказа
         String providerToken = "381764678:TEST:145017"; // Получите у выбранного платежного провайдера
 
         List<LabeledPrice> prices = new ArrayList<>();
-        prices.add(new LabeledPrice("Товар X", 8100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
+        prices.add(new LabeledPrice("Товар X", amount*100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
         SendInvoice invoice = SendInvoice.builder()
                 .chatId(chatId.toString())
                 .title(title)
