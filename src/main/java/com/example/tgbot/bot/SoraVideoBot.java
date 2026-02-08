@@ -23,6 +23,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramBot;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -674,15 +677,21 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private void handlePreCheckout(String preCheckoutQueryId) {
         // Подтверждаем оплату
+        long execTime = 0L;
         try {
             AnswerPreCheckoutQuery answer = AnswerPreCheckoutQuery.builder()
                     .preCheckoutQueryId(preCheckoutQueryId)
                     .ok(true)
                     .build();
+            long startTime = System.currentTimeMillis();
             execute(answer);
+            long endTime = System.currentTimeMillis();
+            execTime = endTime - startTime;
             log.trace("AnswerPreCheckoutQuery: {}", answer);
         } catch (TelegramApiException e) {
             log.error("Ошибка при отправке подтверждения", e);
+        } finally {
+            log.trace("Exec time in millis: {}", execTime);
         }
     }
 }

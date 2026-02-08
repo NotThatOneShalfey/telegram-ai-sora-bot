@@ -35,9 +35,4 @@ public class WebhookController {
         log.debug("Test method called");
         return ResponseEntity.ok().body("Hello world!");
     }
-
-    @PostMapping("/**")
-    public void anyPostLogging(HttpServletRequest request, @RequestBody(required = false) String body) {
-        log.trace("Any post /telegram/** request: path={}\nbody={}", request.getRequestURI(), body);
-    }
 }
