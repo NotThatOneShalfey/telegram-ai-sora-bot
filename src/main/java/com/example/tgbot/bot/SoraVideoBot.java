@@ -1,5 +1,6 @@
 package com.example.tgbot.bot;
 
+import com.example.tgbot.data.PaidPackage;
 import com.example.tgbot.model.User;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.service.VideoGenerationService;
@@ -126,8 +127,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 // Обработка оплаты
                 if (message.hasText() && message.getText().equalsIgnoreCase("/pay")) {
-                    sendInvoice(chatId, 81, "\"1 видео\"");
+                    sendInvoice(chatId, PaidPackage.PACKAGE_1);
                     return;
+                }
+
+                // Если завершение оплаты
+                if (message.getSuccessfulPayment() != null) {
+                    message.getSuccessfulPayment().getInvoicePayload()
                 }
 
                 // Если в сообщении есть документ (так можно посылать фото) и указано, что это image
@@ -182,19 +188,19 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 //userService.addBalance(user, 1);
                 //sendAfterPurchase(chatId, 1, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 81, "\"1 генерация\"");
+                sendInvoice(chatId, PaidPackage.PACKAGE_1);
                 break;
             case "package_5":
 //                userService.addBalance(user, 5);
 //                sendAfterPurchase(chatId, 5, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 350, "\"5 генераций\"");
+                sendInvoice(chatId, PaidPackage.PACKAGE_5);
                 break;
             case "package_50":
 //                userService.addBalance(user, 50);
 //                sendAfterPurchase(chatId, 50, session);
                 //sendAfterPurchaseTemp(chatId, session);
-                sendInvoice(chatId, 3000, "\"50 генераций\"");
+                sendInvoice(chatId, PaidPackage.PACKAGE_50);
                 break;
             case "package_gift":
                 userService.addBalance(user, 1);
@@ -312,6 +318,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
+    }
+
+    private void addPackage(Long chatId, String packageName, UserSession session) throws TelegramApiException {
+        User user = userService.findOrCreateUser(chatId);
+        userService.addBalance(user, PaidPackage.getPackagePriceByName(packageName));
     }
 
 
@@ -654,13 +665,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return sb.toString();
     }
 
-    private void sendInvoice(Long chatId, Integer amount, String productName) {
+    private void sendInvoice(Long chatId, PaidPackage pack) {
         String title = "Покупка пакета";
         String description = "Покупка генерации видео";
-        String payload = "ваш_уникальный_payload"; // Можно использовать для идентификации заказа
+        String payload = pack.getPackageName(); // Можно использовать для идентификации заказа
 
         List<LabeledPrice> prices = new ArrayList<>();
-        prices.add(new LabeledPrice("Пакет " + productName, amount*100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
+        prices.add(new LabeledPrice("Пакет " + pack.getPackageName(), pack.getPrice()*100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
         SendInvoice invoice = SendInvoice.builder()
                 .chatId(chatId.toString())
                 .title(title)
