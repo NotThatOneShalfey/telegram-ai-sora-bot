@@ -682,7 +682,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(answer);
             log.trace("AnswerPreCheckoutQuery: {}", answer);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error("Ошибка при отправке подтверждения", e);
         }
     }
 }
