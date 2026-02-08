@@ -553,6 +553,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         rows.add(List.of(createButton("1 видео (10 секунд) 81 руб", "package_1")));
         rows.add(List.of(createButton("5 видео (10 секунд) 350 руб", "package_5")));
         rows.add(List.of(createButton("50 видео (10 секунд) 3000 руб", "package_50")));
+        rows.add(List.of(createButton("Главное меню", "menu_back")));
         //rows.add(List.of(createButton("Получить подарок", "package_gift")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
