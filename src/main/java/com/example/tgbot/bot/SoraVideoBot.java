@@ -63,6 +63,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
     @Value("${telegram.bot.webhook-path:}")
     private String webhookPath;
 
+    @Value("${telegram.bot.payment-token:}")
+    private String providerToken;
+
     @PostConstruct
     void init() {
         log.info("SoraVideoBot initialized with name {}", botName);
@@ -654,7 +657,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
         String title = "Покупка пакета";
         String description = "Покупка генерации видео";
         String payload = "ваш_уникальный_payload"; // Можно использовать для идентификации заказа
-        String providerToken = "381764678:TEST:145017"; // Получите у выбранного платежного провайдера
 
         List<LabeledPrice> prices = new ArrayList<>();
         prices.add(new LabeledPrice("Пакет " + productName, amount*100)); // цена в копейках (например, 500 = 5.00 у валюты в копейках)
