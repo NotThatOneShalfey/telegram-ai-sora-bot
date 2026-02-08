@@ -3,6 +3,7 @@ package com.example.tgbot.controllers;
 import com.example.tgbot.bot.SoraVideoBot;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -33,5 +34,10 @@ public class WebhookController {
     public ResponseEntity<String> test() {
         log.debug("Test method called");
         return ResponseEntity.ok().body("Hello world!");
+    }
+
+    @PostMapping("/**")
+    public void anyPostLogging(HttpServletRequest request, @RequestBody(required = false) String body) {
+        log.trace("Any post /telegram/** request: path={}\nbody={}", request.getRequestURI(), body);
     }
 }
