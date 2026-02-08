@@ -133,7 +133,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
                 // Если завершение оплаты
                 if (message.getSuccessfulPayment() != null) {
-                    message.getSuccessfulPayment().getInvoicePayload()
+                    addPackage(chatId, message.getSuccessfulPayment().getInvoicePayload(), session);
                 }
 
                 // Если в сообщении есть документ (так можно посылать фото) и указано, что это image
