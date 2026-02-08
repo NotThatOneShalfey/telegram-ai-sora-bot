@@ -16,5 +16,6 @@ public class LoggingFilter implements Filter {
         String path = req.getRequestURI();
         String queryString = req.getQueryString();
         log.trace("Any request: path={}", path);
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 }
