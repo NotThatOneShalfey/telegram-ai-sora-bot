@@ -686,7 +686,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     .ok(true)
                     .build();
             long startTime = System.currentTimeMillis();
-            execute(answer);
+            Object o = execute(answer);
+            log.trace("Execute answer = {}", o.toString());
             long endTime = System.currentTimeMillis();
             execTime = endTime - startTime;
             log.trace("AnswerPreCheckoutQuery: {}", answer);
