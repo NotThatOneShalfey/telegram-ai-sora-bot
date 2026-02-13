@@ -24,7 +24,7 @@ public class UserService {
         }
         User newUser = User.builder()
                 .telegramId(telegramId)
-                .balance(0)
+                .balance(1)
                 .build();
         return userRepository.save(newUser);
     }

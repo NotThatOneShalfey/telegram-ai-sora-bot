@@ -134,6 +134,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 // Если завершение оплаты
                 if (message.getSuccessfulPayment() != null) {
                     addPackage(chatId, message.getSuccessfulPayment().getInvoicePayload(), session);
+                    sendMainMenu(chatId, "Оплата успешно зафиксирована!", session);
                     return;
                 }
 
@@ -170,10 +171,16 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "Я могу сгенерировать 10-секундный ролик по твоему описанию или картинке.\n" +
                 "\uD83D\uDCA1 Как это работает:\n" +
                 "1️⃣ Отправь мне текст или изображение с идеей видео.\n" +
-                "2️⃣ Я превращу твою идею в короткий красивый ролик.\n" +
-                "\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
-        SendMessage message = new SendMessage(String.valueOf(chatId), text);
-        message.setReplyMarkup(packageKeyboard());
+                "2️⃣ Я превращу твою идею в короткий красивый ролик.";
+        SendMessage message = new SendMessage();
+        if (user.getBalance() == 0) {
+            text = text + "\n\uD83D\uDCB3 Чтобы начать, нажми одну из кнопок ниже для оплаты:";
+            message.setReplyMarkup(packageKeyboard());
+        } else {
+            message.setReplyMarkup(mainMenuKeyboard());
+        }
+        message.setChatId(String.valueOf(chatId));
+        message.setText(text);
         session.putMessageHistory(message);
         execute(message);
     }
@@ -248,7 +255,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "menu_back":
                 session.setState(BotState.INITIAL);
-                sendMainMenu(chatId, "Возвращаюсь в главное меню.", session);
+                sendMainMenu(chatId, "Sora 2 — генерация видео. Начнём?", session);
                 break;
             default:
 
@@ -578,7 +585,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
         rows.add(List.of(createButton("Сгенерировать видео по тексту", "main_generate_text")));
         rows.add(List.of(createButton("Сгенерировать видео по картинке", "main_generate_image")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
-        rows.add(List.of(createButton("Поддержка", "menu_back")));
+        rows.add(List.of(getSupportButton()));
+        //rows.add(List.of(createButton("Поддержка", "menu_back").setUrl("t.me/helper_sora2?text=")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -589,7 +597,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
         rows.add(List.of(createButton("Сгенерировать новое видео по тексту", "main_generate_text")));
         rows.add(List.of(createButton("Сгенерировать новое видео по картинке", "main_generate_image")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
-        rows.add(List.of(createButton("Поддержка", "menu_back")));
+        rows.add(List.of(getSupportButton()));
+        //rows.add(List.of(createButton("Поддержка", "menu_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -709,5 +718,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
         } finally {
             log.trace("Exec time in millis: {}", execTime);
         }
+    }
+
+    private InlineKeyboardButton getSupportButton() {
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Поддержка");
+        button.setUrl("t.me/helper_sora2?text=");
+        return button;
     }
 }
