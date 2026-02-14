@@ -339,6 +339,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         if (text == null) {
             text = "Главное меню";
         }
+        text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
         message.setReplyMarkup(mainMenuKeyboard());
         session.putMessageHistory(message);
