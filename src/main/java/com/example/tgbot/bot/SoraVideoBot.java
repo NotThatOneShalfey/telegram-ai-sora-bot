@@ -296,6 +296,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setReplyMarkup(mainMenuKeyboard());
+        msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
     }
@@ -343,6 +344,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(mainMenuKeyboard());
+        message.disableWebPagePreview();
         session.putMessageHistory(message);
         execute(message);
     }
@@ -665,7 +667,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String makeCharacterEscapingForMarkdown(String str) {
-        Set<Character> charsToEscape = new HashSet<>(Arrays.asList('_', '*', '[', ']', '(', ')', '~', '`', '>' , '#', '+', '-', '=', '|', '{', '}', '.', '!'));
+        Set<Character> charsToEscape = new HashSet<>(Arrays.asList('_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'));
         StringBuilder sb = new StringBuilder();
         for (char c : str.toCharArray()) {
             if (charsToEscape.contains(c)) {
