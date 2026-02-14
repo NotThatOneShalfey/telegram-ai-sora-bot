@@ -559,6 +559,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private String processFailedRequest(String reason) {
         Pattern sensitiveContentPattern = Pattern.compile("harassment|discrimination|bullying|prohibited content");
         Pattern photorealisticPeoplePattern = Pattern.compile("photorealistic people");
+        Pattern thirdPartyContentViolation = Pattern.compile("third-party content");
         String errorMessage = "\uD83D\uDEA7 Генерация временно недоступна \uD83D\uDEA7\n" +
                 "Мы уже работаем над этим - попробуйте чуть позже или обратитесь в поддержку @helper_sora2";
         if (sensitiveContentPattern.matcher(reason).find()) {
@@ -567,6 +568,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     "Попробуйте переформулировать без чувствительного контента \uD83D\uDE4F";
         } else if (photorealisticPeoplePattern.matcher(reason).find()) {
             errorMessage = "Простите, но мы пока не можем генерировать видео по фото реальных людей. Мы исправимся, а пока попробуйте сгенерировать что-нибудь другое.";
+        } else if (thirdPartyContentViolation.matcher(reason).find()) {
+            errorMessage = "Простите, но мы не можем генерировать видео с персонажами, защищенными авторскими правами, попробуйте сгенерировать что-нибудь другое.";
         }
         return errorMessage;
     }
