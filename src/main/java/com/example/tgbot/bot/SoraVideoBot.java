@@ -341,6 +341,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         }
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(mainMenuKeyboard());
         session.putMessageHistory(message);
         execute(message);
