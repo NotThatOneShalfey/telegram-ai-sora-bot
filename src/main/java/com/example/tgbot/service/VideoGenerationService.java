@@ -184,7 +184,7 @@ public class VideoGenerationService {
                     log.trace("-> Poll #1 for response, taskId={}, response={}", taskId, r);
                     switch (state) {
                         case "success":
-                            return Mono.empty(); // задача завершена
+                            return Mono.just(r); // задача завершена
                         case "fail":
                             return Mono.error(new IllegalStateException(d.getFailMsg()));
                         case "waiting":
@@ -202,7 +202,7 @@ public class VideoGenerationService {
                     log.trace("-> Poll #{} for response, taskId={}, response={}", pollExpandCounter.incrementAndGet(), taskId, r);
                     switch (state) {
                         case "success":
-                            return Mono.empty(); // задача завершена
+                            return Mono.just(r); // задача завершена
                         case "fail":
                             return Mono.error(new IllegalStateException(d.getFailMsg()));
                         case "waiting":

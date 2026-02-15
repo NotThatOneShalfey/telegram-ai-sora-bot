@@ -329,7 +329,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private void sendAfterVideoGeneration(Long chatId, UserSession session) throws TelegramApiException {
         User user = userService.findOrCreateUser(chatId);
-        String text = "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только ролик будет готов, я пришлю его сюда! \uD83C\uDFAC"
+        String text = "⏳ Отлично! Я получил твоё описание. Генерация займёт ~3 минуты. Как только будет готово, я пришлю тебе сообщение! \uD83C\uDFAC"
                 + getQuotaMessageEntityElement(user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
