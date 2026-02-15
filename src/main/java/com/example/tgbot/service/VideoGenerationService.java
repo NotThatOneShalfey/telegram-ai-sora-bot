@@ -82,6 +82,9 @@ public class VideoGenerationService {
         input.put("duration", "8");
         input.put("image_urls", new String[]{imageUrl});
         input.put("aspect_ratio", format);
+        input.put("multi_shots", false);
+        input.put("sound", true);
+
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "kling-3.0/video");
