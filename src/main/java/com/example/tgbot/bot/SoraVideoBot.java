@@ -392,7 +392,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void sendFormatSelection(Long chatId, int balance, UserSession session) throws TelegramApiException {
         String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
         SendMessage message = new SendMessage(String.valueOf(chatId), centerText(text, text.length()+20));
-        message.setReplyMarkup(mainMenuKeyboard());
+        message.setReplyMarkup(backButton());
         session.putMessageHistory(message);
         execute(message);
     }
@@ -429,7 +429,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         text = text + getQuotaMessageEntityElement(balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(mainMenuKeyboard());
+        message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
         session.putMessageHistory(message);
         execute(message);
@@ -719,7 +719,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private InlineKeyboardMarkup backButton() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        rows.add(List.of(createButton("Назад", "format_back")));
+        rows.add(List.of(createButton("Главное меню", "menu_back")));
+        //rows.add(List.of(createButton("Назад", "format_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
