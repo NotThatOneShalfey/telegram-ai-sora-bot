@@ -13,12 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
-import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.*;
 import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -86,7 +83,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     @Override
-    public org.telegram.telegrambots.meta.api.methods.BotApiMethod<?> onWebhookUpdateReceived(Update update) {
+    public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
         log.debug("Update Received: {}", update);
         taskExecutor.execute(() -> {
             try {
@@ -142,7 +139,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     }
                 } else if (session.getModel().equals(GenModel.KLING_3_0)) {
                     boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
-                    boolean hasText = message.hasText();
+                    String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
+                    boolean hasText = (text != null);
                     // Если есть и картинка и текст
                     if (hasText && hasImage) {
                         handleImageUpload(chatId, message, session);
@@ -155,9 +153,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     }
                 } else if (session.getModel().equals(GenModel.NANO_BANANA)) {
                     boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
-                    boolean hasText = message.hasText();
+                    String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
+                    boolean hasText = (text != null);
                     // Если есть и картинка и текст
                     if (hasText && hasImage) {
+                        session.setModel(GenModel.NANO_BANANA_EDIT);
                         handleImageUpload(chatId, message, session);
                     } else if (hasText && !hasImage) { // Если есть текст, но нет картинки
                         handleTextDescription(chatId, message.getText(), session);
@@ -376,7 +376,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterGeneration(Long chatId, String prompt, UserSession session) throws TelegramApiException {
-        String text = "✅ Видео готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
+        String text = "";
+        if (session.getModel().equals(GenModel.NANO_BANANA_EDIT) || session.getModel().equals(GenModel.NANO_BANANA)) {
+            text = "✅ Изображение готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
+        } else {
+            text = "✅ Видео готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
+        }
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(secondaryMenuKeyboard());
@@ -387,7 +392,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void sendFormatSelection(Long chatId, int balance, UserSession session) throws TelegramApiException {
         String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
         SendMessage message = new SendMessage(String.valueOf(chatId), centerText(text, text.length()+20));
-        message.setReplyMarkup(formatKeyboard());
+        message.setReplyMarkup(mainMenuKeyboard());
         session.putMessageHistory(message);
         execute(message);
     }
@@ -424,7 +429,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         text = text + getQuotaMessageEntityElement(balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(backButton());
+        message.setReplyMarkup(mainMenuKeyboard());
         message.disableWebPagePreview();
         session.putMessageHistory(message);
         execute(message);
@@ -487,11 +492,15 @@ public class SoraVideoBot extends TelegramWebhookBot {
         videoGenerationService.generateFromPrompt(session.getModel(), session.getSelectedFormat(), prompt)
                 .subscribe(
                         url -> {
-                            SendVideo msg = new SendVideo(String.valueOf(chatId), new InputFile(url));
-                            //msg.setCaption("Ваше сгенерированное видео");
                             try {
-                                execute(msg);
-                                msg.setSupportsStreaming(true);
+                                if (session.getModel().equals(GenModel.SORA_2)) {
+                                    SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(url));
+                                    vid.setSupportsStreaming(true);
+                                    execute(vid);
+                                } else if (session.getModel().equals(GenModel.NANO_BANANA)) {
+                                    SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(url));
+                                    execute(photo);
+                                }
                                 sendAfterGeneration(chatId, prompt, session);
                             } catch (TelegramApiException e) {
                                 log.error("Error sending video", e);
@@ -566,20 +575,24 @@ public class SoraVideoBot extends TelegramWebhookBot {
         sendAfterVideoGeneration(chatId, session);
 
         try {
-            org.telegram.telegrambots.meta.api.methods.GetFile getFileRequest = new org.telegram.telegrambots.meta.api.methods.GetFile();
+            GetFile getFileRequest = new GetFile();
             getFileRequest.setFileId(fileId);
-            org.telegram.telegrambots.meta.api.objects.File file = execute(getFileRequest);
+            File file = execute(getFileRequest);
             String filePath = file.getFilePath();
             String imageUrl = "https://api.telegram.org/file/bot" + getBotToken() + "/" + filePath;
 
             session.setState(BotState.INITIAL);
             videoGenerationService.generateFromPromptAndImage(session.getModel(), session.getSelectedFormat(), prompt, imageUrl)
                     .subscribe(bytes -> {
-                        SendVideo msg = new SendVideo(String.valueOf(chatId), new InputFile(bytes));
-                        //msg.setCaption("Ваше сгенерированное видео");
                         try {
-                            execute(msg);
-                            msg.setSupportsStreaming(true);
+                            if (session.getModel().equals(GenModel.KLING_3_0)) {
+                                SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(bytes));
+                                vid.setSupportsStreaming(true);
+                                execute(vid);
+                            } else if (session.getModel().equals(GenModel.NANO_BANANA_EDIT)) {
+                                SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(bytes));
+                                execute(photo);
+                            }
                             sendAfterGeneration(chatId, prompt, session);
                         } catch (TelegramApiException e) {
                             log.error("Error sending video", e);
