@@ -1,4 +1,4 @@
-package com.example.tgbot.bot;
+package com.example.tgbot.data;
 
 
 public enum BotState {
