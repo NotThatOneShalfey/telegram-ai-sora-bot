@@ -262,9 +262,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "main_recharge":
                 session.setState(BotState.WAITING_FOR_PACKAGE_SELECTION);
-                SendMessage pkgMsg = new SendMessage(String.valueOf(chatId), "Выберите пакет для пополнения баланса:");
-                pkgMsg.setReplyMarkup(packageKeyboard());
-                execute(pkgMsg);
+                sendPaymentInfo(chatId, session);
                 break;
             case "format_16_9":
                 session.setSelectedFormat("16:9");
@@ -664,6 +662,24 @@ public class SoraVideoBot extends TelegramWebhookBot {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
+    }
+
+    private void sendPaymentInfo(long chatId, UserSession session) throws TelegramApiException {
+        String text = "\uD83D\uDCB3 Пополнение баланса\n" +
+                "\n" +
+                "1 монета = 1 ₽\n" +
+                "\n" +
+                "Монеты используются для генерации:\n" +
+                "\uD83C\uDFAC видео\n" +
+                "\uD83D\uDDBC изображений\n" +
+                "\uD83C\uDFA5 анимации изображений\n" +
+                "\n" +
+                "Выбери подходящий пакет ниже \uD83D\uDC47\n" +
+                "\n" +
+                "\uD83D\uDCA1 Чем больше пакет — тем выгоднее и удобнее для активной работы.";
+        SendMessage pkgMsg = new SendMessage(String.valueOf(chatId), text);
+        pkgMsg.setReplyMarkup(packageKeyboard());
+        execute(pkgMsg);
     }
 
 
