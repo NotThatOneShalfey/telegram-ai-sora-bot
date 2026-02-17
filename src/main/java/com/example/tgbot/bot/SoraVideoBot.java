@@ -218,16 +218,16 @@ public class SoraVideoBot extends TelegramWebhookBot {
         log.debug("Received callback {} from {}", data, chatId);
         switch (data) {
             case "package_1":
-                sendInvoice(chatId, PaidPackage.PACKAGE_1);
+                sendInvoice(chatId, PaidPackage.PACKAGE_100);
                 break;
             case "package_5":
-                sendInvoice(chatId, PaidPackage.PACKAGE_5);
+                sendInvoice(chatId, PaidPackage.PACKAGE_550);
                 break;
             case "package_50":
-                sendInvoice(chatId, PaidPackage.PACKAGE_50);
+                sendInvoice(chatId, PaidPackage.PACKAGE_1200);
                 break;
             case "package_gift":
-                userService.addBalance(user, 1);
+                userService.addGift(user);
                 sendAfterGift(chatId, user.getBalance(), session);
                 break;
             case "gen_nano_banana":
@@ -282,7 +282,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "menu_back":
                 session.setState(BotState.INITIAL);
-                sendMainMenu(chatId, "Sora 2 — генерация видео. Начнём?", session);
+                sendMainMenu(chatId, null, session);
                 break;
             default:
                 break;
@@ -342,7 +342,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void sendAfterGift(Long chatId, int balance, UserSession session) throws TelegramApiException {
         User user = userService.findOrCreateUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
-        String text = "\uD83C\uDF81 Поздравляем!\n\nТы получил 1 бесплатную генерацию видео!✨\nТеперь можешь создать ролик по тексту или картинке."
+        String text = "\uD83C\uDF81 Поздравляем!\n\nТы получил 100 монет!✨\n1 Монета = 1 Рублю\nТеперь ты можешь творить!"
                 + getQuotaMessageEntityElement(balance);
 //        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
@@ -364,7 +364,22 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private void sendMainMenu(Long chatId, String text, UserSession session) throws TelegramApiException {
         User user = userService.findOrCreateUser(chatId);
         if (text == null) {
-            text = "Главное меню";
+            text = "\uD83D\uDE80 Добро пожаловать в CreatorLabAI\n" +
+                    "\n" +
+                    "Твоя AI-студия для создания контента прямо в Telegram.\n" +
+                    "\n" +
+                    "Здесь ты можешь:\n" +
+                    "\n" +
+                    "\uD83C\uDFAC Создать видео по тексту (Sora 2)\n" +
+                    "Опиши идею — получи готовый ролик.\n" +
+                    "\n" +
+                    "\uD83D\uDDBC Создать изображение (Nano banana)\n" +
+                    "Обложки, аватары, иллюстрации, сцены — за один запрос.\n" +
+                    "\n" +
+                    "\uD83C\uDFA5 Оживить изображение (Kling 3.0)\n" +
+                    "Преврати картинку в динамичное видео.\n" +
+                    "\n" +
+                    "Выбирай инструмент ниже и начинай создавать \uD83D\uDC47";
         }
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
@@ -473,14 +488,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         if (user.getBalance() <= 0) {
-            sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+            sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                     "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
         try {
-            userService.consumeOneGeneration(user);
+            userService.consumeOneGeneration(user, session);
         } catch (IllegalStateException e) {
-            sendMainMenu(chatId, "У вас нет доступных генераций. Пополните баланс.", session);
+            sendMainMenu(chatId, "У вас не достаточно монет. Пополните баланс.", session);
             return;
         }
 
@@ -546,7 +561,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         if (user.getBalance() <= 0) {
-            sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+            sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                     "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
@@ -566,9 +581,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
         }
         // consume one generation
         try {
-            userService.consumeOneGeneration(user);
+            userService.consumeOneGeneration(user, session);
         } catch (IllegalStateException e) {
-            sendMainMenu(chatId, "У вас нет доступных генераций. Пополните баланс.", session);
+            sendMainMenu(chatId, "У вас нет доступных монет. Пополните баланс.", session);
             return;
         }
         // Посылаем ответ, если все нормально
@@ -735,7 +750,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String getQuotaMessageEntityElement(int balance) {
-        return "\n\n > \uD83D\uDC8EУ вас осталось : %d генераций. \n > \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
+        return "\n\n > \uD83D\uDC8EУ вас осталось : %d монет. \n > \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
     }
 
     private String makeCharacterEscapingForMarkdown(String str) {
