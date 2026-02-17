@@ -203,7 +203,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "\n" +
                 "Выбирай инструмент ниже и начинай создавать \uD83D\uDC47";
         SendMessage message = new SendMessage();
-        message.setReplyMarkup(mainMenuKeyboard());
+        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
         session.putMessageHistory(message);
@@ -216,19 +216,24 @@ public class SoraVideoBot extends TelegramWebhookBot {
         UserSession session = sessions.computeIfAbsent(chatId, id -> new UserSession(BotState.INITIAL));
         User user = userService.findOrCreateUser(chatId);
         log.debug("Received callback {} from {}", data, chatId);
-        switch (data) {
-            case "package_1":
+        switch (data.toLowerCase()) {
+            case "package_100":
                 sendInvoice(chatId, PaidPackage.PACKAGE_100);
                 break;
-            case "package_5":
+            case "package_550":
                 sendInvoice(chatId, PaidPackage.PACKAGE_550);
                 break;
-            case "package_50":
+            case "package_1200":
                 sendInvoice(chatId, PaidPackage.PACKAGE_1200);
                 break;
+            case "package_6500":
+                sendInvoice(chatId, PaidPackage.PACKAGE_6500);
+                break;
             case "package_gift":
-                userService.addGift(user);
-                sendAfterGift(chatId, user.getBalance(), session);
+                if (!user.isBonusReceived()) {
+                    userService.addGift(user);
+                    sendAfterGift(chatId, user.getBalance(), session);
+                }
                 break;
             case "gen_nano_banana":
                 if (user.getBalance() <= 0) {
@@ -305,7 +310,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setReplyMarkup(mainMenuKeyboard());
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
@@ -319,7 +324,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         String text = "Простите, оплата временно недоступна.";
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setReplyMarkup(mainMenuKeyboard());
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
@@ -347,7 +352,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
-        msg.setReplyMarkup(mainMenuKeyboard());
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
@@ -382,13 +387,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(mainMenuKeyboard());
+        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
         message.disableWebPagePreview();
         session.putMessageHistory(message);
         execute(message);
     }
 
     private void sendAfterGeneration(Long chatId, String prompt, UserSession session) throws TelegramApiException {
+        User user = userService.findOrCreateUser(chatId);
         String text = "";
         if (session.getModel().equals(GenModel.NANO_BANANA_EDIT) || session.getModel().equals(GenModel.NANO_BANANA)) {
             text = "✅ Изображение готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
@@ -397,7 +403,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         }
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(secondaryMenuKeyboard());
+        message.setReplyMarkup(secondaryMenuKeyboard(user.isBonusReceived()));
         session.putMessageHistory(message);
         execute(message);
     }
@@ -656,9 +662,10 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private InlineKeyboardMarkup packageKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         for (PaidPackage p : PaidPackage.values()) {
-            rows.add(List.of(createButton("%d монет - %d ₽".formatted(p.getAmount(), p.getPrice()), p.name())));
+            rows.add(List.of(createButton("%d монет - %d ₽".formatted(p.getAmount(), p.getPrice()), p.toString())));
         }
         rows.add(List.of(createButton("Главное меню", "menu_back")));
+        rows.add(List.of(getSupportButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -686,26 +693,30 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
 
-    private InlineKeyboardMarkup mainMenuKeyboard() {
+    private InlineKeyboardMarkup mainMenuKeyboard(boolean withoutGiftButton) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(List.of(createButton("Создать видео по тексту (Sora 2)", "gen_sora_2")));
         rows.add(List.of(createButton("Создать видео по картинке (Kling 3.0)", "gen_kling_3_0")));
         rows.add(List.of(createButton("Создать изображение (Nano banana)", "gen_nano_banana")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
-        rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift")));
+        if (!withoutGiftButton) {
+            rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift")));
+        }
         rows.add(List.of(getSupportButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
     }
 
-    private InlineKeyboardMarkup secondaryMenuKeyboard() {
+    private InlineKeyboardMarkup secondaryMenuKeyboard(boolean withoutGiftButton) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(List.of(createButton("Создать новое видео по тексту (Sora 2)", "gen_sora_2")));
         rows.add(List.of(createButton("Создать новое видео по картинке (Kling 3.0)", "gen_kling_3_0")));
         rows.add(List.of(createButton("Создать новое изображение (Nano banana)", "gen_nano_banana")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
-        rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift")));
+        if (!withoutGiftButton) {
+            rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift")));
+        }
         rows.add(List.of(getSupportButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
@@ -786,7 +797,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private void sendInvoice(Long chatId, PaidPackage pack) {
         String title = "Покупка пакета";
-        String description = "Покупка генерации видео";
+        String description = "Покупка монет в CreatorLabAi";
         String payload = pack.getPackageName(); // Можно использовать для идентификации заказа
 
         List<LabeledPrice> prices = new ArrayList<>();
