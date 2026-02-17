@@ -54,6 +54,7 @@ public class UserService {
     @Transactional
     public User addGift(User user) {
         user.setBalance(user.getBalance() + 100);
+        user.setBonusReceived(true);
         return userRepository.save(user);
     }
 }
