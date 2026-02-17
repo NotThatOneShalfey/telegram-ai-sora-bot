@@ -4,7 +4,7 @@ databaseChangeLog:
       author: Konstantin
       changes:
         - addColumn:
-            tableName: Users
+            tableName: users
             columns:
               - column:
                   name: bonus_received
