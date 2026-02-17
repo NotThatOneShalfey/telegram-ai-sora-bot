@@ -262,7 +262,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 break;
             case "main_recharge":
                 session.setState(BotState.WAITING_FOR_PACKAGE_SELECTION);
-                sendPaymentInfo(chatId, session);
+                sendPaymentInfo(chatId, user.getBalance(), session);
                 break;
             case "format_16_9":
                 session.setSelectedFormat("16:9");
@@ -305,8 +305,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard());
+        msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
@@ -664,7 +664,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         return markup;
     }
 
-    private void sendPaymentInfo(long chatId, UserSession session) throws TelegramApiException {
+    private void sendPaymentInfo(long chatId, int balance, UserSession session) throws TelegramApiException {
         String text = "\uD83D\uDCB3 Пополнение баланса\n" +
                 "\n" +
                 "1 монета = 1 ₽\n" +
@@ -677,8 +677,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "Выбери подходящий пакет ниже \uD83D\uDC47\n" +
                 "\n" +
                 "\uD83D\uDCA1 Чем больше пакет — тем выгоднее и удобнее для активной работы.";
-        SendMessage pkgMsg = new SendMessage(String.valueOf(chatId), text);
+        text = text + getQuotaMessageEntityElement(balance);
+        SendMessage pkgMsg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         pkgMsg.setReplyMarkup(packageKeyboard());
+        pkgMsg.setParseMode(ParseMode.MARKDOWNV2);
+        pkgMsg.disableWebPagePreview();
         execute(pkgMsg);
     }
 
