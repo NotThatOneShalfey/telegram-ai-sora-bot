@@ -503,7 +503,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(rateLimitMsg);
             return;
         }
-        if (userService.checkBalanceBeforeGeneration(user, session)) {
+        if (!userService.checkBalanceBeforeGeneration(user, session)) {
             sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                     "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
@@ -587,7 +587,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(errMsg);
             return;
         }
-        if (userService.checkBalanceBeforeGeneration(user, session)) {
+        if (!userService.checkBalanceBeforeGeneration(user, session)) {
             sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                     "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
