@@ -1,5 +1,7 @@
 package com.example.tgbot.service;
 
+import com.example.tgbot.bot.UserSession;
+import com.example.tgbot.data.GenModel;
 import com.example.tgbot.web.CreateTaskResponse;
 import com.example.tgbot.web.RecordInfoResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,8 +20,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
 
@@ -44,7 +44,23 @@ public class VideoGenerationService {
                 .build();
     }
 
-    public Mono<String> generateVideoFromText(String format, String prompt) {
+    public Mono<String> generateFromPrompt(GenModel model, String format, String prompt) {
+        return switch (model) {
+            case SORA_2 -> generateVideoSora2(format, prompt);
+            case NANO_BANANA -> generateImageNanoBanana(format, prompt);
+            default -> null;
+        };
+    }
+
+    public Mono<String> generateFromPromptAndImage(GenModel model, String format, String prompt, String imageUrl) {
+        return switch (model) {
+            case KLING_3_0 -> generateVideoKling(format, prompt, imageUrl);
+            case NANO_BANANA_EDIT -> generateImageNanoBananaEdit(format, prompt, imageUrl);
+            default -> null;
+        };
+    }
+
+    public Mono<String> generateVideoSora2(String format, String prompt) {
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
         input.put("aspect_ratio", getAspectRatio(format));
@@ -52,25 +68,66 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "sora-2-text-to-video");
         payload.put("input", input);
-
+        log.trace("Call generateVideoSora2. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
-    public Mono<String> generateVideoFromImage(String format, String prompt, String imageUrl) {
+    public Mono<String> generateVideoKling(String format, String prompt, String imageUrl) {
+        Map<String, Object> input = new HashMap<>();
+
+        if (prompt != null && !prompt.isBlank()) {
+            input.put("prompt", prompt);
+        }
+        input.put("mode", "std");
+        input.put("duration", "8");
+        input.put("image_urls", new String[]{imageUrl});
+        input.put("aspect_ratio", format);
+        input.put("multi_shots", false);
+        input.put("sound", true);
+
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "kling-3.0/video");
+        payload.put("input", input);
+        log.trace("Call generateVideoKling. Payload={}", payload);
+        return getTaskResponse(payload);
+    }
+
+    public Mono<String> generateImageNanoBanana(String imageSize, String prompt) {
+        Map<String, Object> input = new HashMap<>();
+
+        if (prompt != null && !prompt.isBlank()) {
+            input.put("prompt", prompt);
+        }
+        input.put("output_format", "png");
+        input.put("image_size", imageSize);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "google/nano-banana");
+        payload.put("input", input);
+        log.trace("Call generateImageNanoBanana. Payload={}", payload);
+        return getTaskResponse(payload);
+    }
+
+    public Mono<String> generateImageNanoBananaEdit(String imageSize, String prompt, String imageUrl) {
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
             input.put("prompt", prompt);
         }
         input.put("image_urls", new String[]{imageUrl});
-        input.put("aspect_ratio", getAspectRatio(format));
+        input.put("output_format", "png");
+        input.put("image_size", imageSize);
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "sora-2-image-to-video");
+        payload.put("model", "google/nano-banana-edit");
         payload.put("input", input);
-
+        log.trace("Call generateImageNanoBananaEdit. Payload={}", payload);
         return getTaskResponse(payload);
     }
+
+
+
 
     private Mono<String> getTaskResponse(Map<String, Object> payload) {
         return webClient.post()
@@ -130,7 +187,7 @@ public class VideoGenerationService {
                     log.trace("-> Poll #1 for response, taskId={}, response={}", taskId, r);
                     switch (state) {
                         case "success":
-                            return Mono.empty(); // задача завершена
+                            return Mono.just(r); // задача завершена
                         case "fail":
                             return Mono.error(new IllegalStateException(d.getFailMsg()));
                         case "waiting":

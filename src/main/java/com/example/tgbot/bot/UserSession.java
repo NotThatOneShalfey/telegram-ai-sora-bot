@@ -1,24 +1,30 @@
 package com.example.tgbot.bot;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.tgbot.data.BotState;
+import com.example.tgbot.data.GenModel;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.TreeSet;
 
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Slf4j
 public class UserSession {
     private BotState state;
-    private String selectedFormat; // e.g. "16:9" or "9:16"
+    private GenModel model = null;
+    private String selectedFormat = null; // e.g. "16:9" or "9:16"
     private final TreeSet<OrderedMessageClass> messageHistory = new TreeSet<>();
+
+    public UserSession() {
+        this.state = BotState.INITIAL;
+    }
+
+    public UserSession(BotState state) {
+        this.state = state;
+    }
 
     // Сделал чтобы не держать весь чат в памяти
     // Добавлять нужно только те сообщения, у которых нет кнопки "назад"

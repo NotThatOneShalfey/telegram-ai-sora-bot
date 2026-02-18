@@ -33,6 +33,9 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "bonus_received", nullable = false)
+    private boolean bonusReceived;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();

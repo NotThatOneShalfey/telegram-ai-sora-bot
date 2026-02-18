@@ -1,5 +1,6 @@
 package com.example.tgbot.service;
 
+import com.example.tgbot.bot.UserSession;
 import com.example.tgbot.model.User;
 import com.example.tgbot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,12 +40,23 @@ public class UserService {
     }
 
     @Transactional
-    public User consumeOneGeneration(User user) {
+    public User consumeOneGeneration(User user, UserSession session) {
         int current = user.getBalance();
-        if (current <= 0) {
-            throw new IllegalStateException("Insufficient balance");
-        }
-        user.setBalance(current - 1);
+        int genPrice = session.getModel().getPrice();
+        user.setBalance(current - genPrice);
         return userRepository.save(user);
     }
+
+    @Transactional
+    public User addGift(User user) {
+        user.setBalance(user.getBalance() + 100);
+        user.setBonusReceived(true);
+        return userRepository.save(user);
+    }
+
+    public boolean checkBalanceBeforeGeneration(User user, UserSession session) {
+        int current = user.getBalance();
+        int genPrice = session.getModel().getPrice();
+        return current >= genPrice;
+    };
 }
