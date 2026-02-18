@@ -428,12 +428,20 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     "1\uFE0F⃣ Прикрепи изображение\n" +
                     "2\uFE0F⃣ Напиши, как оно должно ожить\n" +
                     "\n" +
-                    "Отправь картинку и текст в одном сообщении.";
+                    "Отправь картинку и текст в одном сообщении.\n" +
+                    "\n" +
+                    "\uD83D\uDCB8 СТОИМОСТЬ: 150 монет \uD83D\uDCB8\n" +
+                    "\n" +
+                    "\uD83E\uDE991 монета = 1 рубль \uD83E\uDE99";
             case SORA_2 -> text = "\uD83C\uDFAC Sora 2 — генерация видео по тексту\n" +
                     "\n" +
                     "Sora 2 создаёт полноценные видеосцены по вашему описанию: с реалистичным движением, освещением, атмосферой и кинематографичным качеством.\n" +
                     "\n" +
-                    "Чтобы создать видео — просто отправьте текстовое описание.";
+                    "Чтобы создать видео — просто отправьте текстовое описание.\n" +
+                    "\n" +
+                    "\uD83D\uDCB8 СТОИМОСТЬ: 75 монет \uD83D\uDCB8\n" +
+                    "\n" +
+                    "\uD83E\uDE991 монета = 1 рубль \uD83E\uDE99";
             case NANO_BANANA -> text = "\uD83D\uDDBC Nano Banana — генерация изображений\n" +
                     "\n" +
                     "Отправь:\n" +
@@ -443,7 +451,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     "\uD83D\uDDBC Промпт + картинку — чтобы изменить или доработать загруженное изображение\n" +
                     "\n" +
                     "Просто отправь описание одним сообщением.\n" +
-                    "Если хочешь изменить конкретную картинку — прикрепи её вместе с текстом.";
+                    "Если хочешь изменить конкретную картинку — прикрепи её вместе с текстом.\n" +
+                    "\n" +
+                    "\uD83D\uDCB8 СТОИМОСТЬ: 20 монет \uD83D\uDCB8\n" +
+                    "\n" +
+                    "\uD83E\uDE991 монета = 1 рубль \uD83E\uDE99";
         }
         text = text + getQuotaMessageEntityElement(balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
@@ -491,23 +503,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(rateLimitMsg);
             return;
         }
-        if (user.getBalance() <= 0) {
+        if (userService.checkBalanceBeforeGeneration(user, session)) {
             sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                     "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
-        try {
-            userService.consumeOneGeneration(user, session);
-        } catch (IllegalStateException e) {
-            sendMainMenu(chatId, "У вас не достаточно монет. Пополните баланс.", session);
-            return;
-        }
-
         // Посылаем ответ, если все нормально
         sendAfterVideoGeneration(chatId, session);
-
         session.setState(BotState.INITIAL);
-
         videoGenerationService.generateFromPrompt(session.getModel(), session.getSelectedFormat(), prompt)
                 .subscribe(
                         url -> {
@@ -515,9 +518,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
                                 if (session.getModel().equals(GenModel.SORA_2)) {
                                     SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(url));
                                     vid.setSupportsStreaming(true);
+                                    userService.consumeOneGeneration(user, session);
                                     execute(vid);
                                 } else if (session.getModel().equals(GenModel.NANO_BANANA)) {
                                     SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(url));
+                                    userService.consumeOneGeneration(user, session);
                                     execute(photo);
                                 }
                                 sendAfterGeneration(chatId, prompt, session);
@@ -536,7 +541,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
                             SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
                             try {
                                 execute(errorMsg);
-                                userService.addBalance(user, 1);
                             } catch (TelegramApiException e) {
                                 log.error("Error sending error message", e);
                             }
@@ -583,15 +587,14 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(errMsg);
             return;
         }
-        // consume one generation
-        try {
-            userService.consumeOneGeneration(user, session);
-        } catch (IllegalStateException e) {
-            sendMainMenu(chatId, "У вас нет доступных монет. Пополните баланс.", session);
+        if (userService.checkBalanceBeforeGeneration(user, session)) {
+            sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
+                    "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
         // Посылаем ответ, если все нормально
         sendAfterVideoGeneration(chatId, session);
+        session.setState(BotState.INITIAL);
 
         try {
             GetFile getFileRequest = new GetFile();
@@ -607,9 +610,11 @@ public class SoraVideoBot extends TelegramWebhookBot {
                             if (session.getModel().equals(GenModel.KLING_3_0)) {
                                 SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(bytes));
                                 vid.setSupportsStreaming(true);
+                                userService.consumeOneGeneration(user, session);
                                 execute(vid);
                             } else if (session.getModel().equals(GenModel.NANO_BANANA_EDIT)) {
                                 SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(bytes));
+                                userService.consumeOneGeneration(user, session);
                                 execute(photo);
                             }
                             sendAfterGeneration(chatId, prompt, session);
@@ -779,7 +784,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private String getQuotaMessageEntityElement(int balance) {
-        return "\n\n > \uD83D\uDC8EУ вас осталось : %d монет. \n > \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
+        return "\n______________________________________\n\uD83D\uDC8EУ вас осталось : %d монет.\n\uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples".formatted(balance);
     }
 
     private String makeCharacterEscapingForMarkdown(String str) {

@@ -68,7 +68,7 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "sora-2-text-to-video");
         payload.put("input", input);
-
+        log.trace("Call generateVideoSora2. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
@@ -89,7 +89,7 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "kling-3.0/video");
         payload.put("input", input);
-
+        log.trace("Call generateVideoKling. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
@@ -105,7 +105,7 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "google/nano-banana");
         payload.put("input", input);
-
+        log.trace("Call generateImageNanoBanana. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
@@ -122,7 +122,7 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "google/nano-banana-edit");
         payload.put("input", input);
-
+        log.trace("Call generateImageNanoBananaEdit. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
