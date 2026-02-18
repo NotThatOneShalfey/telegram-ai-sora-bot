@@ -731,7 +731,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private InlineKeyboardMarkup formatKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         // Two buttons in one row
-        rows.add(List.of(createButton("\uD83D\uDDA5️ Горизонтальное", "format_9_16"), createButton("\uD83D\uDCF1 Вертикальное", "format_16_9")));
+        rows.add(List.of(createButton("\uD83D\uDDA5️ Горизонтальное", "format_16_9"), createButton("\uD83D\uDCF1 Вертикальное", "format_9_16")));
         rows.add(List.of(createButton("Главное меню", "menu_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
