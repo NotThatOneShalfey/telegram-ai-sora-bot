@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -32,6 +33,21 @@ public class UserService {
 
     @Transactional
     public User createUser(Long telegramId, String userName, String referralLink) {
+        Optional<User> existing = userRepository.findByTelegramId(telegramId);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            boolean changed = false;
+            if (!Objects.equals(user.getUserName(), userName)) {
+                user.setUserName(userName);
+                changed = true;
+            }
+            if (!Objects.equals(user.getLinkUsed(), referralLink)) {
+                user.setLinkUsed(referralLink);
+                changed = true;
+            }
+
+            return changed ? userRepository.save(user) : user;
+        }
         User newUser = User.builder()
                 .telegramId(telegramId)
                 .balance(0)
