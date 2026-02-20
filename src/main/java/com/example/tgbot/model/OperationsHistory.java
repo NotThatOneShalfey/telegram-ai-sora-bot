@@ -25,7 +25,7 @@ public class OperationsHistory {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @PrimaryKeyJoinColumn(name = "oh_user_id")
+    @JoinColumn(name = "oh_user_id")
     @OneToOne
     private User userId;
 
