@@ -22,9 +22,8 @@ public class ReferralLinks {
     @Column(name = "rl_link")
     private String link;
 
-    @Column(name = "rl_created_by")
+    @PrimaryKeyJoinColumn(name = "rl_created_by")
     @OneToOne
-    @JoinColumn(name = "id")
     private User created_by;
 
 

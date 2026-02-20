@@ -23,9 +23,8 @@ public class OperationsHistory {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "oh_user_id")
+    @PrimaryKeyJoinColumn(name = "oh_user_id")
     @OneToOne
-    @JoinColumn(name = "id")
     private User userId;
 
     @Enumerated(EnumType.STRING)
