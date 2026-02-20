@@ -121,7 +121,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     if (message.getText().contains(" ")) {
                         referral = message.getText().split(" ")[1];
                     }
-                    handleStart(chatId, session, referral);
+                    handleStart(chatId, session, referral, message.getFrom().getUserName());
                     return;
                 }
                 // Если завершение оплаты
@@ -178,10 +178,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
 
-    private void handleStart(Long chatId, UserSession session, String referral) throws TelegramApiException {
+    private void handleStart(Long chatId, UserSession session, String referral, String userName) throws TelegramApiException {
         // Persist or retrieve the user
-        User user = userService.findOrCreateUser(chatId);
-        userService.updateReferral(chatId, referral);
+        User user = userService.createUser(chatId, referral, userName);
         sessions.put(chatId, new UserSession(BotState.WAITING_FOR_PACKAGE_SELECTION));
         /*
         String text = "\uD83C\uDFAC Привет! Я Sora 2 — твой ИИ для создания видео. " +
@@ -219,7 +218,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         String data = callback.getData();
         Long chatId = callback.getMessage().getChatId();
         UserSession session = sessions.computeIfAbsent(chatId, id -> new UserSession(BotState.INITIAL));
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         log.debug("Received callback {} from {}", data, chatId);
         switch (data.toLowerCase()) {
             case "package_100":
@@ -302,7 +301,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterPurchase(Long chatId, int purchasedAmount, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
         String text = String.format("""
                 \uD83C\uDF89 Спасибо за оплату!
@@ -324,7 +323,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     // TODO Это убрать как только оплату прикрутим
     private void sendAfterPurchaseTemp(Long chatId, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
         String text = "Простите, оплата временно недоступна.";
         text = text + getQuotaMessageEntityElement(user.getBalance());
@@ -336,7 +335,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterVideoGeneration(Long chatId, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         String text = "⏳ Отлично! Я получил твоё описание. Генерация займёт ~3 минуты. Как только будет готово, я пришлю тебе сообщение! \uD83C\uDFAC"
                 + getQuotaMessageEntityElement(user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
@@ -348,7 +347,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterGift(Long chatId, int balance, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         sessions.get(chatId).setState(BotState.INITIAL);
         String text = "\uD83C\uDF81 Поздравляем!\n\nТы получил 100 монет!✨\n1 Монета = 1 Рублю\nТеперь ты можешь творить!"
                 + getQuotaMessageEntityElement(balance);
@@ -364,13 +363,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void addPackage(Long chatId, String packageName, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         userService.addBalance(user, PaidPackage.getPackagePriceByName(packageName));
     }
 
 
     private void sendMainMenu(Long chatId, String text, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         if (text == null) {
             text = "\uD83D\uDE80 Добро пожаловать в CreatorLabAI\n" +
                     "\n" +
@@ -399,7 +398,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
     private void sendAfterGeneration(Long chatId, String prompt, UserSession session) throws TelegramApiException {
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         String text = "";
         if (session.getModel().equals(GenModel.NANO_BANANA_EDIT) || session.getModel().equals(GenModel.NANO_BANANA)) {
             text = "✅ Изображение готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
@@ -501,7 +500,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(promptTooLong);
             return;
         }
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         if (!rateLimiterService.tryConsume(chatId)) {
             SendMessage rateLimitMsg = new SendMessage(String.valueOf(chatId),
                     "Превышен лимит запросов. Пожалуйста, подождите и попробуйте позже.");
@@ -565,7 +564,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             execute(promptTooLong);
             return;
         }
-        User user = userService.findOrCreateUser(chatId);
+        User user = userService.findUser(chatId);
         // Apply per-user rate limiting
         if (!rateLimiterService.tryConsume(chatId)) {
             SendMessage rateLimitMsg = new SendMessage(String.valueOf(chatId),

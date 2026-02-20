@@ -15,6 +15,9 @@ databaseChangeLog:
               - column:
                   name: rl_link
                   type: varchar2
+                  constraints:
+                    unique: true
+                    nullable: false
               - column:
                   name: rl_created_by
                   type: bigint

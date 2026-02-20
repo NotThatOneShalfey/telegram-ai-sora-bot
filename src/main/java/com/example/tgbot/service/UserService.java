@@ -21,14 +21,22 @@ public class UserService {
 
 
     @Transactional
-    public User findOrCreateUser(Long telegramId) {
+    public User findUser(Long telegramId) {
         Optional<User> existing = userRepository.findByTelegramId(telegramId);
         if (existing.isPresent()) {
             return existing.get();
         }
+        log.error("User tgId = {} NOT FOUND!!!", telegramId);
+        return null;
+    }
+
+    @Transactional
+    public User createUser(Long telegramId, String userName, String referralLink) {
         User newUser = User.builder()
                 .telegramId(telegramId)
                 .balance(0)
+                .linkUsed(referralLink)
+                .userName(userName)
                 .build();
         return userRepository.save(newUser);
     }
