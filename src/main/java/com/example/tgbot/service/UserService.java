@@ -4,6 +4,8 @@ import com.example.tgbot.bot.UserSession;
 import com.example.tgbot.model.User;
 import com.example.tgbot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -59,4 +62,18 @@ public class UserService {
         int genPrice = session.getModel().getPrice();
         return current >= genPrice;
     };
+
+    @Transactional
+    public User updateReferral(Long telegramId, String referral) {
+        User user = userRepository.findByTelegramId(telegramId).orElse(null);
+        try {
+            if (user != null && user.getLinkUsed() == null) {
+                user.setLinkUsed(referral);
+                return userRepository.save(user);
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.error("Не существует реферальной ссылки {}, Ошибка: {}", referral, e.getMessage());
+        }
+        return user;
+    }
 }

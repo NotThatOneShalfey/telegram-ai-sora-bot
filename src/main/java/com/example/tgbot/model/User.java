@@ -36,6 +36,12 @@ public class User {
     @Column(name = "bonus_received", nullable = false)
     private boolean bonusReceived;
 
+    @Column(name = "user_name")
+    private String userName;
+
+    @Column(name = "referral_link_used")
+    private String linkUsed;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();

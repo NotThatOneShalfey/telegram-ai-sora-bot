@@ -116,8 +116,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 Long chatId = message.getChatId();
                 UserSession session = sessions.computeIfAbsent(chatId, id -> new UserSession(BotState.INITIAL));
                 // Обработка стартового сообщения
-                if (message.hasText() && message.getText().equalsIgnoreCase("/start")) {
-                    handleStart(chatId, session);
+                if (message.hasText() && message.getText().contains("/start")) {
+                    String referral = null;
+                    if (message.getText().contains(" ")) {
+                        referral = message.getText().split(" ")[1];
+                    }
+                    handleStart(chatId, session, referral);
                     return;
                 }
                 // Если завершение оплаты
@@ -174,9 +178,10 @@ public class SoraVideoBot extends TelegramWebhookBot {
     }
 
 
-    private void handleStart(Long chatId, UserSession session) throws TelegramApiException {
+    private void handleStart(Long chatId, UserSession session, String referral) throws TelegramApiException {
         // Persist or retrieve the user
         User user = userService.findOrCreateUser(chatId);
+        userService.updateReferral(chatId, referral);
         sessions.put(chatId, new UserSession(BotState.WAITING_FOR_PACKAGE_SELECTION));
         /*
         String text = "\uD83C\uDFAC Привет! Я Sora 2 — твой ИИ для создания видео. " +
