@@ -118,8 +118,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 // Обработка стартового сообщения
                 if (message.hasText() && message.getText().contains("/start")) {
                     String referral = null;
-                    if (message.getText().contains("=")) {
-                        referral = message.getText().split("=")[1];
+                    if (message.getText().contains(" ")) {
+                        referral = message.getText().split(" ")[1];
                     }
                     handleStart(chatId, session, referral, message.getFrom().getUserName());
                     return;
@@ -314,21 +314,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
         msg.setParseMode(ParseMode.MARKDOWNV2);
-        msg.disableWebPagePreview();
-        session.putMessageHistory(msg);
-        execute(msg);
-    }
-
-    // TODO Это убрать как только оплату прикрутим
-    private void sendAfterPurchaseTemp(Long chatId, UserSession session) throws TelegramApiException {
-        User user = userService.findUser(chatId);
-        sessions.get(chatId).setState(BotState.INITIAL);
-        String text = "Простите, оплата временно недоступна.";
-        text = text + getQuotaMessageEntityElement(user.getBalance());
-        SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
@@ -356,7 +343,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
-        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
@@ -391,7 +378,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
+        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
         message.disableWebPagePreview();
         session.putMessageHistory(message);
         execute(message);
@@ -407,7 +394,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         }
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(secondaryMenuKeyboard(user.isBonusReceived()));
+        message.setReplyMarkup(secondaryMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
         session.putMessageHistory(message);
         execute(message);
     }
