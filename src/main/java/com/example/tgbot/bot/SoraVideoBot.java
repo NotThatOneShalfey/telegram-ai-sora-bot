@@ -207,7 +207,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "\n" +
                 "Выбирай инструмент ниже и начинай создавать \uD83D\uDC47";
         SendMessage message = new SendMessage();
-        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
+        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
         session.putMessageHistory(message);
@@ -314,7 +314,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
@@ -343,7 +343,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 //                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
-        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
+        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         msg.disableWebPagePreview();
         session.putMessageHistory(msg);
         execute(msg);
@@ -378,7 +378,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
+        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         message.disableWebPagePreview();
         session.putMessageHistory(message);
         execute(message);
@@ -394,7 +394,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         }
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
-        message.setReplyMarkup(secondaryMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
+        message.setReplyMarkup(secondaryMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         session.putMessageHistory(message);
         execute(message);
     }
