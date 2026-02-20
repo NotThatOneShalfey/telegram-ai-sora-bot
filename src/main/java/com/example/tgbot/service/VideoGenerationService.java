@@ -44,23 +44,24 @@ public class VideoGenerationService {
                 .build();
     }
 
-    public Mono<String> generateFromPrompt(GenModel model, String format, String prompt) {
-        return switch (model) {
-            case SORA_2 -> generateVideoSora2(format, prompt);
-            case NANO_BANANA -> generateImageNanoBanana(format, prompt);
+    public Mono<String> generateFromPrompt(UserSession session, String prompt) {
+        return switch (session.getModel()) {
+            case SORA_2 -> generateVideoSora2(session, prompt);
+            case NANO_BANANA -> generateImageNanoBanana(session, prompt);
             default -> null;
         };
     }
 
-    public Mono<String> generateFromPromptAndImage(GenModel model, String format, String prompt, String imageUrl) {
-        return switch (model) {
-            case KLING_3_0 -> generateVideoKling(format, prompt, imageUrl);
-            case NANO_BANANA_EDIT -> generateImageNanoBananaEdit(format, prompt, imageUrl);
+    public Mono<String> generateFromPromptAndImage(UserSession session, String prompt, String imageUrl) {
+        return switch (session.getModel()) {
+            case KLING_3_0 -> generateVideoKling(session, prompt, imageUrl);
+            case NANO_BANANA_EDIT -> generateImageNanoBananaEdit(session, prompt, imageUrl);
             default -> null;
         };
     }
 
-    public Mono<String> generateVideoSora2(String format, String prompt) {
+    public Mono<String> generateVideoSora2(UserSession session, String prompt) {
+        String format = session.getSelectedFormat();
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
         input.put("aspect_ratio", getAspectRatio(format));
@@ -68,11 +69,14 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "sora-2-text-to-video");
         payload.put("input", input);
+
+        session.setPayload(payload);
         log.trace("Call generateVideoSora2. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
-    public Mono<String> generateVideoKling(String format, String prompt, String imageUrl) {
+    public Mono<String> generateVideoKling(UserSession session, String prompt, String imageUrl) {
+        String format = session.getSelectedFormat();
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
@@ -89,11 +93,14 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "kling-3.0/video");
         payload.put("input", input);
+
+        session.setPayload(payload);
         log.trace("Call generateVideoKling. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
-    public Mono<String> generateImageNanoBanana(String imageSize, String prompt) {
+    public Mono<String> generateImageNanoBanana(UserSession session, String prompt) {
+        String imageSize = session.getSelectedFormat();
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
@@ -105,11 +112,14 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "google/nano-banana");
         payload.put("input", input);
+
+        session.setPayload(payload);
         log.trace("Call generateImageNanoBanana. Payload={}", payload);
         return getTaskResponse(payload);
     }
 
-    public Mono<String> generateImageNanoBananaEdit(String imageSize, String prompt, String imageUrl) {
+    public Mono<String> generateImageNanoBananaEdit(UserSession session, String prompt, String imageUrl) {
+        String imageSize = session.getSelectedFormat();
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
@@ -122,6 +132,8 @@ public class VideoGenerationService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "google/nano-banana-edit");
         payload.put("input", input);
+
+        session.setPayload(payload);
         log.trace("Call generateImageNanoBananaEdit. Payload={}", payload);
         return getTaskResponse(payload);
     }

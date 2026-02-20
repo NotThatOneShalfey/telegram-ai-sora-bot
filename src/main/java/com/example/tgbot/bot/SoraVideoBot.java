@@ -180,7 +180,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private void handleStart(Long chatId, UserSession session, String referral, String userName) throws TelegramApiException {
         // Persist or retrieve the user
-        User user = userService.createUser(chatId, referral, userName);
+        User user = userService.createUser(chatId, userName, referral);
         sessions.put(chatId, new UserSession(BotState.WAITING_FOR_PACKAGE_SELECTION));
         /*
         String text = "\uD83C\uDFAC Привет! Я Sora 2 — твой ИИ для создания видео. " +
@@ -515,7 +515,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         // Посылаем ответ, если все нормально
         sendAfterVideoGeneration(chatId, session);
         session.setState(BotState.INITIAL);
-        videoGenerationService.generateFromPrompt(session.getModel(), session.getSelectedFormat(), prompt)
+        videoGenerationService.generateFromPrompt(session, prompt)
                 .subscribe(
                         url -> {
                             try {
@@ -608,7 +608,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             String imageUrl = "https://api.telegram.org/file/bot" + getBotToken() + "/" + filePath;
 
             session.setState(BotState.INITIAL);
-            videoGenerationService.generateFromPromptAndImage(session.getModel(), session.getSelectedFormat(), prompt, imageUrl)
+            videoGenerationService.generateFromPromptAndImage(session, prompt, imageUrl)
                     .subscribe(bytes -> {
                         try {
                             if (session.getModel().equals(GenModel.KLING_3_0)) {

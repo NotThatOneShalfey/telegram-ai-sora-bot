@@ -1,8 +1,13 @@
 package com.example.tgbot.service;
 
 import com.example.tgbot.bot.UserSession;
+import com.example.tgbot.data.HistoryOperationType;
+import com.example.tgbot.model.OperationsHistory;
 import com.example.tgbot.model.User;
+import com.example.tgbot.repository.OperationsHistoryRepository;
 import com.example.tgbot.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,6 +24,8 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final OperationsHistoryRepository historyRepository;
+    private final ObjectMapper objectMapper;
 
 
     @Transactional
@@ -63,6 +70,13 @@ public class UserService {
             throw new IllegalArgumentException("Amount must be positive");
         }
         user.setBalance(user.getBalance() + amount);
+
+        historyRepository.save(OperationsHistory.builder()
+                .balanceChange((float) amount)
+                .userId(user)
+                .generationRequestInput(null)
+                .operationType(HistoryOperationType.BALANCE_CHANGE)
+                .build());
         return userRepository.save(user);
     }
 
@@ -71,6 +85,19 @@ public class UserService {
         int current = user.getBalance();
         int genPrice = session.getModel().getPrice();
         user.setBalance(current - genPrice);
+
+        String strPayload = null;
+        try {
+            strPayload = objectMapper.writeValueAsString(session.getPayload());
+        } catch (JsonProcessingException e) {
+            log.error("Mapping exception e: {}", e.getMessage());
+        }
+        historyRepository.save(OperationsHistory.builder()
+                .balanceChange((float) (genPrice * -1))
+                .userId(user)
+                .generationRequestInput(strPayload)
+                .operationType(HistoryOperationType.GENERATION_REQUEST)
+                .build());
         return userRepository.save(user);
     }
 
@@ -78,6 +105,13 @@ public class UserService {
     public User addGift(User user) {
         user.setBalance(user.getBalance() + 100);
         user.setBonusReceived(true);
+
+        historyRepository.save(OperationsHistory.builder()
+                .balanceChange(100F)
+                .userId(user)
+                .generationRequestInput(null)
+                .operationType(HistoryOperationType.GIFT)
+                .build());
         return userRepository.save(user);
     }
 
@@ -85,19 +119,5 @@ public class UserService {
         int current = user.getBalance();
         int genPrice = session.getModel().getPrice();
         return current >= genPrice;
-    };
-
-    @Transactional
-    public User updateReferral(Long telegramId, String referral) {
-        User user = userRepository.findByTelegramId(telegramId).orElse(null);
-        try {
-            if (user != null && user.getLinkUsed() == null) {
-                user.setLinkUsed(referral);
-                return userRepository.save(user);
-            }
-        } catch (DataIntegrityViolationException e) {
-            log.error("Не существует реферальной ссылки {}, Ошибка: {}", referral, e.getMessage());
-        }
-        return user;
     }
 }

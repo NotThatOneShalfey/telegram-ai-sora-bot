@@ -16,6 +16,7 @@ public class UserSession {
     private BotState state;
     private GenModel model = null;
     private String selectedFormat = null; // e.g. "16:9" or "9:16"
+    private Object payload = null;
     private final TreeSet<OrderedMessageClass> messageHistory = new TreeSet<>();
 
     public UserSession() {
