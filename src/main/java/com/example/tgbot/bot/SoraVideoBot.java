@@ -118,8 +118,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 // Обработка стартового сообщения
                 if (message.hasText() && message.getText().contains("/start")) {
                     String referral = null;
-                    if (message.getText().contains(" ")) {
-                        referral = message.getText().split(" ")[1];
+                    if (message.getText().contains("=")) {
+                        referral = message.getText().split("=")[1];
                     }
                     handleStart(chatId, session, referral, message.getFrom().getUserName());
                     return;
@@ -207,7 +207,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "\n" +
                 "Выбирай инструмент ниже и начинай создавать \uD83D\uDC47";
         SendMessage message = new SendMessage();
-        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived()));
+        message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() == null));
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
         session.putMessageHistory(message);
