@@ -230,6 +230,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 "\uD83C\uDFA5 Оживить изображение (Kling 3.0 или Sora 2)\n" +
                 "Преврати картинку в динамичное видео.\n" +
                 "\n" +
+                "\uD83C\uDFB5 Создать свою музыку (Suno)\n" +
+                "Опиши идею, укажи стиль и стань творцом музыки.\n" +
+                "\n" +
                 "Выбирай инструмент ниже и начинай создавать \uD83D\uDC47";
         SendMessage message = new SendMessage();
         message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
@@ -488,7 +491,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         SendMessage message = null;
         if (Objects.requireNonNull(session.getModel()) == GenModel.SUNO_V5) {
             String text = "\uD83C\uDFB5Suno v5 — создаёт полноценную песню за 1–2 минуты: нейросеть сама напишет текст, подберёт вокал и создаст музыку в выбранном стиле.\nВыберите стиль будущей песни \uD83D\uDC47";
-            message = new SendMessage(String.valueOf(chatId), centerText(text, text.length() + 20));
+            message = new SendMessage(String.valueOf(chatId), text);
             message.setReplyMarkup(musicGenreKeyboard());
         } else {
             String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
