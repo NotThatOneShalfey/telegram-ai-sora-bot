@@ -843,7 +843,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         Pattern photorealisticPeoplePattern = Pattern.compile("photorealistic people");
         Pattern thirdPartyContentViolation = Pattern.compile("third-party content");
         String errorMessage = "\uD83D\uDEA7 Генерация временно недоступна \uD83D\uDEA7\n" +
-                "Мы уже работаем над этим - попробуйте чуть позже или обратитесь в поддержку @helper_sora2";
+                "Мы уже работаем над этим - попробуйте чуть позже или обратитесь в поддержку @CreativeLabAI";
         if (sensitiveContentPattern.matcher(reason).find()) {
             errorMessage = "\uD83D\uDD12 Ваш запрос заблокирован системой безопасности.\n" +
                     "Похоже, в тексте есть фразы, которые модели нельзя генерировать.\n" +
@@ -1064,7 +1064,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private InlineKeyboardButton getSupportButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText("Поддержка");
-        button.setUrl("t.me/helper_sora2?text=");
+        button.setUrl("t.me/CreativeLabAI?text=");
         return button;
     }
 }
