@@ -2,8 +2,10 @@ package com.example.tgbot.service;
 
 import com.example.tgbot.bot.UserSession;
 import com.example.tgbot.data.GenModel;
+import com.example.tgbot.data.SunoMusicGenre;
 import com.example.tgbot.web.CreateTaskResponse;
 import com.example.tgbot.web.RecordInfoResponse;
+import com.example.tgbot.web.callbacks.keiai.KeiAiMusicCallbackResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +19,9 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +33,8 @@ public class VideoGenerationService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private Map<String, KeiAiMusicCallbackResponse> keiAiResponses = new HashMap<>();
 
     public VideoGenerationService(@Value("${kieai.api-key}") String apiKey) {
 
@@ -52,16 +58,45 @@ public class VideoGenerationService {
         };
     }
 
+    public Mono<List<String>> generateMusicFromPrompt(UserSession session, String prompt) {
+        if (session.getModel().equals(GenModel.SUNO_V5)) {
+            return generateMusicSunoV5(session, prompt);
+        }
+        return null;
+    }
+
     public Mono<String> generateFromPromptAndImage(UserSession session, String prompt, String imageUrl) {
         return switch (session.getModel()) {
             case KLING_3_0 -> generateVideoKling(session, prompt, imageUrl);
+            case SORA_2_WITH_IMAGE -> generateVideoSora2(session, prompt, imageUrl);
             case NANO_BANANA_EDIT -> generateImageNanoBananaEdit(session, prompt, imageUrl);
             default -> null;
         };
     }
 
+    public Mono<List<String>> generateMusicSunoV5(UserSession session, String prompt) {
+        String resultingPrompt = "";
+        if (session.getSelectedFormat() instanceof SunoMusicGenre g) {
+            resultingPrompt = "Жанр: " + g.getLocalDesc() + ".";
+        } else {
+            resultingPrompt = "Жанр: " + session.getSelectedFormat() + ".";
+        }
+        resultingPrompt = resultingPrompt + " Описание: " + prompt;
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "V5");
+        payload.put("customMode", false);
+        payload.put("prompt", resultingPrompt);
+        payload.put("instrumental", false);
+        payload.put("audioWeight", null);
+        payload.put("callBackUrl", "https://24sora2.ru/dev-webhook/keiai/callback/music");
+
+        session.setPayload(payload);
+        log.trace("Call generateMusicSunoV5. Payload={}", payload);
+        return getTaskResponseForMusic(payload);
+    }
+
     public Mono<String> generateVideoSora2(UserSession session, String prompt) {
-        String format = session.getSelectedFormat();
+        String format = session.getSelectedFormat().toString();
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
         input.put("aspect_ratio", getAspectRatio(format));
@@ -75,8 +110,24 @@ public class VideoGenerationService {
         return getTaskResponse(payload);
     }
 
+    public Mono<String> generateVideoSora2(UserSession session, String prompt, String imageUrl) {
+        String format = session.getSelectedFormat().toString();
+        Map<String, Object> input = new HashMap<>();
+        input.put("prompt", prompt);
+        input.put("aspect_ratio", getAspectRatio(format));
+        input.put("image_urls", new String[]{imageUrl});
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "sora-2-image-to-video");
+        payload.put("input", input);
+
+        session.setPayload(payload);
+        log.trace("Call generateVideoSora2. Payload={}", payload);
+        return getTaskResponse(payload);
+    }
+
     public Mono<String> generateVideoKling(UserSession session, String prompt, String imageUrl) {
-        String format = session.getSelectedFormat();
+        String format = session.getSelectedFormat().toString();
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
@@ -100,7 +151,7 @@ public class VideoGenerationService {
     }
 
     public Mono<String> generateImageNanoBanana(UserSession session, String prompt) {
-        String imageSize = session.getSelectedFormat();
+        String imageSize = session.getSelectedFormat().toString();
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
@@ -108,9 +159,10 @@ public class VideoGenerationService {
         }
         input.put("output_format", "png");
         input.put("image_size", imageSize);
+        input.put("resolution", "2K");
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "google/nano-banana");
+        payload.put("model", "nano-banana-pro");
         payload.put("input", input);
 
         session.setPayload(payload);
@@ -119,7 +171,7 @@ public class VideoGenerationService {
     }
 
     public Mono<String> generateImageNanoBananaEdit(UserSession session, String prompt, String imageUrl) {
-        String imageSize = session.getSelectedFormat();
+        String imageSize = session.getSelectedFormat().toString();
         Map<String, Object> input = new HashMap<>();
 
         if (prompt != null && !prompt.isBlank()) {
@@ -127,10 +179,11 @@ public class VideoGenerationService {
         }
         input.put("image_urls", new String[]{imageUrl});
         input.put("output_format", "png");
+        input.put("resolution", "2K");
         input.put("image_size", imageSize);
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "google/nano-banana-edit");
+        payload.put("model", "nano-banana-pro");
         payload.put("input", input);
 
         session.setPayload(payload);
@@ -161,32 +214,30 @@ public class VideoGenerationService {
                 });
     }
 
+    private Mono<List<String>> getTaskResponseForMusic(Map<String, Object> payload) {
+        return webClient.post()
+                .uri("/generate")
+                .bodyValue(payload)
+                .retrieve()
+                .onStatus(s -> !s.is2xxSuccessful(), resp ->
+                        resp.bodyToMono(String.class).defaultIfEmpty("")
+                                .map(body -> new IllegalStateException("Kie.ai createTask HTTP " + resp.statusCode() + " body: " + body))
+                )
+                .bodyToMono(CreateTaskResponse.class)
+                .doOnNext(r -> log.debug("generate resp: {}", r))
+                .flatMap(r -> {
+                    String taskId = r.getData() != null ? r.getData().getTaskId() : null;
+                    if (taskId == null || taskId.isBlank()) {
+                        return Mono.error(new IllegalStateException("Kie.ai did not return taskId; resp=" + r));
+                    }
+                    return getMusicTaskCompletionFromCallbacks(taskId, 1);
+                });
+    }
+
     /**
      * Опрос Kie.ai о статусе задачи. Первый запрос — спустя 2 минуты,
      * затем каждые 30 секунд до получения результата или ошибки.
      */
-    private Mono<String> pollForCompletion(String taskId) {
-        return Mono.delay(Duration.ofMinutes(2))
-                .then(fetchTaskStatus(taskId))
-                .expand(resp -> {
-                    RecordInfoResponse.DataBlock d = resp.getData();
-                    String state = (d != null && d.getState() != null) ? d.getState().toLowerCase() : "";
-                    switch (state) {
-                        case "success":
-                            return Mono.empty(); // задача завершена
-                        case "failed":
-                            return Mono.error(new IllegalStateException("Kie.ai task failed with state=" + state));
-                        case "waiting":
-                        case "queuing":
-                        case "generating":
-                        default:
-                            // повторный опрос через 30 секунд
-                            return Mono.delay(Duration.ofSeconds(30)).then(fetchTaskStatus(taskId));
-                    }
-                })
-                .last()
-                .map(this::extractUrlFromRecordInfo);
-    }
 
     private Mono<String> pollForCompletionV2(String taskId) {
         AtomicInteger pollExpandCounter = new AtomicInteger(1);
@@ -232,6 +283,26 @@ public class VideoGenerationService {
                 .last()
                 .map(this::extractUrlFromRecordInfo);
 
+    }
+
+    private Mono<List<String>> getMusicTaskCompletionFromCallbacks(String taskId, int pollNumber) {
+        log.trace("getMusicTaskCompletionFromCallbacks -> Poll #{} for response, taskId={}", pollNumber, taskId);
+        return Mono.defer(() -> {
+                    if (keiAiResponses.get(taskId) != null) {
+                        List<String> urlResponses = new ArrayList<>();
+                        keiAiResponses.get(taskId).getData().getData().forEach(d -> urlResponses.add(d.getAudioUrl()));
+                        return Mono.just(urlResponses);
+                    }
+                    return Mono.empty(); // Или ничего не возвращать
+                })
+                .switchIfEmpty(Mono.delay(Duration.ofSeconds(15))
+                        .then(Mono.defer(() -> getMusicTaskCompletionFromCallbacks(taskId, pollNumber + 1))));
+    }
+
+    public void putCallbackResponse(KeiAiMusicCallbackResponse response) {
+        if (response.getData().getCallbackType().equals("complete")) {
+            keiAiResponses.put(response.getData().getTaskId(), response);
+        }
     }
 
     private Mono<RecordInfoResponse> fetchTaskStatus(String taskId) {
