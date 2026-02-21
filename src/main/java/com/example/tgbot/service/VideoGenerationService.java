@@ -287,12 +287,16 @@ public class VideoGenerationService {
 
     private Mono<List<String>> getMusicTaskCompletionFromCallbacks(String taskId, int pollNumber) {
         log.trace("getMusicTaskCompletionFromCallbacks -> Poll #{} for response, taskId={}", pollNumber, taskId);
-        List<String> urlResponses = new ArrayList<>();
-        if (keiAiResponses.get(taskId) != null) {
-            keiAiResponses.get(taskId).getData().getData().forEach(d -> urlResponses.add(d.getAudioUrl()));
-            return Mono.just(urlResponses);
-        }
-        return Mono.delay(Duration.ofSeconds(15)).then(getMusicTaskCompletionFromCallbacks(taskId, pollNumber+1));
+        return Mono.defer(() -> {
+                    if (keiAiResponses.get(taskId) != null) {
+                        List<String> urlResponses = new ArrayList<>();
+                        keiAiResponses.get(taskId).getData().getData().forEach(d -> urlResponses.add(d.getAudioUrl()));
+                        return Mono.just(urlResponses);
+                    }
+                    return Mono.empty(); // Или ничего не возвращать
+                })
+                .switchIfEmpty(Mono.delay(Duration.ofSeconds(15))
+                        .then(Mono.defer(() -> getMusicTaskCompletionFromCallbacks(taskId, pollNumber + 1))));
     }
 
     public void putCallbackResponse(KeiAiMusicCallbackResponse response) {
