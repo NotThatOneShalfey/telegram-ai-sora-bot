@@ -185,6 +185,16 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     } else { // Если вообще прислали что то странное
                         sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.", session);
                     }
+                } else if (session.getModel().equals(GenModel.SUNO_V5)) {
+                    if (message.hasText()) {
+                        switch (session.getState()) {
+                            case WAITING_FOR_TEXT_DESCRIPTION:
+                                handleTextDescription(chatId, message.getText(), session);
+                                break;
+                            default:
+                                sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.", session);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -286,7 +296,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     sendFormatSelection(chatId, user.getBalance(), session);
                 }
                 break;
-            case "gen_vid_sora_2":
+            case "gen_sora_2":
                 if (user.getBalance() <= 0) {
                     sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
@@ -438,7 +448,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     "\uD83D\uDDBC Создать изображение (Nano banana)\n" +
                     "Обложки, аватары, иллюстрации, сцены — за один запрос.\n" +
                     "\n" +
-                    "\uD83C\uDFA5 Оживить изображение (Kling 3.0)\n" +
+                    "\uD83C\uDFA5 Оживить изображение (Kling 3.0 или Sora 2)\n" +
                     "Преврати картинку в динамичное видео.\n" +
                     "\n" +
                     "\uD83C\uDFB5 Создать свою музыку (Suno)\n" +
@@ -622,7 +632,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         if (!userService.checkBalanceBeforeGeneration(user, session)) {
-            sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
+            sendMainMenu(chatId, "⚠ У вас закончились монеты для создания.\n" +
                     "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
             return;
         }
@@ -870,7 +880,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         rows.add(List.of(createButton("Kling 3.0", "gen_vid_kling_3_0")));
-        rows.add(List.of(createButton("Sora 2", "gen_vid_sora_2")));
+        rows.add(List.of(createButton("Sora 2", "gen_sora_2_with_image")));
         rows.add(List.of(createButton("Главное меню", "menu_back")));
         markup.setKeyboard(rows);
         return markup;
