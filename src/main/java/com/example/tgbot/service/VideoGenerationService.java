@@ -68,19 +68,19 @@ public class VideoGenerationService {
         if (session.getSelectedFormat() instanceof SunoMusicGenre g) {
             resultingPrompt = "Жанр: " + g.getLocalDesc() + ".";
         } else {
-            resultingPrompt = "Жанр: " + session.getSelectedFormat() + ". ";
+            resultingPrompt = "Жанр: " + session.getSelectedFormat() + ".";
         }
-        resultingPrompt = resultingPrompt + "Описание: " + prompt;
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "V5");
-        payload.put("customMode", false);
-        payload.put("prompt", resultingPrompt);
-        payload.put("instrumental", false);
-        payload.put("audioWeight", 0);
+        resultingPrompt = resultingPrompt + " Описание: " + prompt;
+        Map<String, Object> data = new HashMap<>();
+        data.put("model", "V5");
+        data.put("customMode", false);
+        data.put("prompt", resultingPrompt);
+        data.put("instrumental", false);
+        data.put("audioWeight", null);
 
-        session.setPayload(payload);
-        log.trace("Call generateMusicSunoV5. Payload={}", payload);
-        return getTaskResponseForMusic(payload);
+        session.setPayload(data);
+        log.trace("Call generateMusicSunoV5. Payload={}", data);
+        return getTaskResponseForMusic(data);
     }
 
     public Mono<String> generateVideoSora2(UserSession session, String prompt) {
