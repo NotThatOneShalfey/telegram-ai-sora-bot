@@ -270,8 +270,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 sendVidGenChooseModel(chatId, session);
                 break;
             case "gen_nano_banana":
-                if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания изображения.\n" +
+                if (user.getBalance() < GenModel.NANO_BANANA.getPrice()) {
+                    sendMainMenu(chatId, "⚠ У вас недостаточно монет для создания изображения.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
@@ -280,8 +280,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 break;
             case "gen_sora_2_with_image":
-                if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
+                if (user.getBalance() < GenModel.SORA_2_WITH_IMAGE.getPrice()) {
+                    sendMainMenu(chatId, "⚠ У вас недостаточно монет для создания видео.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
@@ -290,8 +290,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 break;
             case "gen_vid_kling_3_0":
-                if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
+                if (user.getBalance() < GenModel.KLING_3_0.getPrice()) {
+                    sendMainMenu(chatId, "⚠ У вас недостаточно монет для создания видео.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setModel(GenModel.KLING_3_0);
@@ -300,8 +300,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 break;
             case "gen_sora_2":
-                if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
+                if (user.getBalance() < GenModel.SORA_2.getPrice()) {
+                    sendMainMenu(chatId, "⚠ У вас недостаточно монет для создания видео.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setModel(GenModel.SORA_2);
@@ -310,8 +310,8 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 }
                 break;
             case "gen_suno_v5":
-                if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания музыки.\n" +
+                if (user.getBalance() < GenModel.SUNO_V5.getPrice()) {
+                    sendMainMenu(chatId, "⚠ У вас недостаточно монет для создания музыки.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setModel(GenModel.SUNO_V5);
@@ -818,7 +818,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
                             SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
                             try {
                                 execute(errorMsg);
-                                userService.addBalance(user, 1);
                             } catch (TelegramApiException ex) {
                                 log.error("Nested error sending error message", ex);
                             }
@@ -828,7 +827,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
                         SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
                         try {
                             execute(errorMsg);
-                            userService.addBalance(user, 1);
                         } catch (TelegramApiException e) {
                             log.error("Nested error sending error message", e);
                         }
@@ -837,7 +835,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
             log.error("Error fetching file path", e);
             SendMessage errMsg = new SendMessage(String.valueOf(chatId), "Не удалось загрузить изображение: " + e.getMessage());
             execute(errMsg);
-            userService.addBalance(user, 1);
         }
     }
 
