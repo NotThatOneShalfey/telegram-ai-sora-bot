@@ -3,6 +3,7 @@ package com.example.tgbot.bot;
 import com.example.tgbot.data.BotState;
 import com.example.tgbot.data.GenModel;
 import com.example.tgbot.data.PaidPackage;
+import com.example.tgbot.data.SunoMusicGenre;
 import com.example.tgbot.model.User;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.service.VideoGenerationService;
@@ -170,6 +171,20 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     } else { // Если вообще прислали что то странное
                         sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.", session);
                     }
+                } else if (session.getModel().equals(GenModel.SORA_2_WITH_IMAGE)) {
+                    boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
+                    String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
+                    boolean hasText = (text != null);
+                    // Если есть и картинка и текст
+                    if (hasText && hasImage) {
+                        handleImageUpload(chatId, message, session);
+                    } else if (hasText && !hasImage) { // Если есть текст, но нет картинки
+                        sendMessageWithText(chatId, "Простите, но я не могу найти изображение, прошу пришлите мне изображение вместе с текстом");
+                    } else if (!hasText && hasImage) { // Если есть картинка, но нет текста
+                        sendMessageWithText(chatId, "Простите, но я не могу найти текст, прошу пришлите мне изображение вместе с текстом");
+                    } else { // Если вообще прислали что то странное
+                        sendMainMenu(chatId, "Я не понял вашу команду. Пожалуйста, выберите действие из меню.", session);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -210,7 +225,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
         message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
-        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -239,9 +253,12 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     sendAfterGift(chatId, user.getBalance(), session);
                 }
                 break;
+            case "gen_vid_by_image":
+                sendVidGenChooseModel(chatId, session);
+                break;
             case "gen_nano_banana":
                 if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания изображения.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
@@ -249,22 +266,42 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     sendFormatSelection(chatId, user.getBalance(), session);
                 }
                 break;
-            case "gen_sora_2":
+            case "gen_sora_2_with_image":
                 if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
-                    session.setModel(GenModel.SORA_2);
+                    session.setModel(GenModel.SORA_2_WITH_IMAGE);
                     sendFormatSelection(chatId, user.getBalance(), session);
                 }
                 break;
-            case "gen_kling_3_0":
+            case "gen_vid_kling_3_0":
                 if (user.getBalance() <= 0) {
-                    sendMainMenu(chatId, "⚠ У вас закончились генерации для создания видео.\n" +
+                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
                             "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
                 } else {
                     session.setModel(GenModel.KLING_3_0);
+                    session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
+                    sendFormatSelection(chatId, user.getBalance(), session);
+                }
+                break;
+            case "gen_vid_sora_2":
+                if (user.getBalance() <= 0) {
+                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания видео.\n" +
+                            "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
+                } else {
+                    session.setModel(GenModel.SORA_2);
+                    session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
+                    sendFormatSelection(chatId, user.getBalance(), session);
+                }
+                break;
+            case "gen_suno_v5":
+                if (user.getBalance() <= 0) {
+                    sendMainMenu(chatId, "⚠ У вас закончились монеты для создания музыки.\n" +
+                            "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E", session);
+                } else {
+                    session.setModel(GenModel.SUNO_V5);
                     session.setState(BotState.WAITING_FOR_FORMAT_SELECTION);
                     sendFormatSelection(chatId, user.getBalance(), session);
                 }
@@ -283,9 +320,55 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
                 sendDescriptionPrompt(chatId, user.getBalance(), session);
                 break;
-            case "format_back":
-                session.setState(BotState.INITIAL);
-                sendLastMessage(chatId, session);
+            case "pop-genre":
+                session.setSelectedFormat(SunoMusicGenre.POP);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "rap-genre":
+                session.setSelectedFormat(SunoMusicGenre.RAP);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "disco-genre":
+                session.setSelectedFormat(SunoMusicGenre.DISCO);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "shanson-genre":
+                session.setSelectedFormat(SunoMusicGenre.SHANSON);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "rock-genre":
+                session.setSelectedFormat(SunoMusicGenre.ROCK);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "classic-genre":
+                session.setSelectedFormat(SunoMusicGenre.CLASSIC);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "electro-genre":
+                session.setSelectedFormat(SunoMusicGenre.ELECTRO);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "jazz-genre":
+                session.setSelectedFormat(SunoMusicGenre.JAZZ);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "narodnaya-genre":
+                session.setSelectedFormat(SunoMusicGenre.NARODNAYA);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
+                break;
+            case "acoustic-genre":
+                session.setSelectedFormat(SunoMusicGenre.ACCOUSTIC);
+                session.setState(BotState.WAITING_FOR_TEXT_DESCRIPTION);
+                sendDescriptionPrompt(chatId, user.getBalance(), session);
                 break;
             case "menu_back":
                 session.setState(BotState.INITIAL);
@@ -300,36 +383,22 @@ public class SoraVideoBot extends TelegramWebhookBot {
         execute(answer);
     }
 
-    private void sendAfterPurchase(Long chatId, int purchasedAmount, UserSession session) throws TelegramApiException {
+    private void sendAfterFileGeneration(Long chatId, UserSession session) throws TelegramApiException {
         User user = userService.findUser(chatId);
-        sessions.get(chatId).setState(BotState.INITIAL);
-        String text = String.format("""
-                \uD83C\uDF89 Спасибо за оплату!
-
-                Ты пополнил баланс и получил %d генераций видео.
-                ✨ Теперь можно создавать ролики по тексту или картинке — 10 секунд, 720p.
-                """, purchasedAmount);
+        String text = "";
+        text = switch (session.getModel()) {
+            case KLING_3_0 -> "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только видео будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
+            case NANO_BANANA -> "⏳ Отлично! Я получил твоё описание. Генерация изображения займёт ~1 минуту. Как только изображения будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
+            case NANO_BANANA_EDIT -> "⏳ Отлично! Я получил твоё описание. Генерация изображения займёт ~1 минуту. Как только изображения будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
+            case SORA_2 -> "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только видео будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
+            case SORA_2_WITH_IMAGE -> "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только видео будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
+            case SUNO_V5 -> "⏳ Отлично! Я получил твоё описание. Генерация песни займёт ~1 минуту. Как только песня будет готова, я пришлю тебе сообщение! \uD83C\uDFAC";
+        };
         text = text + getQuotaMessageEntityElement(user.getBalance());
-//        String text = String.format("Поздравляем, у вас доступно %d видео\n\n" +
-//                "Тут ты можешь посмотреть примеры и шаблоны : ССЫЛКА\n" +
-//                "Инструкция как пользоваться ботом: ССЫЛКА", user.getBalance());
-        SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
-        msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
-        msg.setParseMode(ParseMode.MARKDOWNV2);
-        msg.disableWebPagePreview();
-        session.putMessageHistory(msg);
-        execute(msg);
-    }
-
-    private void sendAfterVideoGeneration(Long chatId, UserSession session) throws TelegramApiException {
-        User user = userService.findUser(chatId);
-        String text = "⏳ Отлично! Я получил твоё описание. Генерация займёт ~3 минуты. Как только будет готово, я пришлю тебе сообщение! \uD83C\uDFAC"
-                + getQuotaMessageEntityElement(user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(backButton());
         msg.disableWebPagePreview();
-        session.putMessageHistory(msg);
         execute(msg);
     }
 
@@ -345,7 +414,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
         msg.setParseMode(ParseMode.MARKDOWNV2);
         msg.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         msg.disableWebPagePreview();
-        session.putMessageHistory(msg);
         execute(msg);
     }
 
@@ -373,6 +441,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     "\uD83C\uDFA5 Оживить изображение (Kling 3.0)\n" +
                     "Преврати картинку в динамичное видео.\n" +
                     "\n" +
+                    "\uD83C\uDFB5 Создать свою музыку (Suno)\n" +
+                    "Опиши идею, укажи стиль и стань творцом музыки.\n" +
+                    "\n" +
                     "Выбирай инструмент ниже и начинай создавать \uD83D\uDC47";
         }
         text = text + getQuotaMessageEntityElement(user.getBalance());
@@ -380,7 +451,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(mainMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
         message.disableWebPagePreview();
-        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -389,23 +459,58 @@ public class SoraVideoBot extends TelegramWebhookBot {
         String text = "";
         if (session.getModel().equals(GenModel.NANO_BANANA_EDIT) || session.getModel().equals(GenModel.NANO_BANANA)) {
             text = "✅ Изображение готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
+        } else if (session.getModel().equals(GenModel.SUNO_V5)) {
+            String selectedGenre = session.getSelectedFormat().toString();
+            if (session.getSelectedFormat() instanceof SunoMusicGenre g) {
+                selectedGenre = g.getButtonDescription();
+            }
+            text = "✅ Песня готова!\n\n" + "Жанр: " + selectedGenre + "\n" + "\uD83D\uDCBE Описание:\n > " + prompt;
         } else {
             text = "✅ Видео готово!\n\uD83D\uDCBE Промпт:\n > " + prompt;
         }
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(secondaryMenuKeyboard(user.isBonusReceived() || user.getLinkUsed() != null));
-        session.putMessageHistory(message);
         execute(message);
     }
 
     private void sendFormatSelection(Long chatId, int balance, UserSession session) throws TelegramApiException {
-        String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
-        SendMessage message = new SendMessage(String.valueOf(chatId), centerText(text, text.length()+20));
-        message.setReplyMarkup(formatKeyboard());
-        session.putMessageHistory(message);
+        SendMessage message = null;
+        if (Objects.requireNonNull(session.getModel()) == GenModel.SUNO_V5) {
+            String text = "\uD83C\uDFB5Suno v5 — создаёт полноценную песню за 1–2 минуты: нейросеть сама напишет текст, подберёт вокал и создаст музыку в выбранном стиле.\nВыберите стиль будущей песни \uD83D\uDC47";
+            message = new SendMessage(String.valueOf(chatId), centerText(text, text.length() + 20));
+            message.setReplyMarkup(musicGenreKeyboard());
+        } else {
+            String text = "\uD83D\uDCFD️Выберите удобный формат\uD83D\uDCFD️";
+            message = new SendMessage(String.valueOf(chatId), centerText(text, text.length() + 20));
+            message.setReplyMarkup(formatKeyboard());
+        }
         execute(message);
     }
+
+    private void sendVidGenChooseModel(Long chatId, UserSession session) throws TelegramApiException {
+        String text = "\uD83C\uDFA5 Генерация видео по изображению\n" +
+                "Выберите модель:\n" +
+                "\uD83D\uDE80 Kling 3.0 — 150 Монет\n" +
+                "• Можно анимировать живых людей\n" +
+                "• Меньше цензуры\n" +
+                "• Более динамичные сцены\n" +
+                "\uD83D\uDC49 Подходит для реалистичных и «живых» видео\n" +
+                "\n" +
+                "\uD83C\uDFAC Sora 2 — 100 Монет\n" +
+                "• Более строгая модерация\n" +
+                "• Нельзя генерировать реальных людей\n" +
+                "• Отличная озвучка на русском\n" +
+                "\uD83D\uDC49 Лучше для мультфильмов и обучающих видео\n" +
+                "\n" +
+                "1  монета = 1 рубль\n" +
+                "Выберите модель ниже \uD83D\uDC47";
+        SendMessage message = new SendMessage(String.valueOf(chatId), text);
+        message.setReplyMarkup(modelChooseKeyboard());
+        execute(message);
+    }
+
+
 
     private void sendDescriptionPrompt(Long chatId, int balance, UserSession session) throws TelegramApiException {
         String text = "";
@@ -447,13 +552,36 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     "\uD83D\uDCB8 СТОИМОСТЬ: 20 монет \uD83D\uDCB8\n" +
                     "\n" +
                     "\uD83E\uDE991 монета = 1 рубль \uD83E\uDE99";
+            case SUNO_V5 -> text = "Отлично, с жанром определились!\n" +
+                    "Напиши пару предложений о том, про кого или про что будет песня. Чем больше подробностей, тем круче получится!\n" +
+                    "\n" +
+                    "Жанр: " + session.getSelectedFormat() + "\n" +
+                    "\n" +
+                    "\uD83D\uDCB8 СТОИМОСТЬ: 299 монет \uD83D\uDCB8\n" +
+                    "\n" +
+                    "\uD83E\uDE991 монета = 1 рубль \uD83E\uDE99" +
+                    "\n" +
+                    "Отправь мне сообщение и я сгенерирую песню \uD83D\uDC47";
+            case SORA_2_WITH_IMAGE -> text = "\uD83C\uDFAC Sora 2 — генерация видео по изображению\n" +
+                    "\n" +
+                    "Формат: " + session.getSelectedFormat().toString() +
+                    "\n\n" +
+                    "Sora 2 создаёт полноценные видеосцены по вашему описанию и изображению: с реалистичным движением, освещением, атмосферой и кинематографичным качеством.\n" +
+                    "\n" +
+                    "Чтобы создать видео:\n" +
+                    "\n" +
+                    "Прикрепи изображение\n" +
+                    "Напиши, как оно должно ожить\n" +
+                    "\n" +
+                    "\uD83D\uDCB8 СТОИМОСТЬ: 75 монет \uD83D\uDCB8\n" +
+                    "\n" +
+                    "\uD83E\uDE991 монета = 1 рубль \uD83E\uDE99";
         }
         text = text + getQuotaMessageEntityElement(balance);
         SendMessage message = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
-        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -468,7 +596,6 @@ public class SoraVideoBot extends TelegramWebhookBot {
         message.setParseMode(ParseMode.MARKDOWNV2);
         message.setReplyMarkup(backButton());
         message.disableWebPagePreview();
-        session.putMessageHistory(message);
         execute(message);
     }
 
@@ -500,7 +627,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         // Посылаем ответ, если все нормально
-        sendAfterVideoGeneration(chatId, session);
+        sendAfterFileGeneration(chatId, session);
         session.setState(BotState.INITIAL);
         videoGenerationService.generateFromPrompt(session, prompt)
                 .subscribe(
@@ -515,6 +642,10 @@ public class SoraVideoBot extends TelegramWebhookBot {
                                     SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(url));
                                     userService.consumeOneGeneration(user, session);
                                     execute(photo);
+                                } else if (session.getModel().equals(GenModel.SUNO_V5)) {
+                                    SendAudio audio = new SendAudio(String.valueOf(chatId), new InputFile(url));
+                                    userService.consumeOneGeneration(user, session);
+                                    execute(audio);
                                 }
                                 sendAfterGeneration(chatId, prompt, session);
                             } catch (TelegramApiException e) {
@@ -584,7 +715,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             return;
         }
         // Посылаем ответ, если все нормально
-        sendAfterVideoGeneration(chatId, session);
+        sendAfterFileGeneration(chatId, session);
         session.setState(BotState.INITIAL);
 
         try {
@@ -598,7 +729,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             videoGenerationService.generateFromPromptAndImage(session, prompt, imageUrl)
                     .subscribe(bytes -> {
                         try {
-                            if (session.getModel().equals(GenModel.KLING_3_0)) {
+                            if (session.getModel().equals(GenModel.KLING_3_0) || session.getModel().equals(GenModel.SORA_2_WITH_IMAGE)) {
                                 SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(bytes));
                                 vid.setSupportsStreaming(true);
                                 userService.consumeOneGeneration(user, session);
@@ -691,14 +822,17 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private InlineKeyboardMarkup mainMenuKeyboard(boolean withoutGiftButton) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        rows.add(List.of(createButton("Создать видео по тексту (Sora 2)", "gen_sora_2")));
-        rows.add(List.of(createButton("Создать видео по картинке (Kling 3.0)", "gen_kling_3_0")));
-        rows.add(List.of(createButton("Создать изображение (Nano banana)", "gen_nano_banana")));
+        rows.add(List.of(createButton("Создать изображение", "gen_nano_banana")));
+        rows.add(List.of(createButton("Создать видео по тексту", "gen_sora_2")));
+        //rows.add(List.of(createButton("Создать видео по картинке", "gen_kling_3_0")));
+        rows.add(List.of(createButton("Создать видео по картинке", "gen_vid_by_image")));
+        rows.add(List.of(createButton("Создать музыку (Suno)", "gen_suno_v5")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
         if (!withoutGiftButton) {
-            rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift")));
+            rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift"), getSupportButton()));
+        } else {
+            rows.add(List.of(getSupportButton()));
         }
-        rows.add(List.of(getSupportButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -706,14 +840,17 @@ public class SoraVideoBot extends TelegramWebhookBot {
 
     private InlineKeyboardMarkup secondaryMenuKeyboard(boolean withoutGiftButton) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        rows.add(List.of(createButton("Создать новое видео по тексту (Sora 2)", "gen_sora_2")));
-        rows.add(List.of(createButton("Создать новое видео по картинке (Kling 3.0)", "gen_kling_3_0")));
-        rows.add(List.of(createButton("Создать новое изображение (Nano banana)", "gen_nano_banana")));
+        rows.add(List.of(createButton("Создать новое изображение", "gen_nano_banana")));
+        rows.add(List.of(createButton("Создать новое видео по тексту", "gen_sora_2")));
+        //rows.add(List.of(createButton("Создать новое видео по картинке", "gen_kling_3_0")));
+        rows.add(List.of(createButton("Создать видео по картинке", "gen_vid_by_image")));
+        rows.add(List.of(createButton("Создать новую музыку (Suno)", "gen_suno_v5")));
         rows.add(List.of(createButton("Пополнить баланс", "main_recharge")));
         if (!withoutGiftButton) {
-            rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift")));
+            rows.add(List.of(createButton("\uD83C\uDF81Получить подарок\uD83C\uDF81", "package_gift"), getSupportButton()));
+        } else {
+            rows.add(List.of(getSupportButton()));
         }
-        rows.add(List.of(getSupportButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -723,6 +860,33 @@ public class SoraVideoBot extends TelegramWebhookBot {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         // Two buttons in one row
         rows.add(List.of(createButton("\uD83D\uDDA5️ Горизонтальное", "format_16_9"), createButton("\uD83D\uDCF1 Вертикальное", "format_9_16")));
+        rows.add(List.of(createButton("Главное меню", "menu_back")));
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
+        return markup;
+    }
+
+    private InlineKeyboardMarkup modelChooseKeyboard() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        rows.add(List.of(createButton("Kling 3.0", "gen_vid_kling_3_0")));
+        rows.add(List.of(createButton("Sora 2", "gen_vid_sora_2")));
+        rows.add(List.of(createButton("Главное меню", "menu_back")));
+        markup.setKeyboard(rows);
+        return markup;
+    }
+
+    private InlineKeyboardMarkup musicGenreKeyboard() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        SunoMusicGenre prevGenre = null;
+        for (SunoMusicGenre genre : SunoMusicGenre.values()) {
+            if (prevGenre == null) {
+                prevGenre = genre;
+            } else {
+                rows.add(List.of(createButton(prevGenre.getButtonDescription(), prevGenre.getCallback()), createButton(genre.getButtonDescription(), genre.getCallback())));
+                prevGenre = null;
+            }
+        }
         rows.add(List.of(createButton("Главное меню", "menu_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
@@ -760,18 +924,9 @@ public class SoraVideoBot extends TelegramWebhookBot {
     private InlineKeyboardMarkup backButton() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         rows.add(List.of(createButton("Главное меню", "menu_back")));
-        //rows.add(List.of(createButton("Назад", "format_back")));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
-    }
-
-    private void sendLastMessage(Long chatId, UserSession session) throws TelegramApiException {
-        SendMessage msg = session.getLastMessageBeforeCall();
-        if (msg == null) {
-            msg = new SendMessage(String.valueOf(chatId), "Простите, не могу найти историю сообщений...");
-        }
-        execute(msg);
     }
 
     private String getQuotaMessageEntityElement(int balance) {

@@ -2,6 +2,7 @@ package com.example.tgbot.bot;
 
 import com.example.tgbot.data.BotState;
 import com.example.tgbot.data.GenModel;
+import com.example.tgbot.data.SunoMusicGenre;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -15,9 +16,8 @@ import java.util.TreeSet;
 public class UserSession {
     private BotState state;
     private GenModel model = null;
-    private String selectedFormat = null; // e.g. "16:9" or "9:16"
+    private Object selectedFormat = null; // e.g. "16:9" or "9:16"
     private Object payload = null;
-    private final TreeSet<OrderedMessageClass> messageHistory = new TreeSet<>();
 
     public UserSession() {
         this.state = BotState.INITIAL;
@@ -27,30 +27,12 @@ public class UserSession {
         this.state = state;
     }
 
-    // Сделал чтобы не держать весь чат в памяти
-    // Добавлять нужно только те сообщения, у которых нет кнопки "назад"
-    public void putMessageHistory(SendMessage message) {
-        OrderedMessageClass omc = new OrderedMessageClass(message, LocalDateTime.now());
-        if (messageHistory.size() == 5) {
-            messageHistory.remove(messageHistory.first());
-        }
-        messageHistory.add(omc);
+    public void setSelectedFormat(String selectedFormat) {
+        this.selectedFormat = selectedFormat;
     }
 
-    public SendMessage getLastMessageBeforeCall() {
-        log.trace("История сообщений: {}", messageHistory);
-
-        if (messageHistory.isEmpty()) {
-            return null;
-        }
-        OrderedMessageClass lastMessage = messageHistory.last();
-        OrderedMessageClass exactElement;
-        if (messageHistory.size() < 2) {
-            exactElement = lastMessage;
-        } else {
-            exactElement = messageHistory.lower(lastMessage);
-        }
-        messageHistory.remove(exactElement);
-        return exactElement.getMessage();
+    public void setSelectedFormat(SunoMusicGenre selectedFormat) {
+        this.selectedFormat = selectedFormat;
     }
+
 }
