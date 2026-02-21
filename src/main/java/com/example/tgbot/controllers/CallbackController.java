@@ -1,6 +1,9 @@
 package com.example.tgbot.controllers;
 
+import com.example.tgbot.bot.SoraVideoBot;
+import com.example.tgbot.service.VideoGenerationService;
 import com.example.tgbot.web.CreateTaskResponse;
+import com.example.tgbot.web.callbacks.keiai.KeiAiMusicCallbackResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -16,14 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class CallbackController {
     private final JsonMapper jsonMapper = new JsonMapper();
 
+    private final VideoGenerationService videoGenerationService;
+
     @PostMapping("/music")
     public void handleMusicGenerationCallback(@RequestBody String body) {
         log.debug("handleMusicGenerationCallback method called. Body = {}", body);
         try {
-            CreateTaskResponse resp = jsonMapper.readValue(body, CreateTaskResponse.class);
+            KeiAiMusicCallbackResponse resp = jsonMapper.readValue(body, KeiAiMusicCallbackResponse.class);
             log.trace("Resp object: {}", resp.toString());
-        } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
+            videoGenerationService.putCallbackResponse(resp);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
