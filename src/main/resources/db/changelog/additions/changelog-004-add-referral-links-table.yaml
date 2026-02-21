@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-004-add-referral-links-table
+      author: Konstantin
+      changes:
+        - createTable:
+            tableName: referral_links
+            columns:
+              - column:
+                  name: rl_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: rl_link
+                  type: varchar2
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: rl_created_by
+                  type: bigint
+                  constraints:
+                    references: users(id)
+                    foreignKeyName: fk_rl_to_user_id
+                    nullable: false

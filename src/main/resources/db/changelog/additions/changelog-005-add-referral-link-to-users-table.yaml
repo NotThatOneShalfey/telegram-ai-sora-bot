@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-005-add-referral-link-to-users-table
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: referral_link_used
+                  remarks: Использованная реферальная ссылка
+                  type: varchar2
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: changelog_005-add-referral_link_to_users_table_fk
+      author: Konstantin
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: referral_link_used
+            baseTableName: users
+            constraintName: fk_referral_link_used_to_link_text
+            referencedColumnNames: rl_link
+            referencedTableName: referral_links
