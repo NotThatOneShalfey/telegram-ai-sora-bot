@@ -402,7 +402,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
             case NANO_BANANA_EDIT -> "⏳ Отлично! Я получил твоё описание. Генерация изображения займёт ~1 минуту. Как только изображения будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
             case SORA_2 -> "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только видео будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
             case SORA_2_WITH_IMAGE -> "⏳ Отлично! Я получил твоё описание. Генерация видео займёт ~3 минуты. Как только видео будет готово, я пришлю тебе сообщение! \uD83C\uDFAC";
-            case SUNO_V5 -> "⏳ Отлично! Я получил твоё описание. Генерация песни займёт ~1 минуту. Как только песня будет готова, я пришлю тебе сообщение! \uD83C\uDFAC";
+            case SUNO_V5 -> "⏳ Отлично! Я получил твоё описание. Генерация песни займёт ~2 минуты. Как только песня будет готова, я пришлю тебе сообщение! \uD83C\uDFAC";
         };
         text = text + getQuotaMessageEntityElement(user.getBalance());
         SendMessage msg = new SendMessage(String.valueOf(chatId), makeCharacterEscapingForMarkdown(text));
@@ -662,7 +662,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                                 sendAfterGeneration(chatId, prompt, session);
                             } catch (TelegramApiException e) {
                                 log.error("Error sending video", e);
-                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить видео: " + e.getMessage());
+                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
                                 try {
                                     execute(errorMsg);
                                 } catch (TelegramApiException ex) {
@@ -720,7 +720,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                                 sendAfterGeneration(chatId, prompt, session);
                             } catch (TelegramApiException e) {
                                 log.error("Error sending video", e);
-                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить видео: " + e.getMessage());
+                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить музыкальный файл " + e.getMessage());
                                 try {
                                     execute(errorMsg);
                                 } catch (TelegramApiException ex) {
@@ -812,7 +812,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                             sendAfterGeneration(chatId, prompt, session);
                         } catch (TelegramApiException e) {
                             log.error("Error sending video", e);
-                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить видео: " + e.getMessage());
+                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
                             try {
                                 execute(errorMsg);
                                 userService.addBalance(user, 1);
