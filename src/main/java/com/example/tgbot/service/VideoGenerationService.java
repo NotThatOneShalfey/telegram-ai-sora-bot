@@ -88,7 +88,7 @@ public class VideoGenerationService {
         payload.put("prompt", resultingPrompt);
         payload.put("instrumental", false);
         payload.put("audioWeight", null);
-        payload.put("callBackUrl", "https://24sora2.ru/release-webhook/keiai/callback/music");
+        payload.put("callBackUrl", "https://24sora2.ru/dev-webhook/keiai/callback/music");
 
         session.setPayload(payload);
         log.trace("Call generateMusicSunoV5. Payload={}", payload);

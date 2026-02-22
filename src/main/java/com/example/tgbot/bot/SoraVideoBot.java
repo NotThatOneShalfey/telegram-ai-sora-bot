@@ -877,11 +877,25 @@ public class SoraVideoBot extends TelegramWebhookBot {
                 videoGenerationService.generateFromPromptAndImage(session, prompt, imageUrl)
                         .subscribe(bytes -> {
                             try {
-                                SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(bytes));
-                                execute(photo);
+                                // Шаг 1: Скачать изображение
+                                URL url = new URL(bytes);
+                                Path tempFilePath = Files.createTempFile("photo", ".jpg");
+                                try (InputStream in = url.openStream()) {
+                                    Files.copy(in, tempFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+
+                                // Шаг 2: Отправить в Telegram
+                                InputFile inputFile = new InputFile(tempFilePath.toFile());
+                                SendPhoto sendPhoto = new SendPhoto(String.valueOf(chatId), inputFile);
+                                execute(sendPhoto);
+
+                                // Шаг 3: Удалить файл после отправки
+                                Files.deleteIfExists(tempFilePath);
                                 userService.consumeOneGeneration(user, session);
                                 sendAfterGeneration(chatId, prompt, session);
-                            } catch (TelegramApiException e) {
+                            } catch (TelegramApiException | IOException | RuntimeException e) {
                                 log.error("Error sending photo", e);
                                 SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
                                 try {
