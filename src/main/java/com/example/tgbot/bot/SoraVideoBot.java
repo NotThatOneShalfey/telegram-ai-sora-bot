@@ -23,6 +23,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -654,13 +659,28 @@ public class SoraVideoBot extends TelegramWebhookBot {
                     .subscribe(
                             url -> {
                                 try {
+                                    // Шаг 1: Скачать изображение
+                                    URL imageUrl = new URL(url);
+                                    Path tempFilePath = Files.createTempFile("photo", ".jpg");
+                                    try (InputStream in = imageUrl.openStream()) {
+                                        Files.copy(in, tempFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
 
-                                    SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(url));
-                                    execute(photo);
+                                    // Шаг 2: Отправить в Telegram
+                                    InputFile inputFile = new InputFile(tempFilePath.toFile());
+                                    SendPhoto sendPhoto = new SendPhoto(String.valueOf(chatId), inputFile);
+                                    execute(sendPhoto);
+
+                                    // Шаг 3: Удалить файл после отправки
+                                    Files.deleteIfExists(tempFilePath);
+
                                     userService.consumeOneGeneration(user, session);
                                     sendAfterGeneration(chatId, prompt, session);
-                                } catch (TelegramApiException e) {
-                                    log.error("Error sending video", e);
+
+                                } catch (TelegramApiException | IOException | RuntimeException e) {
+                                    log.error("Error sending photo", e);
                                     SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
                                     try {
                                         execute(errorMsg);
@@ -743,13 +763,13 @@ public class SoraVideoBot extends TelegramWebhookBot {
                                 if (session.getModel().equals(GenModel.SUNO_V5)) {
                                     for (String url : urlList) {
                                         SendAudio audio = new SendAudio(String.valueOf(chatId), new InputFile(url));
-                                        userService.consumeOneGeneration(user, session);
                                         execute(audio);
+                                        userService.consumeOneGeneration(user, session);
                                     }
                                 }
                                 sendAfterGeneration(chatId, prompt, session);
                             } catch (TelegramApiException e) {
-                                log.error("Error sending video", e);
+                                log.error("Error sending music", e);
                                 SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить музыкальный файл " + e.getMessage());
                                 try {
                                     execute(errorMsg);
@@ -862,7 +882,7 @@ public class SoraVideoBot extends TelegramWebhookBot {
                                 userService.consumeOneGeneration(user, session);
                                 sendAfterGeneration(chatId, prompt, session);
                             } catch (TelegramApiException e) {
-                                log.error("Error sending video", e);
+                                log.error("Error sending photo", e);
                                 SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
                                 try {
                                     execute(errorMsg);
