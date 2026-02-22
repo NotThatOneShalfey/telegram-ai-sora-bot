@@ -158,7 +158,7 @@ public class VideoGenerationService {
             input.put("prompt", prompt);
         }
         input.put("output_format", "png");
-        input.put("image_size", imageSize);
+        input.put("aspect_ratio", imageSize);
         input.put("resolution", "2K");
 
         Map<String, Object> payload = new HashMap<>();
@@ -177,10 +177,10 @@ public class VideoGenerationService {
         if (prompt != null && !prompt.isBlank()) {
             input.put("prompt", prompt);
         }
-        input.put("image_urls", new String[]{imageUrl});
+        input.put("image_input", new String[]{imageUrl});
         input.put("output_format", "png");
         input.put("resolution", "2K");
-        input.put("image_size", imageSize);
+        input.put("aspect_ratio", imageSize);
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "nano-banana-pro");
