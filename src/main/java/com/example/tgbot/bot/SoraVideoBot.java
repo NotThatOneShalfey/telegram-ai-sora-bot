@@ -648,41 +648,68 @@ public class SoraVideoBot extends TelegramWebhookBot {
         // Посылаем ответ, если все нормально
         sendAfterFileGeneration(chatId, session);
         session.setState(BotState.INITIAL);
-        videoGenerationService.generateFromPrompt(session, prompt)
-                .subscribe(
-                        url -> {
-                            try {
-                                if (session.getModel().equals(GenModel.SORA_2)) {
-                                    SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(url));
-                                    vid.setSupportsStreaming(true);
-                                    userService.consumeOneGeneration(user, session);
-                                    execute(vid);
-                                } else if (session.getModel().equals(GenModel.NANO_BANANA)) {
+
+        if (session.getModel().equals(GenModel.NANO_BANANA)) {
+            videoGenerationService.generateFromPrompt(session, prompt)
+                    .subscribe(
+                            url -> {
+                                try {
+
                                     SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(url));
-                                    userService.consumeOneGeneration(user, session);
                                     execute(photo);
+                                    userService.consumeOneGeneration(user, session);
+                                    sendAfterGeneration(chatId, prompt, session);
+                                } catch (TelegramApiException e) {
+                                    log.error("Error sending video", e);
+                                    SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
+                                    try {
+                                        execute(errorMsg);
+                                    } catch (TelegramApiException ex) {
+                                        log.error("Nested error sending error message", ex);
+                                    }
                                 }
-                                sendAfterGeneration(chatId, prompt, session);
-                            } catch (TelegramApiException e) {
-                                log.error("Error sending video", e);
-                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
+                            },
+                            error -> {
+                                log.error("Video generation failed", error);
+                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
                                 try {
                                     execute(errorMsg);
-                                } catch (TelegramApiException ex) {
-                                    log.error("Nested error sending error message", ex);
+                                } catch (TelegramApiException e) {
+                                    log.error("Error sending error message", e);
                                 }
                             }
-                        },
-                        error -> {
-                            log.error("Video generation failed", error);
-                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
-                            try {
-                                execute(errorMsg);
-                            } catch (TelegramApiException e) {
-                                log.error("Error sending error message", e);
+                    );
+        } else if (session.getModel().equals(GenModel.SORA_2)) {
+            videoGenerationService.generateFromPrompt(session, prompt)
+                    .subscribe(
+                            url -> {
+                                try {
+                                    SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(url));
+                                    vid.setSupportsStreaming(true);
+                                    execute(vid);
+                                    userService.consumeOneGeneration(user, session);
+                                    sendAfterGeneration(chatId, prompt, session);
+                                } catch (TelegramApiException e) {
+                                    log.error("Error sending video", e);
+                                    SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
+                                    try {
+                                        execute(errorMsg);
+                                    } catch (TelegramApiException ex) {
+                                        log.error("Nested error sending error message", ex);
+                                    }
+                                }
+                            },
+                            error -> {
+                                log.error("Video generation failed", error);
+                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
+                                try {
+                                    execute(errorMsg);
+                                } catch (TelegramApiException e) {
+                                    log.error("Error sending error message", e);
+                                }
                             }
-                        }
-                );
+                    );
+        }
     }
 
     private void handleTextDescriptionForMusic(Long chatId, String prompt, UserSession session) throws TelegramApiException {
@@ -799,38 +826,60 @@ public class SoraVideoBot extends TelegramWebhookBot {
             String imageUrl = "https://api.telegram.org/file/bot" + getBotToken() + "/" + filePath;
 
             session.setState(BotState.INITIAL);
-            videoGenerationService.generateFromPromptAndImage(session, prompt, imageUrl)
-                    .subscribe(bytes -> {
-                        try {
-                            if (session.getModel().equals(GenModel.KLING_3_0) || session.getModel().equals(GenModel.SORA_2_WITH_IMAGE)) {
+            if (session.getModel().equals(GenModel.KLING_3_0) || session.getModel().equals(GenModel.SORA_2_WITH_IMAGE)) {
+                videoGenerationService.generateFromPromptAndImage(session, prompt, imageUrl)
+                        .subscribe(bytes -> {
+                            try {
                                 SendVideo vid = new SendVideo(String.valueOf(chatId), new InputFile(bytes));
                                 vid.setSupportsStreaming(true);
-                                userService.consumeOneGeneration(user, session);
                                 execute(vid);
-                            } else if (session.getModel().equals(GenModel.NANO_BANANA_EDIT)) {
-                                SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(bytes));
                                 userService.consumeOneGeneration(user, session);
-                                execute(photo);
+                                sendAfterGeneration(chatId, prompt, session);
+                            } catch (TelegramApiException e) {
+                                log.error("Error sending video", e);
+                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
+                                try {
+                                    execute(errorMsg);
+                                } catch (TelegramApiException ex) {
+                                    log.error("Nested error sending error message", ex);
+                                }
                             }
-                            sendAfterGeneration(chatId, prompt, session);
-                        } catch (TelegramApiException e) {
-                            log.error("Error sending video", e);
-                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
+                        }, error -> {
+                            log.error("Video generation from image failed", error);
+                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
                             try {
                                 execute(errorMsg);
-                            } catch (TelegramApiException ex) {
-                                log.error("Nested error sending error message", ex);
+                            } catch (TelegramApiException e) {
+                                log.error("Nested error sending error message", e);
                             }
-                        }
-                    }, error -> {
-                        log.error("Video generation from image failed", error);
-                        SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
-                        try {
-                            execute(errorMsg);
-                        } catch (TelegramApiException e) {
-                            log.error("Nested error sending error message", e);
-                        }
-                    });
+                        });
+            } else if (session.getModel().equals(GenModel.NANO_BANANA_EDIT)) {
+                videoGenerationService.generateFromPromptAndImage(session, prompt, imageUrl)
+                        .subscribe(bytes -> {
+                            try {
+                                SendPhoto photo = new SendPhoto(String.valueOf(chatId), new InputFile(bytes));
+                                execute(photo);
+                                userService.consumeOneGeneration(user, session);
+                                sendAfterGeneration(chatId, prompt, session);
+                            } catch (TelegramApiException e) {
+                                log.error("Error sending video", e);
+                                SendMessage errorMsg = new SendMessage(String.valueOf(chatId), "Не удалось отправить файл: " + e.getMessage());
+                                try {
+                                    execute(errorMsg);
+                                } catch (TelegramApiException ex) {
+                                    log.error("Nested error sending error message", ex);
+                                }
+                            }
+                        }, error -> {
+                            log.error("Video generation from image failed", error);
+                            SendMessage errorMsg = new SendMessage(String.valueOf(chatId), processFailedRequest(error.getMessage()));
+                            try {
+                                execute(errorMsg);
+                            } catch (TelegramApiException e) {
+                                log.error("Nested error sending error message", e);
+                            }
+                        });
+            }
         } catch (TelegramApiException e) {
             log.error("Error fetching file path", e);
             SendMessage errMsg = new SendMessage(String.valueOf(chatId), "Не удалось загрузить изображение: " + e.getMessage());
