@@ -1,0 +1,66 @@
+package com.example.tgbot.models.controllers;
+
+import com.example.tgbot.models.data.RecordInfoResponse;
+import com.example.tgbot.web.callbacks.keiai.KeiAiMusicCallbackResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/callbacks")
+@RequiredArgsConstructor
+@Slf4j
+public class ServicesCallbackController {
+
+    ObjectMapper jsonMapper = new JsonMapper();
+
+    @PostMapping("/suno-v5")
+    public void handleSunoCallback(@RequestBody String body) {
+        log.debug("handleSunoCallback method called!");
+        try {
+            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            log.trace("Resp object: {}", resp.toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/sora2")
+    public void handleSoraCallback(@RequestBody String body) {
+        log.debug("handleSoraCallback method called!");
+        try {
+            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            log.trace("Resp object: {}", resp.toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/kling-3-0")
+    public void handleKlingCallback(@RequestBody String body) {
+        log.debug("handleKlingCallback method called!");
+        try {
+            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            log.trace("Resp object: {}", resp.toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/nano-banana-pro")
+    public void handleNanoBananaCallback(@RequestBody String body) {
+        log.debug("handleNanoBananaCallback method called!");
+        try {
+            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            log.trace("Resp object: {}", resp.toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

@@ -21,6 +21,7 @@ telegram:
     webhook-path: ${TELEGRAM_BOT_WEBHOOK_PATH}
     webhook-base-url: ${TELEGRAM_BOT_WEBHOOK_BASE_URL}
     payment-token: ${TELEGRAM_BOT_PAYMENT_TOKEN}
+    version-endpoint: ${TELEGRAM_BOT_VERSION_ENDPOINT}
 
 
 kieai:
