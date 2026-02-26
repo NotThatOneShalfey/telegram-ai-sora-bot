@@ -1,5 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
@@ -15,6 +16,10 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 
 @Component
 public class GetGiftPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+    public GetGiftPanel(TelegramExecutor telegramExecutor) {
+        super(telegramExecutor);
+    }
 
     @Override
     public void execute(UserSession session) {

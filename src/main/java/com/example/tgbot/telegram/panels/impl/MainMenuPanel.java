@@ -1,5 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
@@ -19,6 +20,10 @@ public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPa
 
     @Setter
     private String panelText = "";
+
+    public MainMenuPanel(TelegramExecutor telegramExecutor) {
+        super(telegramExecutor);
+    }
 
     @Override
     public void execute(UserSession session) {

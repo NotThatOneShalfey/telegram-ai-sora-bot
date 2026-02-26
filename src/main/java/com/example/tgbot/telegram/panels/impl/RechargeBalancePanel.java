@@ -1,5 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.buttons.PaidPackageButton;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.handlers.CallbackHandler;
@@ -17,6 +18,10 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 
 @Component
 public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+    public RechargeBalancePanel(TelegramExecutor telegramExecutor) {
+        super(telegramExecutor);
+    }
 
     @Override
     public void execute(UserSession session) {

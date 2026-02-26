@@ -1,6 +1,8 @@
 package com.example.tgbot.telegram.handlers;
 
 import com.example.tgbot.service.UserService;
+import com.example.tgbot.telegram.TelegramExecutor;
+import com.example.tgbot.telegram.TelegramExecutorImpl;
 import com.example.tgbot.telegram.TgBot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,8 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 @RequiredArgsConstructor
 public class CallbackHandler {
 
-    @Autowired
-    private TgBot tgBot;
+
+    private TelegramExecutor telegramExecutor;
     private final UserService userService;
 
     public static String wrapCallback(String panelToShow, String additionalOption) {

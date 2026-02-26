@@ -1,5 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
@@ -14,6 +15,10 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 
 @Component
 public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+    public GenerateVideoPanel(TelegramExecutor telegramExecutor) {
+        super(telegramExecutor);
+    }
 
     // Статический метод нужен для ссылки кнопок на следующую панель
     public static String callback() {

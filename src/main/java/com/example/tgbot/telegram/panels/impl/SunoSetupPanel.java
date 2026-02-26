@@ -3,6 +3,7 @@ package com.example.tgbot.telegram.panels.impl;
 import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.configurations.SunoOptions;
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.sessions.ChatState;
@@ -18,6 +19,10 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 
 @Component
 public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+    public SunoSetupPanel(TelegramExecutor telegramExecutor) {
+        super(telegramExecutor);
+    }
 
     @Override
     public void execute(UserSession session) {

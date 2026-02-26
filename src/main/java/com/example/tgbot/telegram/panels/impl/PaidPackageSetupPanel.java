@@ -1,9 +1,11 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.buttons.PaidPackageButton;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,10 +19,9 @@ import java.util.List;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class PaidPackageSetupPanel implements IChatPanel {
-    @Autowired
-    private TgBot bot;
-
+    private final TelegramExecutor telegramExecutor;
 
     @Override
     public void execute(UserSession session) {
@@ -36,13 +37,13 @@ public class PaidPackageSetupPanel implements IChatPanel {
                 .title(title)
                 .description(description)
                 .payload(payload)
-                .providerToken(bot.getProviderToken())
+                .providerToken(telegramExecutor.getProviderToken())
                 .startParameter("LOAD_PARAMETER{}") // параметр для запусков
                 .prices(prices)
                 .currency("RUB") // валюта
                 .build();
         try {
-            bot.execute(invoice);
+            telegramExecutor.executeInvoice(invoice);
         } catch (TelegramApiException e) {
             processSendInvoiceError(session.getChatId(), e);
         }
@@ -64,7 +65,7 @@ public class PaidPackageSetupPanel implements IChatPanel {
                             Пожалуйста обратитесь в поддержку @CreativeLabAI
                 """;
         try {
-            bot.execute(new SendMessage(chatId, errorMessage));
+            telegramExecutor.executeMessage(new SendMessage(chatId, errorMessage));
         } catch (TelegramApiException ex) {
             log.error("Во время обработки ошибка возникла ошибка!!!!! {}", e.getMessage());
         }

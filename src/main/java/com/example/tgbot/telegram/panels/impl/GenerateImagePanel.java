@@ -1,5 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.buttons.AspectRatioButton;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.handlers.CallbackHandler;
@@ -16,6 +17,10 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 
 @Component
 public class GenerateImagePanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+    public GenerateImagePanel(TelegramExecutor telegramExecutor) {
+        super(telegramExecutor);
+    }
 
     @Override
     public void execute(UserSession session) {

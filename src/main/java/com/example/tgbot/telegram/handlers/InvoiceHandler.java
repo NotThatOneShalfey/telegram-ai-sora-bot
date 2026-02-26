@@ -1,5 +1,7 @@
 package com.example.tgbot.telegram.handlers;
 
+import com.example.tgbot.telegram.TelegramExecutor;
+import com.example.tgbot.telegram.TelegramExecutorImpl;
 import com.example.tgbot.telegram.TgBot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +12,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class InvoiceHandler {
 
-    @Autowired
-    private TgBot bot;
+    private final TelegramExecutor telegramExecutor;
 
     public void handlePreCheckoutQuery(String preCheckoutQueryId) {
         // Подтверждаем оплату
@@ -24,7 +26,7 @@ public class InvoiceHandler {
                     .ok(true)
                     .build();
             long startTime = System.currentTimeMillis();
-            Object o = bot.execute(answer);
+            Object o = telegramExecutor.executeAnswerPreCheckout(answer);
             log.trace("Execute answer = {}", o.toString());
             long endTime = System.currentTimeMillis();
             execTime = endTime - startTime;
