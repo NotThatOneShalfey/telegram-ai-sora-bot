@@ -1,9 +1,8 @@
 package com.example.tgbot.telegram.controllers;
 
-import com.example.tgbot.bot.SoraVideoBot;
+import com.example.tgbot.telegram.TgBot;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @RequiredArgsConstructor
 @Slf4j
 public class WebhookController {
-    private final SoraVideoBot soraVideoBot;
+    private final TgBot tgBot;
     private final ObjectMapper jsonMapper = new ObjectMapper();
 
     @PostMapping("/update")
@@ -27,7 +26,7 @@ public class WebhookController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return soraVideoBot.onWebhookUpdateReceived(update);
+        return tgBot.onWebhookUpdateReceived(update);
     }
 
     @GetMapping("/test")

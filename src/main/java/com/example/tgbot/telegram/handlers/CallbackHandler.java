@@ -27,9 +27,9 @@ public class CallbackHandler {
     }
 
     public void handleCallback(CallbackQuery cq) {
-        cq.getMessage().getChatId();
-        userService.findUser();
-        tgBot.getSessions().get();
+//        cq.getMessage().getChatId();
+//        userService.findUser();
+//        tgBot.getSessions().get();
 
 
     }

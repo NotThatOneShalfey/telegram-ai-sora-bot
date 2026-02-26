@@ -1,7 +1,6 @@
 package com.example.tgbot.models.controllers;
 
 import com.example.tgbot.models.data.RecordInfoResponse;
-import com.example.tgbot.web.callbacks.keiai.KeiAiMusicCallbackResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;

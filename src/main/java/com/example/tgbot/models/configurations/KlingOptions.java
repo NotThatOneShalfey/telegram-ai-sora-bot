@@ -75,7 +75,7 @@ public class KlingOptions implements ModelRequestOptions {
     }
 
     @Builder
-    private class MultiShotRequest {
+    private static class MultiShotRequest {
         String prompt;
         int duration;
     }
