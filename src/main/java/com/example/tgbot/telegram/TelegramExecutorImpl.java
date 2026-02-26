@@ -17,46 +17,44 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TelegramExecutorImpl implements TelegramExecutor {
 
-    private final TgBot tgBot;
-
     @Override
     public void executeMessage(SendMessage sm) throws TelegramApiException {
-        tgBot.execute(sm);
+        TgBot.getInstance().execute(sm);
     }
 
     @Override
     public void executeInvoice(SendInvoice si) throws TelegramApiException {
-        tgBot.execute(si);
+        TgBot.getInstance().execute(si);
     }
 
     @Override
     public void executePhoto(SendPhoto sp) throws TelegramApiException {
-        tgBot.execute(sp);
+        TgBot.getInstance().execute(sp);
     }
 
     @Override
     public void executeVideo(SendVideo sp) throws TelegramApiException {
-        tgBot.execute(sp);
+        TgBot.getInstance().execute(sp);
     }
 
     @Override
     public Object executeAnswerPreCheckout(AnswerPreCheckoutQuery apcq) throws TelegramApiException {
-        return tgBot.execute(apcq);
+        return TgBot.getInstance().execute(apcq);
     }
 
     @Override
     public Map<String, IChatPanel> getPanels() {
-        return tgBot.getPanels();
+        return TgBot.getInstance().getPanels();
     }
 
     @Override
     public Map<String, UserSession> getSessions() {
-        return tgBot.getSessions();
+        return TgBot.getInstance().getSessions();
     }
 
     @Override
     public String getProviderToken() {
-        return tgBot.getProviderToken();
+        return TgBot.getInstance().getProviderToken();
     }
 
 
