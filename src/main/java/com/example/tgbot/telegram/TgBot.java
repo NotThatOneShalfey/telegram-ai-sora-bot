@@ -39,6 +39,8 @@ public class TgBot extends TelegramWebhookBot {
     private final MessageHandler messageHandler;
     private final InvoiceHandler invoiceHandler;
 
+    private boolean panelsInit;
+
     @Getter
     @Value("${telegram.bot.payment-token:}")
     private String providerToken;
@@ -117,13 +119,14 @@ public class TgBot extends TelegramWebhookBot {
 
     @PostConstruct
     public void postConstruct() {
-        log.info("chatPanels = " + chatPanels);
-        if (chatPanels != null) {
-            chatPanels.forEach(p -> panels.put(p.getLabel(), p));
-        } else {
-            log.error("chatPanels is null");
-        }
         instance = this;
+    }
+
+    @Autowired
+    private void initPanels(Collection<IChatPanel> chatPanels) {
+        if (!panelsInit) {
+            chatPanels.forEach(cp -> panels.put(cp.getLabel(), cp));
+        }
     }
 
 //    @PostConstruct
