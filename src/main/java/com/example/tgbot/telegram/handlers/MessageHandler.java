@@ -47,7 +47,7 @@ public class MessageHandler {
             if (message.getText().contains(" ")) {
                 referral = message.getText().split(" ")[1];
             }
-            handleStart(session, user, referral, message.getFrom().getUserName());
+            handleStart(session, user, message.getFrom().getUserName(), referral);
             return;
         }
         // Если завершение оплаты
@@ -64,8 +64,8 @@ public class MessageHandler {
         handlePrompt(message, session);
     }
 
-    private void handleStart(UserSession session, User user, String referralLink, String userName) {
-        userService.updateUserCredentials(user, referralLink, userName);
+    private void handleStart(UserSession session, User user, String userName, String referralLink) {
+        userService.updateUserCredentials(user, userName, referralLink);
         telegramExecutor.getPanels().get(MainMenuPanel.callback()).execute(session);
     }
 

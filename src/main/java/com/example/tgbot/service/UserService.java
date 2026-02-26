@@ -2,8 +2,10 @@ package com.example.tgbot.service;
 
 import com.example.tgbot.data.HistoryOperationType;
 import com.example.tgbot.db.OperationsHistory;
+import com.example.tgbot.db.ReferralLinks;
 import com.example.tgbot.db.User;
 import com.example.tgbot.db.repositories.OperationsHistoryRepository;
+import com.example.tgbot.db.repositories.ReferralLinksRepository;
 import com.example.tgbot.db.repositories.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +25,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final OperationsHistoryRepository historyRepository;
+    private final ReferralLinksRepository referralLinksRepository;
     private final ObjectMapper objectMapper;
 
 
@@ -49,6 +52,11 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
+    public User findUserByUserName(String userName) {
+        Optional<User> existing = userRepository.findByUserName(userName);
+        return existing.orElse(null);
+    }
+
     @Transactional
     public void updateUserCredentials(User user, String userName, String referralLink) {
         Optional<User> existing = userRepository.findById(user.getId());
@@ -60,8 +68,10 @@ public class UserService {
                 changed = true;
             }
             if (!Objects.equals(userForUpdate.getLinkUsed(), referralLink)) {
-                userForUpdate.setLinkUsed(referralLink);
-                changed = true;
+                if (checkReferral(referralLink)) {
+                    userForUpdate.setLinkUsed(referralLink);
+                    changed = true;
+                }
             }
             // Если что нибудь поменялось, то сохраняем, если нет, то ничего не делаем
             if (changed) {
@@ -110,7 +120,6 @@ public class UserService {
     public User addGift(User user) {
         user.setBalance(user.getBalance() + 100);
         user.setBonusReceived(true);
-
         historyRepository.save(OperationsHistory.builder()
                 .balanceChange(100F)
                 .userId(user)
@@ -118,6 +127,20 @@ public class UserService {
                 .operationType(HistoryOperationType.GIFT)
                 .build());
         return userRepository.save(user);
+    }
+
+    public boolean checkReferral(String referralLink) {
+        ReferralLinks link = referralLinksRepository.findByLink(referralLink).orElse(null);
+        return link != null;
+    }
+
+    @Transactional
+    public ReferralLinks addReferral(String creatorUserName, String link) {
+        User user = findUserByUserName(creatorUserName);
+        ReferralLinks newLink = new ReferralLinks();
+        newLink.setLink(link);
+        newLink.setCreated_by(user);
+        return referralLinksRepository.save(newLink);
     }
 
 //    public boolean checkBalanceBeforeGeneration(User user, UserSession session) {
