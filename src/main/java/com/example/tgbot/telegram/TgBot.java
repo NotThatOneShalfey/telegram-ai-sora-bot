@@ -117,6 +117,7 @@ public class TgBot extends TelegramWebhookBot {
 
     @PostConstruct
     public void postConstruct() {
+        log.info("chatPanels = " + chatPanels);
         if (chatPanels != null) {
             chatPanels.forEach(p -> panels.put(p.getLabel(), p));
         } else {
