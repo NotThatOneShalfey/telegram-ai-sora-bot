@@ -8,6 +8,7 @@ import com.example.tgbot.telegram.sessions.UserSession;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ public class TgBot extends TelegramWebhookBot {
     // Все доступные панели для отправки в чаты
     @Getter
     private final Map<String, IChatPanel> panels = new ConcurrentHashMap<>();
+    private Collection<IChatPanel> chatPanels;
     private final CallbackHandler callbackHandler;
     private final MessageHandler messageHandler;
     private final InvoiceHandler invoiceHandler;
@@ -46,16 +48,19 @@ public class TgBot extends TelegramWebhookBot {
                  CallbackHandler callbackHandler,
                  MessageHandler messageHandler,
                  InvoiceHandler invoiceHandler,
-                 @Qualifier("botExecutor") Executor taskExecutor,
-                 Collection<IChatPanel> chatPanels) {
+                 @Qualifier("botExecutor") Executor taskExecutor) {
         super(botToken);
         this.callbackHandler = callbackHandler;
         this.messageHandler = messageHandler;
         this.invoiceHandler = invoiceHandler;
         this.taskExecutor = taskExecutor;
 
-        chatPanels.forEach(p -> panels.put(p.getLabel(), p));
         instance = this;
+    }
+
+    @Autowired
+    public void setChatPanels(Collection<IChatPanel> chatPanels) {
+        this.chatPanels = chatPanels;
     }
 
     @Override
@@ -112,6 +117,11 @@ public class TgBot extends TelegramWebhookBot {
 
     @PostConstruct
     public void postConstruct() {
+        if (chatPanels != null) {
+            chatPanels.forEach(p -> panels.put(p.getLabel(), p));
+        } else {
+            log.error("chatPanels is null");
+        }
         instance = this;
     }
 
