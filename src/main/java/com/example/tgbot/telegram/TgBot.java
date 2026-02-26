@@ -31,9 +31,9 @@ public class TgBot extends TelegramWebhookBot {
     // Все доступные панели для отправки в чаты
     @Getter
     private final Map<String, IChatPanel> panels = new ConcurrentHashMap<>();
-    private final CallbackHandler callbackHandler;
-    private final MessageHandler messageHandler;
-    private final InvoiceHandler invoiceHandler;
+//    private final CallbackHandler callbackHandler;
+//    private final MessageHandler messageHandler;
+//    private final InvoiceHandler invoiceHandler;
 
     @Getter
     @Value("${telegram.bot.payment-token:}")
@@ -41,14 +41,14 @@ public class TgBot extends TelegramWebhookBot {
 
     // Инициализация бота с дефолт параметрами, botToken из .env
     public TgBot(@Value("${telegram.bot.token}") String botToken,
-                 CallbackHandler callbackHandler,
-                 MessageHandler messageHandler,
-                 InvoiceHandler invoiceHandler,
+//                 CallbackHandler callbackHandler,
+//                 MessageHandler messageHandler,
+//                 InvoiceHandler invoiceHandler,
                  @Qualifier("botExecutor") Executor taskExecutor) {
         super(botToken);
-        this.callbackHandler = callbackHandler;
-        this.messageHandler = messageHandler;
-        this.invoiceHandler = invoiceHandler;
+//        this.callbackHandler = callbackHandler;
+//        this.messageHandler = messageHandler;
+//        this.invoiceHandler = invoiceHandler;
         this.taskExecutor = taskExecutor;
     }
 
@@ -82,26 +82,26 @@ public class TgBot extends TelegramWebhookBot {
 
     private void processUpdate(Update update) {
         log.trace("Call processUpdate");
-        try {
-            if (update.hasCallbackQuery()) {
-                log.trace("update has CallbackQuery");
-                callbackHandler.handleCallback(update.getCallbackQuery());
-                return;
-            }
-            // Если подтверждение оплаты
-            if (update.hasPreCheckoutQuery()) {
-                log.trace("update has preCheckoutQuery");
-                invoiceHandler.handlePreCheckoutQuery(update.getPreCheckoutQuery().getId());
-                return;
-            }
-            // Если не callback и не оплата, то заходим в обработку сообщения
-            if (update.hasMessage()) {
-                log.trace("update has Message");
-                messageHandler.handleMessage(update.getMessage());
-            }
-        } catch (Exception e) {
-            log.error("Error processing update", e);
-        }
+//        try {
+//            if (update.hasCallbackQuery()) {
+//                log.trace("update has CallbackQuery");
+//                callbackHandler.handleCallback(update.getCallbackQuery());
+//                return;
+//            }
+//            // Если подтверждение оплаты
+//            if (update.hasPreCheckoutQuery()) {
+//                log.trace("update has preCheckoutQuery");
+//                invoiceHandler.handlePreCheckoutQuery(update.getPreCheckoutQuery().getId());
+//                return;
+//            }
+//            // Если не callback и не оплата, то заходим в обработку сообщения
+//            if (update.hasMessage()) {
+//                log.trace("update has Message");
+//                messageHandler.handleMessage(update.getMessage());
+//            }
+//        } catch (Exception e) {
+//            log.error("Error processing update", e);
+//        }
     }
 
 //    @PostConstruct
