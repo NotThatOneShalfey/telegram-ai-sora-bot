@@ -104,9 +104,9 @@ public class TgBot extends TelegramWebhookBot {
         }
     }
 
-    @PostConstruct
-    private void postConstruct(Collection<IChatPanel> panelsCollection) {
-        // В Мапе ключ - getLabel(), вызванный у интерфейса
-        panelsCollection.forEach(icp -> panels.put(icp.getLabel(), icp));
-    }
+//    @PostConstruct
+//    private void postConstruct(Collection<IChatPanel> panelsCollection) {
+//        // В Мапе ключ - getLabel(), вызванный у интерфейса
+//        panelsCollection.forEach(icp -> panels.put(icp.getLabel(), icp));
+//    }
 }
