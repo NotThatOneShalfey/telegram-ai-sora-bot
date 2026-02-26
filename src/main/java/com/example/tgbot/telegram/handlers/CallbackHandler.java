@@ -11,7 +11,8 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 @RequiredArgsConstructor
 public class CallbackHandler {
 
-    private final TgBot tgBot;
+    @Autowired
+    private TgBot tgBot;
     private final UserService userService;
 
     public static String wrapCallback(String panelToShow, String additionalOption) {

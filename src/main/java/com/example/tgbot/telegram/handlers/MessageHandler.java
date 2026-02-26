@@ -9,6 +9,7 @@ import com.example.tgbot.telegram.buttons.PaidPackageButton;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.impl.MainMenuPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -19,14 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class MessageHandler {
 
-    private final TgBot bot;
+    @Autowired
+    private TgBot bot;
     private final UserService userService;
     private final Map<GenerationModel, IRequestAdapter> adapters = new ConcurrentHashMap<>();
 
-    public MessageHandler(TgBot bot,
-                          UserService userService,
+    public MessageHandler(UserService userService,
                           Collection<IRequestAdapter> adaptersCollection) {
-        this.bot = bot;
         this.userService = userService;
         adaptersCollection.forEach(a -> adapters.put(a.getModel(), a));
 

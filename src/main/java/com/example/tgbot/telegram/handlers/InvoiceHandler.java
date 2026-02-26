@@ -3,16 +3,17 @@ package com.example.tgbot.telegram.handlers;
 import com.example.tgbot.telegram.TgBot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class InvoiceHandler {
 
-    private final TgBot bot;
+    @Autowired
+    private TgBot bot;
 
     public void handlePreCheckoutQuery(String preCheckoutQueryId) {
         // Подтверждаем оплату
