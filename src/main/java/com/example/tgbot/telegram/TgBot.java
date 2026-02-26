@@ -46,12 +46,15 @@ public class TgBot extends TelegramWebhookBot {
                  CallbackHandler callbackHandler,
                  MessageHandler messageHandler,
                  InvoiceHandler invoiceHandler,
-                 @Qualifier("botExecutor") Executor taskExecutor) {
+                 @Qualifier("botExecutor") Executor taskExecutor,
+                 Collection<IChatPanel> chatPanels) {
         super(botToken);
         this.callbackHandler = callbackHandler;
         this.messageHandler = messageHandler;
         this.invoiceHandler = invoiceHandler;
         this.taskExecutor = taskExecutor;
+
+        chatPanels.forEach(p -> panels.put(p.getLabel(), p));
         instance = this;
     }
 
