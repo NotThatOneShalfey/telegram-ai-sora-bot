@@ -5,10 +5,12 @@ import com.example.tgbot.telegram.handlers.InvoiceHandler;
 import com.example.tgbot.telegram.handlers.MessageHandler;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
@@ -39,15 +41,11 @@ public class TgBot extends TelegramWebhookBot {
 
     // Инициализация бота с дефолт параметрами, botToken из .env
     public TgBot(@Value("${telegram.bot.token}") String botToken,
-                 Collection<IChatPanel> panelsCollection,
                  CallbackHandler callbackHandler,
                  MessageHandler messageHandler,
                  InvoiceHandler invoiceHandler,
                  @Qualifier("botExecutor") Executor taskExecutor) {
         super(botToken);
-
-        // В Мапе ключ - getLabel(), вызванный у интерфейса
-        panelsCollection.forEach(icp -> panels.put(icp.getLabel(), icp));
         this.callbackHandler = callbackHandler;
         this.messageHandler = messageHandler;
         this.invoiceHandler = invoiceHandler;
@@ -104,5 +102,11 @@ public class TgBot extends TelegramWebhookBot {
         } catch (Exception e) {
             log.error("Error processing update", e);
         }
+    }
+
+    @PostConstruct
+    private void postConstruct(Collection<IChatPanel> panelsCollection) {
+        // В Мапе ключ - getLabel(), вызванный у интерфейса
+        panelsCollection.forEach(icp -> panels.put(icp.getLabel(), icp));
     }
 }
