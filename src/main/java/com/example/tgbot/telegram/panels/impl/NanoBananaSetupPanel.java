@@ -9,11 +9,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 @Component
 public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-
-    public NanoBananaSetupPanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
 

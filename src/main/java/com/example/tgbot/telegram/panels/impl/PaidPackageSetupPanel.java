@@ -5,6 +5,7 @@ import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -17,12 +18,8 @@ import java.util.List;
 @Component
 @Slf4j
 public class PaidPackageSetupPanel implements IChatPanel {
-
-    private final TgBot bot;
-
-    public PaidPackageSetupPanel(TgBot bot) {
-        this.bot = bot;
-    }
+    @Autowired
+    private TgBot bot;
 
 
     @Override

@@ -4,6 +4,7 @@ import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.PanelHelper;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -12,10 +13,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Service
 @Slf4j
 public abstract class AbstractSimpleMessagePanel {
-    private final TgBot bot;
+    @Autowired
+    private TgBot bot;
 
-    public AbstractSimpleMessagePanel(TgBot bot) {
-        this.bot = bot;
+    public AbstractSimpleMessagePanel() {
     }
 
     private void processSendMessageError(String chatId, TelegramApiException e) {

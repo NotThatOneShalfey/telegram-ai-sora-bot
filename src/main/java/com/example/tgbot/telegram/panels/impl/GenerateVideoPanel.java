@@ -15,10 +15,6 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 @Component
 public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public GenerateVideoPanel(TgBot bot) {
-        super(bot);
-    }
-
     // Статический метод нужен для ссылки кнопок на следующую панель
     public static String callback() {
         return "generate_video";

@@ -3,6 +3,7 @@ package com.example.tgbot.telegram.handlers;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.TgBot;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 

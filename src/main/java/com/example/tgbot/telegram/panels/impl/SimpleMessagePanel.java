@@ -11,10 +11,6 @@ public class SimpleMessagePanel extends AbstractSimpleMessagePanel implements IC
     @Setter
     private String panelText;
 
-    public SimpleMessagePanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
         super.executeSendMessage(session, getText(), null, false);

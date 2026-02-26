@@ -8,10 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class SoraSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public SoraSetupPanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
 

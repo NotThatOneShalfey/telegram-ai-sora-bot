@@ -19,10 +19,6 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 @Component
 public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public SunoSetupPanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
         ModelRequestOptions sunoOptions = session.getModelsConfiguration().computeIfAbsent(GenerationModel.SUNO_V5, model -> SunoOptions.builder()

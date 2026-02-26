@@ -18,11 +18,6 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 @Component
 public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-
-    public RechargeBalancePanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
         super.executeSendMessage(session, getText(), getKeyboard(), true);

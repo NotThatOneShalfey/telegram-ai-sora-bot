@@ -20,10 +20,6 @@ public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPa
     @Setter
     private String panelText = "";
 
-    public MainMenuPanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
         super.executeSendMessage(session, getText(), getKeyboard(session), true);

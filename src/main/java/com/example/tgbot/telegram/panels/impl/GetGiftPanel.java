@@ -16,10 +16,6 @@ import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
 @Component
 public class GetGiftPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public GetGiftPanel(TgBot bot) {
-        super(bot);
-    }
-
     @Override
     public void execute(UserSession session) {
         super.executeSendMessage(session, getText(), getKeyboard(), true);
