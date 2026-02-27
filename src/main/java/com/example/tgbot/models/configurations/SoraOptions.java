@@ -1,11 +1,14 @@
 package com.example.tgbot.models.configurations;
 
+import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
 import lombok.Setter;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,9 +17,11 @@ import java.util.Map;
 public class SoraOptions implements ModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();
-
+    @Builder.Default
+    private GenerationModel model = GenerationModel.SORA_2;
     private String prompt;
-    private String aspectRatio;
+    @Builder.Default
+    private String aspectRatio = "9:16";
     @Builder.Default
     private final String nFrames = "10";
     private String[] imageUrls;
@@ -40,7 +45,22 @@ public class SoraOptions implements ModelRequestOptions {
 
     @Override
     public String getOptionsText() {
-        return null;
+        String text = """
+                
+                ПАРАМЕТРЫ
+                Модель: {0}
+                Формат: {1}
+                Длительность: {2}
+                Режим: {3}
+                
+                """;
+
+        return MessageFormat.format(text,
+                model.getLocalizedModelName(),
+                AspectRatioEnum.getButtonTextByValue(aspectRatio),
+                nFrames + " секунд",
+                "Стандарт"
+        );
     }
 
     @Override

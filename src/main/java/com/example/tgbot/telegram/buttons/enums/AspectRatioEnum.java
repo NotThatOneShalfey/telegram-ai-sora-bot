@@ -15,5 +15,14 @@ public enum AspectRatioEnum {
         this.buttonText = buttonText;
     }
 
+    public static String getButtonTextByValue(String value) {
+        for (AspectRatioEnum are : AspectRatioEnum.values()) {
+            if (are.getValue().equalsIgnoreCase(value)) {
+                return are.getButtonText();
+            }
+        }
+        return null;
+    }
+
 
 }

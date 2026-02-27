@@ -1,6 +1,7 @@
 package com.example.tgbot.models.configurations;
 
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -22,7 +23,8 @@ public class KlingOptions implements ModelRequestOptions {
 
     @Builder.Default
     private final GenerationModel model = GenerationModel.KLING_3_0;
-    private String aspect_ratio;
+    @Builder.Default
+    private String aspect_ratio = "9:16";
     @Builder.Default
     private int duration = 10;
     @Builder.Default
@@ -71,7 +73,7 @@ public class KlingOptions implements ModelRequestOptions {
 
         return MessageFormat.format(text,
                 model.getLocalizedModelName(),
-                getLocalizedAspectRatio(),
+                AspectRatioEnum.getButtonTextByValue(aspect_ratio),
                 duration,
                 withSound ? "Включен" : "Выключен",
                 mode.equalsIgnoreCase("std") ? "Стандарт" : "Про",
