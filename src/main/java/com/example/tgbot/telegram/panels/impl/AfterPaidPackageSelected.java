@@ -19,7 +19,7 @@ import java.util.List;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class PaidPackageSetupPanel implements IChatPanel {
+public class AfterPaidPackageSelected implements IChatPanel {
     private final TgBot tgBot;
 
     @Override
@@ -54,7 +54,7 @@ public class PaidPackageSetupPanel implements IChatPanel {
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.PAID_PACKAGE_SETUP;
+        return PanelType.AFTER_PAID_PACKAGE_SELECTED;
     }
 
     private void processSendInvoiceError(String chatId, TelegramApiException e) {

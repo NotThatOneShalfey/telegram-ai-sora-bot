@@ -17,7 +17,7 @@ public class KlingSelectFormatButton implements IButton {
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.KLING_SELECT_FORMAT;
+        return ButtonType.KLING_FORMAT_SELECTION;
     }
 
     @Override

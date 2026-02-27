@@ -19,7 +19,7 @@ public class KlingSelectModelButton implements IButton {
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.KLING_SELECT_MODEL;
+        return ButtonType.KLING_MODEL_SELECTED;
     }
 
     @Override

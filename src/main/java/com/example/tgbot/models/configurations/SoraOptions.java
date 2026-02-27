@@ -71,9 +71,7 @@ public class SoraOptions implements ModelRequestOptions {
     public void setParametersFromJson(String json) {
         log.trace("Call setParametersFromJson. Json={}", json);
         try {
-            SoraOptions opt = mapper.updateValue(this, mapper.readTree(json));
-            log.trace("Current options Object -> {}", this);
-            log.trace("Changed options Object -> {}", opt);
+            mapper.updateValue(this, mapper.readTree(json));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

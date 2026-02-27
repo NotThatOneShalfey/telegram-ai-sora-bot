@@ -17,20 +17,6 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 public class CallbackHandler {
 
     private final ObjectProvider<RegistryService> registryServiceProvider;
-    private final UserService userService;
-
-    public static String wrapCallback(String panelToShow, String additionalOption) {
-        // Коллбэк будет вида PANEL::CUSTOM=XXX
-        String sb = panelToShow +
-                "::" + additionalOption;
-        return sb;
-    }
-
-    private void unwrapCallback(String callbackData) {
-        if (callbackData.contains("::")) {
-            String[] callbackArray = callbackData.split("::");
-        }
-    }
 
     public void handleCallback(CallbackQuery cq, UserSession userSession) {
         log.trace("call handleCallback ---> CallbackData={}", cq.getData());

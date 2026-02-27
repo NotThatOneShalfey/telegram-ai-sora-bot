@@ -19,7 +19,7 @@ public class SoraSelectModelButton implements IButton {
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.SORA_2_SELECT_MODEL;
+        return ButtonType.SORA_2_MODEL_SELECTED;
     }
 
     @Override

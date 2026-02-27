@@ -96,14 +96,4 @@ public class KlingOptions implements ModelRequestOptions {
         int duration;
     }
 
-    private String getLocalizedAspectRatio() {
-        if (this.aspect_ratio.equalsIgnoreCase("9:16")) {
-            return "\uD83D\uDCF1 Вертикальное";
-        } else if (this.aspect_ratio.equalsIgnoreCase("16:9")) {
-            return "\uD83D\uDDA5️ Горизонтальное";
-        } else {
-            return aspect_ratio;
-        }
-    }
-
 }

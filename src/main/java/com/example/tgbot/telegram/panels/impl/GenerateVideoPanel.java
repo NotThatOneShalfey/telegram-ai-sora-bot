@@ -61,8 +61,8 @@ public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IC
     public InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(super.getButton(ButtonType.KLING_SELECT_MODEL).getKeyboardButton()));
-        rows.add(List.of(super.getButton(ButtonType.SORA_2_SELECT_MODEL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.KLING_MODEL_SELECTED).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.SORA_2_MODEL_SELECTED).getKeyboardButton()));
         rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

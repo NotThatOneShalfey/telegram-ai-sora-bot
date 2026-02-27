@@ -57,8 +57,12 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(super.getButton(SORA_2_BACK_TO_MODEL_SELECTION).getKeyboardButton(),
-                super.getButton(SORA_2_SELECT_FORMAT).getKeyboardButton()));
+        rows.add(List.of(super.getButton(KLING_BACK_TO_MODEL_SELECTION).getKeyboardButton(),
+                super.getButton(KLING_FORMAT_SELECTION).getKeyboardButton()));
+        rows.add(List.of(super.getButton(KLING_DURATION_SELECTION).getKeyboardButton(),
+                super.getButton(KLING_SOUND_SELECTION).getKeyboardButton()));
+        rows.add(List.of(super.getButton(KLING_SET_PRO_MOD).getKeyboardButton(),
+                super.getButton(KLING_MULTISET_SELECTION).getKeyboardButton()));
         rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

@@ -46,7 +46,6 @@ public class AspectRatioButton implements IButton {
 
     @Override
     public IButton setParameters(Object... parameters) {
-        log.trace("Call setParameters -> {}", parameters);
         for (Object o : parameters) {
             if (o instanceof AspectRatioEnum are) {
                 this.aspectRatio = are;
@@ -56,9 +55,7 @@ public class AspectRatioButton implements IButton {
                 try {
                     this.aspectRatio = AspectRatioEnum.valueOf(o.toString());
                     this.model = GenerationModel.valueOf(o.toString());
-                } catch (IllegalArgumentException e) {
-                    log.trace("AspectRatioButton setParametersException on parameter -> {}", o);
-                }
+                } catch (IllegalArgumentException ignored) {}
             }
         }
         return this;

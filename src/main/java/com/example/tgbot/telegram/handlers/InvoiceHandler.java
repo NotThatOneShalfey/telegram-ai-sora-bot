@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class InvoiceHandler {
 
     public void handlePreCheckoutQuery(String preCheckoutQueryId, TgBot tgBot) {
+        log.trace("Call -> handlePreCheckoutQuery");
         // Подтверждаем оплату
         long execTime = 0L;
         try {
