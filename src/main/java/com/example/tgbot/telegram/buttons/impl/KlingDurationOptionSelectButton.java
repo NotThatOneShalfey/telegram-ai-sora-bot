@@ -6,13 +6,14 @@ import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 @Component
 @RequiredArgsConstructor
 public class KlingDurationOptionSelectButton implements IButton {
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
     private String durationOption;
 
     @Override
@@ -40,6 +41,6 @@ public class KlingDurationOptionSelectButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        registryService.getChatPanel(PanelType.KLING_SETUP).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
     }
 }

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -19,7 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 @Component
 @RequiredArgsConstructor
 public class AspectRatioButton implements IButton {
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
     private AspectRatioEnum aspectRatio;
     private GenerationModel model;
 
@@ -70,7 +71,7 @@ public class AspectRatioButton implements IButton {
         } else if (model.equals(GenerationModel.KLING_3_0)) {
             nextPanel = PanelType.KLING_SETUP;
         }
-        registryService.getChatPanel(nextPanel).execute(session);
+        registryServiceProvider.getObject().getChatPanel(nextPanel).execute(session);
     }
 
 

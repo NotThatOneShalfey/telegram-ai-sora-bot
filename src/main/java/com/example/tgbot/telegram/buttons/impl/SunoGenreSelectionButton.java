@@ -11,13 +11,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 @Component
 @RequiredArgsConstructor
 public class SunoGenreSelectionButton implements IButton {
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
     private final ObjectMapper mapper = new JsonMapper();
 
     private SunoMusicGenreEnum genre;
@@ -55,6 +56,6 @@ public class SunoGenreSelectionButton implements IButton {
             throw new RuntimeException(e);
         }
         session.getModelsConfiguration().get(GenerationModel.SUNO_V5).setParametersFromJson(str);
-        registryService.getChatPanel(PanelType.SUNO_AFTER_GENRE_SELECTION).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_AFTER_GENRE_SELECTION).execute(session);
     }
 }

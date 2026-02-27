@@ -8,6 +8,7 @@ import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -15,7 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 @RequiredArgsConstructor
 public class MainCreateImageButton implements IButton {
 
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
 
     @Override
     public ButtonType getLabel() {
@@ -38,6 +39,6 @@ public class MainCreateImageButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         session.getModelsConfiguration().put(GenerationModel.SUNO_V5, SunoOptions.builder().build());
-        registryService.getChatPanel(PanelType.NANO_BANANA_PRE_PROMPT).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_PRE_PROMPT).execute(session);
     }
 }

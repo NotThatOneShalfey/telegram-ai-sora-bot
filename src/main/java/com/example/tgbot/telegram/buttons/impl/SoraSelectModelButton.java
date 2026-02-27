@@ -8,13 +8,14 @@ import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 @Component
 @RequiredArgsConstructor
 public class SoraSelectModelButton implements IButton {
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
 
     @Override
     public ButtonType getLabel() {
@@ -37,6 +38,6 @@ public class SoraSelectModelButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         session.getModelsConfiguration().put(GenerationModel.SORA_2, SoraOptions.builder().build());
-        registryService.getChatPanel(PanelType.SORA_2_SETUP).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.SORA_2_SETUP).execute(session);
     }
 }
