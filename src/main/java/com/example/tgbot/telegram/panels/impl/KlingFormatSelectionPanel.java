@@ -9,6 +9,7 @@ import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -18,10 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class KlingFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-
-    public SoraFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public KlingFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
@@ -36,7 +36,7 @@ public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel impleme
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.SORA_2_FORMAT_SELECTION;
+        return PanelType.KLING_FORMAT_SELECTION;
     }
 
     public String getText() {
@@ -49,7 +49,7 @@ public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel impleme
     public InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        IButton aspectRatioButton = super.getButton(ButtonType.ASPECT_RATIO_SELECTION).setParameters(GenerationModel.SORA_2);
+        IButton aspectRatioButton = super.getButton(ButtonType.ASPECT_RATIO_SELECTION).setParameters(GenerationModel.KLING_3_0);
         rows.add(List.of(aspectRatioButton.setParameters(AspectRatioEnum.FORMAT_16_9).getKeyboardButton(),
                 aspectRatioButton.setParameters(AspectRatioEnum.FORMAT_9_16).getKeyboardButton()));
         rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));

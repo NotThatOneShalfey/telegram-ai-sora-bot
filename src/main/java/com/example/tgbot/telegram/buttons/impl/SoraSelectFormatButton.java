@@ -35,6 +35,7 @@ public class SoraSelectFormatButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
+
         registryServiceProvider.getObject().getChatPanel(PanelType.SORA_2_FORMAT_SELECTION).execute(session);
     }
 }
