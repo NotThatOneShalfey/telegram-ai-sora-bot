@@ -39,6 +39,10 @@ public class TgBot extends TelegramWebhookBot {
     @Value("${telegram.bot.payment-token:}")
     private String providerToken;
 
+    @Getter
+    @Value("${common.dev-build:}")
+    private Boolean devBuild;
+
     // Инициализация бота с дефолт параметрами, botToken из .env
     public TgBot(@Value("${telegram.bot.token}") String botToken,
                  CallbackHandler callbackHandler,
@@ -86,6 +90,10 @@ public class TgBot extends TelegramWebhookBot {
         log.trace("Call processUpdate");
         try {
             User user = userService.findOrCreateUser(update.getMessage().getChatId());
+            // Проверка на дев билд
+            if (devBuild && (user.getId() != 1 || user.getId() != 2 || user.getId() != 4)) {
+                return;
+            }
             UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
             if (update.hasCallbackQuery()) {
                 log.trace("update has CallbackQuery");

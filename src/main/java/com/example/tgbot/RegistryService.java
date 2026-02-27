@@ -38,7 +38,7 @@ public class RegistryService {
     public void postConstruct() {
         log.trace("Init RegistryService");
         log.trace("chatPanels: {}", chatPanels);
-        log.trace("buttons: {}", chatPanels);
+        log.trace("buttons: {}", buttons);
     }
 
 

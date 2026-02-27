@@ -18,7 +18,7 @@ public class BalanceRechargeButton implements IButton {
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.BALANCE_RECHARGE;
+        return ButtonType.RECHARGE_BALANCE_CALL;
     }
 
     @Override

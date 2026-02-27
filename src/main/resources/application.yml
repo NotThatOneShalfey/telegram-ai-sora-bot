@@ -27,9 +27,13 @@ telegram:
 kieai:
   api-key: ${KIEAI_API_KEY}
 
+common:
+  dev-build: ${COMMON_DEV_BUILD}
+
 logging:
   level:
     com.example.tgbot: ${APPLICATION_LOGGING_LEVEL}
 
 server:
   port: ${APPLICATION_PORT}
+
