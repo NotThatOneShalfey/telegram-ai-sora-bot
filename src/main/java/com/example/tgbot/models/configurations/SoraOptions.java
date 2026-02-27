@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
@@ -16,6 +17,7 @@ import java.util.Map;
 @Builder
 @Setter
 @Slf4j
+@ToString
 public class SoraOptions implements ModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();

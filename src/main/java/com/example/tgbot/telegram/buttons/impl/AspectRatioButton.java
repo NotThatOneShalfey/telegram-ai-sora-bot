@@ -65,7 +65,7 @@ public class AspectRatioButton implements IButton {
         // Заполняем параметр в конфиге для модели
         String str;
         try {
-            str = mapper.writeValueAsString("\"aspectRatio\":" + aspectRatio.getValue());
+            str = mapper.writeValueAsString("\"aspectRatio\":" + "\"" + aspectRatio.getValue() + "\"");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
