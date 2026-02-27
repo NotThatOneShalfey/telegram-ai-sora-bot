@@ -2,7 +2,7 @@ package com.example.tgbot.telegram.panels;
 
 public enum PanelType {
     MAIN_MENU,
-    GENERATE_IMAGE,
+    NANO_BANANA_FORMAT_SELECTION,
     GENERATE_MUSIC,
     GENERATE_VIDEO,
     GET_GIFT,
@@ -11,7 +11,6 @@ public enum PanelType {
     KLING_FORMAT_SELECTION,
     KLING_AFTER_PROMPT,
     MAIN_FILE_READY,
-    NANO_BANANA_PRE_PROMPT,
     SORA_2_FORMAT_SELECTION,
     SORA_2_AFTER_PROMPT,
     NANO_BANANA_SETUP,

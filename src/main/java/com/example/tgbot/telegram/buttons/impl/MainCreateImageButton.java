@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.buttons.impl;
 
 import com.example.tgbot.RegistryService;
+import com.example.tgbot.models.configurations.NanoBananaOptions;
 import com.example.tgbot.models.configurations.SunoOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.IButton;
@@ -38,7 +39,7 @@ public class MainCreateImageButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getModelsConfiguration().put(GenerationModel.SUNO_V5, SunoOptions.builder().build());
-        registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_PRE_PROMPT).execute(session);
+        session.getModelsConfiguration().put(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
+        registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_SETUP).execute(session);
     }
 }

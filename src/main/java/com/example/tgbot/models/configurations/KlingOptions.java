@@ -74,7 +74,7 @@ public class KlingOptions implements ModelRequestOptions {
         return MessageFormat.format(text,
                 model.getLocalizedModelName(),
                 AspectRatioEnum.getButtonTextByValue(aspect_ratio),
-                duration,
+                duration + " секунд",
                 withSound ? "Включен" : "Выключен",
                 mode.equalsIgnoreCase("std") ? "Стандарт" : "Про",
                 multiShots ? "Включен" : "Выключен"

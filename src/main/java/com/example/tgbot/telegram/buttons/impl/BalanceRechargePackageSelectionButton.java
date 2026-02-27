@@ -47,6 +47,7 @@ public class BalanceRechargePackageSelectionButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
+        session.setPaymentInfo(paidPackage);
         registryService.getObject().getChatPanel(AFTER_PAID_PACKAGE_SELECTED).execute(session);
     }
 }

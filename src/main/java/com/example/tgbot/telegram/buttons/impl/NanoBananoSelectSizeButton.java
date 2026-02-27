@@ -1,21 +1,25 @@
 package com.example.tgbot.telegram.buttons.impl;
 
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.enums.NanoBananoSize;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 @Component
 @RequiredArgsConstructor
-public class NanoBananoSizeButton implements IButton {
+public class NanoBananoSelectSizeButton implements IButton {
+    private final ObjectProvider<RegistryService> registryServiceProvider;
     private NanoBananoSize size;
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.NANO_BANANO_SIZE_SELECTION;
+        return ButtonType.NANO_BANANO_SELECT_SIZE;
     }
 
     @Override
@@ -28,16 +32,11 @@ public class NanoBananoSizeButton implements IButton {
 
     @Override
     public IButton setParameters(Object... parameters) {
-        for (Object o : parameters) {
-            if (o instanceof NanoBananoSize nbs) {
-                this.size = nbs;
-            }
-        }
         return this;
     }
 
     @Override
     public void executeOnCallback(UserSession session) {
-
+        registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_FORMAT_SELECTION).execute(session);
     }
 }

@@ -4,6 +4,7 @@ import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
+import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
@@ -14,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -32,15 +36,19 @@ public class SunoGenreSelectionButton implements IButton {
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(genre.getButtonText());
-        button.setCallbackData(getLabel().toString() + "::" + genre.getButtonCallback());
+        button.setCallbackData(getLabel().toString() + "::" + genre);
         return button;
     }
 
     @Override
     public IButton setParameters(Object... parameters) {
         for (Object o : parameters) {
-            if (o instanceof SunoMusicGenreEnum sge) {
-                this.genre = sge;
+            if (o instanceof SunoMusicGenreEnum smge) {
+                this.genre = smge;
+            } else {
+                try {
+                    this.genre = SunoMusicGenreEnum.valueOf(o.toString());
+                } catch (IllegalArgumentException ignored) {}
             }
         }
         return this;
@@ -48,14 +56,17 @@ public class SunoGenreSelectionButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        // Заполняем параметр в конфиге для модели
-        String str;
+        session.getModelsConfiguration().get(GenerationModel.SUNO_V5).setParametersFromJson(getJsonForOptionsChange());
+        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_AFTER_GENRE_SELECTION).execute(session);
+    }
+
+    private String getJsonForOptionsChange() {
+        Map<String, Object> jsonObject = new HashMap<>();
+        jsonObject.put("genre", genre.getValue());
         try {
-            str = mapper.writeValueAsString("\"genre\":" + genre.getButtonValueForOptions());
+            return mapper.writeValueAsString(jsonObject);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        session.getModelsConfiguration().get(GenerationModel.SUNO_V5).setParametersFromJson(str);
-        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_AFTER_GENRE_SELECTION).execute(session);
     }
 }

@@ -1,7 +1,11 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
+import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.buttons.ButtonType;
+import com.example.tgbot.telegram.buttons.IButton;
+import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
@@ -16,16 +20,16 @@ import java.util.List;
 import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
 @Component
-public class NanoBananaPrePromptPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public NanoBananaPrePromptPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public NanoBananaSetup(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
     @Override
     public void execute(UserSession session) {
-        super.executeSendMessage(session, getText(), getKeyboard(), false);
+        super.executeSendMessage(session, getText(session), getKeyboard(), false);
     }
 
     @Override
@@ -34,9 +38,10 @@ public class NanoBananaPrePromptPanel extends AbstractSimpleMessagePanel impleme
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.NANO_BANANA_PRE_PROMPT;
+        return PanelType.NANO_BANANA_SETUP;
     }
-    private String getText() {
+    private String getText(UserSession session) {
+        String parameters = session.getModelsConfiguration().get(GenerationModel.NANO_BANANA_PRO).getOptionsText();
         String text = """
                 🖼 Nano Banana Pro — генерация изображений
                                 
@@ -48,17 +53,20 @@ public class NanoBananaPrePromptPanel extends AbstractSimpleMessagePanel impleme
                                 
                 Просто отправь описание одним сообщением.
                 Если хочешь изменить конкретную картинку — прикрепи её вместе с текстом.
-                                
+                ______________________________________
+                %s
+                _____________________________________
                 💸 СТОИМОСТЬ: 20 монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
-                """;
+                """.formatted(parameters);
         return text;
     }
 
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        rows.add(List.of(super.getButton(NANO_BANANO_SELECT_SIZE).getKeyboardButton()));
         rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

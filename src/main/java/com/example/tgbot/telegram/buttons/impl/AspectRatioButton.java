@@ -68,7 +68,7 @@ public class AspectRatioButton implements IButton {
         // Определяем какую панель вызывать следующую, в зависимости от модели
         PanelType nextPanel = null;
         if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
-            nextPanel = PanelType.NANO_BANANA_PRE_PROMPT;
+            nextPanel = PanelType.NANO_BANANA_SETUP;
         } else if (model.equals(GenerationModel.SORA_2)) {
             nextPanel = PanelType.SORA_2_SETUP;
         } else if (model.equals(GenerationModel.KLING_3_0)) {

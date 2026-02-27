@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ImageFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class NanoBananaFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public ImageFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public NanoBananaFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
@@ -36,7 +36,7 @@ public class ImageFormatSelectionPanel extends AbstractSimpleMessagePanel implem
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.GENERATE_IMAGE;
+        return PanelType.NANO_BANANA_FORMAT_SELECTION;
     }
 
     public String getText() {
