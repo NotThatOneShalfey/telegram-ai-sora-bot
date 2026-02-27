@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @Builder
 @Setter
+@Slf4j
 public class SoraOptions implements ModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();
@@ -65,8 +67,11 @@ public class SoraOptions implements ModelRequestOptions {
 
     @Override
     public void setParametersFromJson(String json) {
+        log.trace("Call setParametersFromJson. Json={}", json);
         try {
-            mapper.updateValue(this, mapper.readTree(json));
+            SoraOptions opt = mapper.updateValue(this, mapper.readTree(json));
+            log.trace("Current options Object -> {}", this);
+            log.trace("Changed options Object -> {}", opt);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
