@@ -34,12 +34,5 @@ public class RegistryService {
         return buttons.get(button);
     }
 
-    @PostConstruct
-    public void postConstruct() {
-        log.trace("Init RegistryService");
-        log.trace("chatPanels: {}", chatPanels);
-        log.trace("buttons: {}", buttons);
-    }
-
 
 }
