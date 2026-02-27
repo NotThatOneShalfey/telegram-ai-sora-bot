@@ -20,14 +20,13 @@ public class PanelHelper {
                 <pre>
                 \uD83D\uDC8E У вас осталось : {balance} монет.
                 \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples
-                <\\pre>
+                </pre>
                 """;
     }
 
-    public static SendMessage addQuotedBalanceToMessage(SendMessage sm, Integer balance) {
+    public static void addQuotedBalanceToMessage(SendMessage sm, Integer balance) {
         sm.setText(sm.getText() + getQuotedBalance().replaceAll("\\{balance}", String.valueOf(balance)));
         sm.setParseMode("HTML");
-        return sm;
     }
 
     public static InlineKeyboardButton createButton(String text, String callbackData) {

@@ -17,10 +17,10 @@ import java.util.List;
 
 import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
+@Setter
 @Component
 public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    @Setter
     private String panelText = "";
 
     public MainMenuPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
