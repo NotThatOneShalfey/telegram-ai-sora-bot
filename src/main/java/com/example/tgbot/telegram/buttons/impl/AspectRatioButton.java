@@ -17,6 +17,9 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Component
 @RequiredArgsConstructor
@@ -63,13 +66,7 @@ public class AspectRatioButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
-        String str;
-        try {
-            str = mapper.writeValueAsString("\"aspectRatio\":" + "\"" + aspectRatio.getValue() + "\"");
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        session.getModelsConfiguration().get(model).setParametersFromJson(str);
+        session.getModelsConfiguration().get(model).setParametersFromJson(getJsonForOptionsChange());
 
         // Определяем какую панель вызывать следующую, в зависимости от модели
         PanelType nextPanel = null;
@@ -81,6 +78,16 @@ public class AspectRatioButton implements IButton {
             nextPanel = PanelType.KLING_SETUP;
         }
         registryServiceProvider.getObject().getChatPanel(nextPanel).execute(session);
+    }
+
+    private String getJsonForOptionsChange() {
+        Map<String, Object> jsonObject = new HashMap<>();
+        jsonObject.put("aspectRatio", aspectRatio.getValue());
+        try {
+            return mapper.writeValueAsString(jsonObject);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

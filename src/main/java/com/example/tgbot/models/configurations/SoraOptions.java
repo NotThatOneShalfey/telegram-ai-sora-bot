@@ -80,6 +80,6 @@ public class SoraOptions implements ModelRequestOptions {
     }
 
     private String convertAspectRatioForRequest() {
-        return aspectRatio.equals("16:9") ? "portrait" : "landscape";
+        return aspectRatio.equals("16:9") ? "landscape" : "portrait";
     }
 }
