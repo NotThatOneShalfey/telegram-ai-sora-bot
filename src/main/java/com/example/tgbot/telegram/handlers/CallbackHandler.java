@@ -5,6 +5,7 @@ import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
@@ -13,7 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 @Slf4j
 public class CallbackHandler {
 
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
     private final UserService userService;
 
     public static String wrapCallback(String panelToShow, String additionalOption) {

@@ -10,6 +10,7 @@ import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.panels.impl.MainMenuPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -22,15 +23,15 @@ import static com.example.tgbot.telegram.panels.PanelType.MAIN_MENU;
 @Component
 public class MessageHandler {
 
-    private final RegistryService registryService;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
     private final UserService userService;
     private final Map<GenerationModel, IRequestAdapter> adapters = new ConcurrentHashMap<>();
 
     public MessageHandler(UserService userService,
                           Collection<IRequestAdapter> adaptersCollection,
-                          RegistryService registryService) {
+                          ObjectProvider<RegistryService> registryServiceProvider) {
         this.userService = userService;
-        this.registryService = registryService;
+        this.registryServiceProvider = registryServiceProvider;
         adaptersCollection.forEach(a -> adapters.put(a.getModel(), a));
 
     }
@@ -52,7 +53,7 @@ public class MessageHandler {
         // Если завершение оплаты
         if (message.getSuccessfulPayment() != null) {
             userService.addBalance(user, PaidPackageEnum.getPackagePriceByName(message.getSuccessfulPayment().getInvoicePayload()));
-            IChatPanel panel = registryService.getChatPanel(MAIN_MENU);
+            IChatPanel panel = registryServiceProvider.getObject().getChatPanel(MAIN_MENU);
             if (panel instanceof MainMenuPanel mmp) {
                 mmp.setPanelText("Оплата успешно зафиксирована!");
             }
@@ -65,7 +66,7 @@ public class MessageHandler {
 
     private void handleStart(UserSession session, User user, String userName, String referralLink) {
         userService.updateUserCredentials(user, userName, referralLink);
-        registryService.getChatPanel(MAIN_MENU).execute(session);
+        registryServiceProvider.getObject().getChatPanel(MAIN_MENU).execute(session);
     }
 
     private void handlePrompt(Message message, UserSession session) {
