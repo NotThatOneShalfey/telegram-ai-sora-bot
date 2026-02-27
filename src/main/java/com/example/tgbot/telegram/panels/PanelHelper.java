@@ -26,6 +26,7 @@ public class PanelHelper {
     public static void addQuotedBalanceToMessage(SendMessage sm, Integer balance) {
         sm.setText(sm.getText() + getQuotedBalance().replaceAll("\\{balance}", String.valueOf(balance)));
         sm.setParseMode("HTML");
+        sm.setDisableWebPagePreview(true);
     }
 
 }

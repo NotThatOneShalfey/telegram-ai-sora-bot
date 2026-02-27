@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -19,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AspectRatioButton implements IButton {
     private final ObjectProvider<RegistryService> registryServiceProvider;
     private AspectRatioEnum aspectRatio;
@@ -42,10 +44,11 @@ public class AspectRatioButton implements IButton {
     @Override
     public IButton setParameters(Object... parameters) {
         for (Object o : parameters) {
-            if (o instanceof AspectRatioEnum ao) {
-                this.aspectRatio = ao;
-            } else if (o instanceof GenerationModel bm) {
-                this.model = bm;
+            try {
+                this.aspectRatio = AspectRatioEnum.valueOf(o.toString());
+                this.model = GenerationModel.valueOf(o.toString());
+            } catch (IllegalArgumentException e) {
+                log.trace("AspectRatioButton setParametersException on parameter - {}", o.toString());
             }
         }
         return this;

@@ -3,6 +3,7 @@ package com.example.tgbot.telegram.handlers;
 import com.example.tgbot.RegistryService;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.buttons.ButtonType;
+import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +33,14 @@ public class CallbackHandler {
     }
 
     public void handleCallback(CallbackQuery cq, UserSession userSession) {
-        log.trace("handleCallback, Message={}", cq.getMessage());
-        registryServiceProvider.getObject().getButton(ButtonType.valueOf(cq.getData())).executeOnCallback(userSession);
+        log.trace("call handleCallback ---> CallbackData={}", cq.getData());
+        String[] dataArray = cq.getData().split("::");
+        String buttonType = dataArray[0];
+        IButton button = registryServiceProvider.getObject().getButton(ButtonType.valueOf(buttonType));
+        if (dataArray.length > 1) {
+            button.setParameters((Object) dataArray);
+        }
+        button.executeOnCallback(userSession);
     }
 
 }
