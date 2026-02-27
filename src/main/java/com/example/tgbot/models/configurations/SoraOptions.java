@@ -42,7 +42,7 @@ public class SoraOptions implements ModelRequestOptions {
         if (imageUrls.length != 0) {
             input.put("image_urls", imageUrls);
         }
-        input.put("aspect_ratio", getAspectRatio());
+        input.put("aspect_ratio", convertAspectRatioForRequest());
         input.put("n_frames", nFrames);
         return input;
     }
@@ -79,7 +79,7 @@ public class SoraOptions implements ModelRequestOptions {
         }
     }
 
-    private String getAspectRatio() {
+    private String convertAspectRatioForRequest() {
         return aspectRatio.equals("16:9") ? "portrait" : "landscape";
     }
 }
