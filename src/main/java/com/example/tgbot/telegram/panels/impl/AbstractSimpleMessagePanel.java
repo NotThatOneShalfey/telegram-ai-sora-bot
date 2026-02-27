@@ -2,11 +2,13 @@ package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
 import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.buttons.ButtonType;
+import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelHelper;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -14,7 +16,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractSimpleMessagePanel {
-    protected final RegistryService registryService;
+    protected final ObjectProvider<RegistryService> registryServiceProvider;
     private final TgBot tgBot;
 
     private void processSendMessageError(String chatId, TelegramApiException e) {
@@ -47,6 +49,10 @@ public abstract class AbstractSimpleMessagePanel {
         } catch (TelegramApiException e) {
             processSendMessageError(session.getChatId(), e);
         }
+    }
+
+    protected IButton getButton(ButtonType buttonType) {
+        return registryServiceProvider.getObject().getButton(buttonType);
     }
 
 }

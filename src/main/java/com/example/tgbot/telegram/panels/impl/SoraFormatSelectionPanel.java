@@ -5,14 +5,15 @@ import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SoraFormatSelectionPanel(RegistryService registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+    public SoraFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
     }
 
     @Override

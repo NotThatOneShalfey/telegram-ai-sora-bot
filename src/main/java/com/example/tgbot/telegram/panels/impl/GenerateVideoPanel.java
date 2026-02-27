@@ -6,6 +6,7 @@ import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -16,8 +17,9 @@ import java.util.List;
 @Component
 public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public GenerateVideoPanel(RegistryService registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+
+    public GenerateVideoPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
     }
 
     @Override
@@ -59,9 +61,9 @@ public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IC
     public InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(registryService.getButton(ButtonType.KLING_SELECT_MODEL).getKeyboardButton()));
-        rows.add(List.of(registryService.getButton(ButtonType.SORA_2_SELECT_MODEL).getKeyboardButton()));
-        rows.add(List.of(registryService.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.KLING_SELECT_MODEL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.SORA_2_SELECT_MODEL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;
     }

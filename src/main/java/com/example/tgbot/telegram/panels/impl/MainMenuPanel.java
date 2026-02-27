@@ -7,6 +7,7 @@ import com.example.tgbot.telegram.panels.PanelHelper;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.Setter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -22,8 +23,8 @@ public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPa
     @Setter
     private String panelText = "";
 
-    public MainMenuPanel(RegistryService registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+    public MainMenuPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
     }
 
 
@@ -71,15 +72,15 @@ public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPa
     private InlineKeyboardMarkup getKeyboard(UserSession us) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(super.registryService.getButton(MAIN_CREATE_IMAGE_CALL).getKeyboardButton()));
-        rows.add(List.of(super.registryService.getButton(MAIN_CREATE_VIDEO_CALL).getKeyboardButton()));
-        rows.add(List.of(super.registryService.getButton(MAIN_CREATE_MUSIC_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(MAIN_CREATE_IMAGE_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(MAIN_CREATE_VIDEO_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(MAIN_CREATE_MUSIC_CALL).getKeyboardButton()));
         // Проверяем, нужно ли создавать подарок
         boolean addGift = us.getUser().getLinkUsed() == null && !us.getUser().isBonusReceived();
         if (addGift) {
-            rows.add(List.of(super.registryService.getButton(GET_GIFT_CALL).getKeyboardButton()));
+            rows.add(List.of(super.getButton(GET_GIFT_CALL).getKeyboardButton()));
         }
-        rows.add(List.of(PanelHelper.getSupportButton(), super.registryService.getButton(RECHARGE_BALANCE_CALL).getKeyboardButton()));
+        rows.add(List.of(PanelHelper.getSupportButton(), super.getButton(RECHARGE_BALANCE_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;
     }

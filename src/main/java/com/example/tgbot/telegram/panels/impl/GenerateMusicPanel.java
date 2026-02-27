@@ -7,6 +7,7 @@ import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -18,8 +19,8 @@ import java.util.List;
 public class GenerateMusicPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public GenerateMusicPanel(RegistryService registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+    public GenerateMusicPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
     }
 
     @Override
@@ -51,12 +52,12 @@ public class GenerateMusicPanel extends AbstractSimpleMessagePanel implements IC
             if (prevGenre == null) {
                 prevGenre = genre;
             } else {
-                rows.add(List.of(registryService.getButton(ButtonType.SUNO_GENRE_SELECTION).setParameters(prevGenre).getKeyboardButton(),
-                registryService.getButton(ButtonType.SUNO_GENRE_SELECTION).setParameters(genre).getKeyboardButton()));
+                rows.add(List.of(super.getButton(ButtonType.SUNO_GENRE_SELECTION).setParameters(prevGenre).getKeyboardButton(),
+                super.getButton(ButtonType.SUNO_GENRE_SELECTION).setParameters(genre).getKeyboardButton()));
                 prevGenre = null;
             }
         }
-        rows.add(List.of(registryService.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;

@@ -6,6 +6,7 @@ import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.Setter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,9 +14,10 @@ public class SimpleMessagePanel extends AbstractSimpleMessagePanel implements IC
     @Setter
     private String panelText;
 
-    public SimpleMessagePanel(RegistryService registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+    public SimpleMessagePanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
     }
+
 
     @Override
     public void execute(UserSession session) {

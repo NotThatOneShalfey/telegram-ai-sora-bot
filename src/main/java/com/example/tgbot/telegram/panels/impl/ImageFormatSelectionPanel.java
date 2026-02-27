@@ -9,6 +9,7 @@ import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -20,8 +21,8 @@ import java.util.List;
 public class ImageFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public ImageFormatSelectionPanel(RegistryService registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+    public ImageFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
     }
 
     @Override
@@ -48,10 +49,10 @@ public class ImageFormatSelectionPanel extends AbstractSimpleMessagePanel implem
     public InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        IButton aspectRatioButton = super.registryService.getButton(ButtonType.ASPECT_RATIO_SELECTION).setParameters(GenerationModel.NANO_BANANA_PRO);
+        IButton aspectRatioButton = super.getButton(ButtonType.ASPECT_RATIO_SELECTION).setParameters(GenerationModel.NANO_BANANA_PRO);
         rows.add(List.of(aspectRatioButton.setParameters(AspectRatioEnum.FORMAT_16_9).getKeyboardButton(),
                 aspectRatioButton.setParameters(AspectRatioEnum.FORMAT_9_16).getKeyboardButton()));
-        rows.add(List.of(super.registryService.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;
     }
