@@ -89,14 +89,14 @@ public class TgBot extends TelegramWebhookBot {
     private void processUpdate(Update update) {
         log.trace("Call processUpdate");
         try {
-            User user = userService.findOrCreateUser(update.getMessage().getChatId());
-            // Проверка на дев билд
-            if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
-                return;
-            }
-            UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
             if (update.hasCallbackQuery()) {
                 log.trace("update has CallbackQuery");
+                User user = userService.findOrCreateUser(update.getCallbackQuery().getMessage().getChatId());
+                // Проверка на дев билд
+                if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
+                    return;
+                }
+                UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
                 callbackHandler.handleCallback(update.getCallbackQuery(), userSession);
                 return;
             }
@@ -109,6 +109,12 @@ public class TgBot extends TelegramWebhookBot {
             // Если не callback и не оплата, то заходим в обработку сообщения
             if (update.hasMessage()) {
                 log.trace("update has Message");
+                User user = userService.findOrCreateUser(update.getMessage().getChatId());
+                // Проверка на дев билд
+                if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
+                    return;
+                }
+                UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
                 messageHandler.handleMessage(update.getMessage(), userSession);
             }
         } catch (Exception e) {
