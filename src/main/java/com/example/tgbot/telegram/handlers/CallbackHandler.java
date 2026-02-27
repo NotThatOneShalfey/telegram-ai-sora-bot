@@ -1,20 +1,19 @@
 package com.example.tgbot.telegram.handlers;
 
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.service.UserService;
-import com.example.tgbot.telegram.TelegramExecutor;
-import com.example.tgbot.telegram.TelegramExecutorImpl;
-import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CallbackHandler {
 
-
-    private TelegramExecutor telegramExecutor;
+    private final RegistryService registryService;
     private final UserService userService;
 
     public static String wrapCallback(String panelToShow, String additionalOption) {
@@ -30,12 +29,8 @@ public class CallbackHandler {
         }
     }
 
-    public void handleCallback(CallbackQuery cq) {
-//        cq.getMessage().getChatId();
-//        userService.findUser();
-//        tgBot.getSessions().get();
-
-
+    public void handleCallback(CallbackQuery cq, UserSession userSession) {
+        log.trace("handleCallback, Message={}", cq.getMessage());
     }
 
 }

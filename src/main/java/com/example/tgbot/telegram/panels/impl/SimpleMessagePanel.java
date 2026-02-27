@@ -1,8 +1,9 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.telegram.TelegramExecutor;
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -12,8 +13,8 @@ public class SimpleMessagePanel extends AbstractSimpleMessagePanel implements IC
     @Setter
     private String panelText;
 
-    public SimpleMessagePanel(TelegramExecutor telegramExecutor) {
-        super(telegramExecutor);
+    public SimpleMessagePanel(RegistryService registryService, TgBot tgBot) {
+        super(registryService, tgBot);
     }
 
     @Override
@@ -22,8 +23,12 @@ public class SimpleMessagePanel extends AbstractSimpleMessagePanel implements IC
     }
 
     @Override
-    public String getLabel() {
-        return null;
+    public PanelType getLabel() {
+        return getStaticLabel();
+    }
+
+    public static PanelType getStaticLabel() {
+        return PanelType.SIMPLE_MESSAGE;
     }
 
     private String getText() {

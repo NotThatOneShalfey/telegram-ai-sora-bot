@@ -5,7 +5,7 @@ import java.util.Map;
 
 public interface ModelRequestOptions {
     int getPrice();
-
     Map<String, Object> getRequestInput();
     String getOptionsText();
+    void setParametersFromJson(String json);
 }

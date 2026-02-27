@@ -1,33 +1,40 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.telegram.TelegramExecutor;
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
 @Component
-public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class NanoBananaPrePromptPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public NanoBananaSetupPanel(TelegramExecutor telegramExecutor) {
-        super(telegramExecutor);
+
+    public NanoBananaPrePromptPanel(RegistryService registryService, TgBot tgBot) {
+        super(registryService, tgBot);
     }
 
     @Override
     public void execute(UserSession session) {
-
+        super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 
     @Override
-    public String getLabel() {
-        return "gen_image_after_format_selection";
+    public PanelType getLabel() {
+        return getStaticLabel();
     }
 
-    public static String callback() {
-        return "gen_image_after_format_selection";
+    public static PanelType getStaticLabel() {
+        return PanelType.NANO_BANANA_PRE_PROMPT;
     }
-
     private String getText() {
         String text = """
                 🖼 Nano Banana Pro — генерация изображений
@@ -49,6 +56,10 @@ public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements 
     }
 
     private InlineKeyboardMarkup getKeyboard() {
-        return null;
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        rows.add(List.of(super.registryService.getButton(MAIN_MENU_CALL).getKeyboardButton()));
+        markup.setKeyboard(rows);
+        return markup;
     }
 }

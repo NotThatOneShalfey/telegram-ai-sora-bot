@@ -1,11 +1,12 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.telegram.TelegramExecutor;
-import com.example.tgbot.telegram.buttons.PaidPackageButton;
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.telegram.TgBot;
-import com.example.tgbot.telegram.handlers.CallbackHandler;
+import com.example.tgbot.telegram.buttons.ButtonType;
+import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -14,13 +15,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
-
 @Component
 public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public RechargeBalancePanel(TelegramExecutor telegramExecutor) {
-        super(telegramExecutor);
+    public RechargeBalancePanel(RegistryService registryService, TgBot tgBot) {
+        super(registryService, tgBot);
     }
 
     @Override
@@ -29,12 +28,12 @@ public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements 
     }
 
     @Override
-    public String getLabel() {
-        return "recharge_balance";
+    public PanelType getLabel() {
+        return getStaticLabel();
     }
 
-    public static String callback() {
-        return "recharge_balance";
+    public static PanelType getStaticLabel() {
+        return PanelType.PAID_PACKAGE_SETUP;
     }
 
     private String getText() {
@@ -57,13 +56,10 @@ public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements 
 
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        for (PaidPackageButton p : PaidPackageButton.values()) {
-            String buttonName = "%d монет - %d ₽".formatted(p.getPackageAmount(), p.getPackagePrice());
-            // Враппим комплексный коллбек со спецификацией, какой пакет выбрали
-            String callback = CallbackHandler.wrapCallback(PaidPackageSetupPanel.callback(), p.getButtonCallback());
-            rows.add(List.of(createButton(buttonName, callback)));
+        for (PaidPackageEnum p : PaidPackageEnum.values()) {
+            rows.add(List.of(registryService.getButton(ButtonType.BALANCE_RECHARGE_PACKAGE_SELECTION).setParameters(p).getKeyboardButton()));
         }
-        rows.add(List.of(createButton("Главное меню", MainMenuPanel.callback())));
+        rows.add(List.of(registryService.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         rows.add(List.of(PanelHelper.getSupportButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);

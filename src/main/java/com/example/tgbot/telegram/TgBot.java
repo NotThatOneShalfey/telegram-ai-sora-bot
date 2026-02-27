@@ -1,5 +1,7 @@
 package com.example.tgbot.telegram;
 
+import com.example.tgbot.db.User;
+import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.handlers.CallbackHandler;
 import com.example.tgbot.telegram.handlers.InvoiceHandler;
 import com.example.tgbot.telegram.handlers.MessageHandler;
@@ -25,21 +27,13 @@ import java.util.concurrent.*;
 @Component
 @Slf4j
 public class TgBot extends TelegramWebhookBot {
-    @Getter
-    private static TgBot instance;
     private final Executor taskExecutor;
     // Сессии юзеров с ключом по ChatId
-    @Getter
     private final Map<String, UserSession> sessions = new ConcurrentHashMap<>();
-    // Все доступные панели для отправки в чаты
-    @Getter
-    private final Map<String, IChatPanel> panels = new ConcurrentHashMap<>();
-    private Collection<IChatPanel> chatPanels;
     private final CallbackHandler callbackHandler;
     private final MessageHandler messageHandler;
     private final InvoiceHandler invoiceHandler;
-
-    private boolean panelsInit;
+    private final UserService userService;
 
     @Getter
     @Value("${telegram.bot.payment-token:}")
@@ -50,19 +44,14 @@ public class TgBot extends TelegramWebhookBot {
                  CallbackHandler callbackHandler,
                  MessageHandler messageHandler,
                  InvoiceHandler invoiceHandler,
+                 UserService userService,
                  @Qualifier("botExecutor") Executor taskExecutor) {
         super(botToken);
         this.callbackHandler = callbackHandler;
         this.messageHandler = messageHandler;
         this.invoiceHandler = invoiceHandler;
         this.taskExecutor = taskExecutor;
-
-        instance = this;
-    }
-
-    @Autowired
-    public void setChatPanels(Collection<IChatPanel> chatPanels) {
-        this.chatPanels = chatPanels;
+        this.userService = userService;
     }
 
     @Override
@@ -96,42 +85,26 @@ public class TgBot extends TelegramWebhookBot {
     private void processUpdate(Update update) {
         log.trace("Call processUpdate");
         try {
+            User user = userService.findOrCreateUser(update.getMessage().getChatId());
+            UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
             if (update.hasCallbackQuery()) {
                 log.trace("update has CallbackQuery");
-                callbackHandler.handleCallback(update.getCallbackQuery());
+                callbackHandler.handleCallback(update.getCallbackQuery(), userSession);
                 return;
             }
             // Если подтверждение оплаты
             if (update.hasPreCheckoutQuery()) {
                 log.trace("update has preCheckoutQuery");
-                invoiceHandler.handlePreCheckoutQuery(update.getPreCheckoutQuery().getId());
+                invoiceHandler.handlePreCheckoutQuery(update.getPreCheckoutQuery().getId(), this);
                 return;
             }
             // Если не callback и не оплата, то заходим в обработку сообщения
             if (update.hasMessage()) {
                 log.trace("update has Message");
-                messageHandler.handleMessage(update.getMessage());
+                messageHandler.handleMessage(update.getMessage(), userSession);
             }
         } catch (Exception e) {
             log.error("Error processing update", e);
         }
     }
-
-    @PostConstruct
-    public void postConstruct() {
-        instance = this;
-    }
-
-    @Autowired
-    private void initPanels(Collection<IChatPanel> chatPanels) {
-        if (!panelsInit) {
-            chatPanels.forEach(cp -> panels.put(cp.getLabel(), cp));
-        }
-    }
-
-//    @PostConstruct
-//    private void postConstruct(Collection<IChatPanel> panelsCollection) {
-//        // В Мапе ключ - getLabel(), вызванный у интерфейса
-//        panelsCollection.forEach(icp -> panels.put(icp.getLabel(), icp));
-//    }
 }

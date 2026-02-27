@@ -3,7 +3,7 @@ package com.example.tgbot.telegram.sessions;
 import com.example.tgbot.db.User;
 import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
-import com.example.tgbot.telegram.buttons.PaidPackageButton;
+import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +20,7 @@ public class UserSession {
     private LocalDateTime lastActionDateTime;
     private final Map<GenerationModel, ModelRequestOptions> modelsConfiguration = new HashMap<>();
     @Setter
-    private PaidPackageButton paymentInfo = null;
+    private PaidPackageEnum paymentInfo = null;
     @Setter
     private ChatContext chatContext;
 

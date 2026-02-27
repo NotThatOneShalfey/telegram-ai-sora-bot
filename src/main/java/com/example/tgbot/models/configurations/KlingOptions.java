@@ -1,6 +1,9 @@
 package com.example.tgbot.models.configurations;
 
 import com.example.tgbot.models.enums.GenerationModel;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
 import lombok.Setter;
 
@@ -14,6 +17,8 @@ import java.util.Map;
 @Builder
 @Setter
 public class KlingOptions implements ModelRequestOptions {
+
+    private final ObjectMapper mapper = new JsonMapper();
 
     @Builder.Default
     private final GenerationModel model = GenerationModel.KLING_3_0;
@@ -72,6 +77,15 @@ public class KlingOptions implements ModelRequestOptions {
                 mode.equalsIgnoreCase("std") ? "Стандарт" : "Про",
                 multiShots ? "Включен" : "Выключен"
                 );
+    }
+
+    @Override
+    public void setParametersFromJson(String json) {
+        try {
+            mapper.updateValue(this, mapper.readTree(json));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Builder

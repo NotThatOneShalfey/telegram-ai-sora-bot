@@ -8,10 +8,10 @@ import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public KlingSetupPanel(RegistryService registryService, TgBot tgBot) {
+    public SoraFormatSelectionPanel(RegistryService registryService, TgBot tgBot) {
         super(registryService, tgBot);
     }
 
@@ -22,10 +22,6 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
 
     @Override
     public PanelType getLabel() {
-        return getStaticLabel();
-    }
-
-    public static PanelType getStaticLabel() {
-        return PanelType.KLING_SETUP;
+        return PanelType.SORA_2_FORMAT_SELECTION;
     }
 }

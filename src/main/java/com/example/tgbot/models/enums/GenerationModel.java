@@ -15,4 +15,13 @@ public enum GenerationModel {
 
     private final String requestModelName;
     private final String localizedModelName;
+
+    public static GenerationModel getByRequestModelName(String requestModelName) {
+        for (GenerationModel gm : GenerationModel.values()) {
+            if (gm.getRequestModelName().equalsIgnoreCase(requestModelName)) {
+                return gm;
+            }
+        }
+        return null;
+    }
 }

@@ -1,8 +1,10 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.telegram.TelegramExecutor;
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -11,18 +13,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
-
 @Component
 public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public GenerateVideoPanel(TelegramExecutor telegramExecutor) {
-        super(telegramExecutor);
-    }
-
-    // Статический метод нужен для ссылки кнопок на следующую панель
-    public static String callback() {
-        return "generate_video";
+    public GenerateVideoPanel(RegistryService registryService, TgBot tgBot) {
+        super(registryService, tgBot);
     }
 
     @Override
@@ -31,8 +26,12 @@ public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IC
     }
 
     @Override
-    public String getLabel() {
-        return "generate_video";
+    public PanelType getLabel() {
+        return getStaticLabel();
+    }
+
+    public static PanelType getStaticLabel() {
+        return PanelType.GENERATE_VIDEO;
     }
 
     public String getText() {
@@ -60,9 +59,9 @@ public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IC
     public InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(createButton("Kling 3.0", KlingSetupPanel.callback())));
-        rows.add(List.of(createButton("Sora 2", SoraSetupPanel.callback())));
-        rows.add(List.of(createButton("Главное меню", MainMenuPanel.callback())));
+        rows.add(List.of(registryService.getButton(ButtonType.KLING_SELECT_MODEL).getKeyboardButton()));
+        rows.add(List.of(registryService.getButton(ButtonType.SORA_2_SELECT_MODEL).getKeyboardButton()));
+        rows.add(List.of(registryService.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;
     }

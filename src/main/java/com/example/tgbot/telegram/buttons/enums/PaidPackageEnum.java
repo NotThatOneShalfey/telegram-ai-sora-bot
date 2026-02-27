@@ -1,4 +1,4 @@
-package com.example.tgbot.telegram.buttons;
+package com.example.tgbot.telegram.buttons.enums;
 
 import lombok.Getter;
 
@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Getter
-public enum PaidPackageButton {
+public enum PaidPackageEnum {
 
     PACKAGE_100("\"100 монет\"", 100, 100, "package_100"),
     PACKAGE_550("\"550 монет\"", 500, 550, "package_550"),
@@ -18,7 +18,7 @@ public enum PaidPackageButton {
     private Integer packageAmount;
     private String buttonCallback;
 
-    PaidPackageButton(String buttonName, Integer packagePrice, Integer packageAmount, String buttonCallback) {
+    PaidPackageEnum(String buttonName, Integer packagePrice, Integer packageAmount, String buttonCallback) {
         this.buttonName = buttonName;
         this.packagePrice = packagePrice;
         this.packageAmount = packageAmount;
@@ -26,12 +26,12 @@ public enum PaidPackageButton {
     }
 
     public static Integer getPackagePriceByName(String externalName) {
-        Optional<PaidPackageButton> pack = Arrays.stream(PaidPackageButton.values()).filter(pp -> pp.buttonName.equalsIgnoreCase(externalName)).findFirst();
-        return pack.map(PaidPackageButton::getPackageAmount).orElse(null);
+        Optional<PaidPackageEnum> pack = Arrays.stream(PaidPackageEnum.values()).filter(pp -> pp.buttonName.equalsIgnoreCase(externalName)).findFirst();
+        return pack.map(PaidPackageEnum::getPackageAmount).orElse(null);
     }
 
-    public static PaidPackageButton getPackageByCallback(String cb) {
-        Optional<PaidPackageButton> pack = Arrays.stream(PaidPackageButton.values()).filter(pp -> pp.buttonCallback.equalsIgnoreCase(cb)).findFirst();
+    public static PaidPackageEnum getPackageByCallback(String cb) {
+        Optional<PaidPackageEnum> pack = Arrays.stream(PaidPackageEnum.values()).filter(pp -> pp.buttonCallback.equalsIgnoreCase(cb)).findFirst();
         return pack.orElse(null);
     }
 }

@@ -1,11 +1,12 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.configurations.ModelRequestOptions;
-import com.example.tgbot.models.configurations.SunoOptions;
 import com.example.tgbot.models.enums.GenerationModel;
-import com.example.tgbot.telegram.TelegramExecutor;
 import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.stereotype.Component;
@@ -15,34 +16,29 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.tgbot.telegram.panels.PanelHelper.createButton;
-
 @Component
-public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class SunoAfterGenreSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public SunoSetupPanel(TelegramExecutor telegramExecutor) {
-        super(telegramExecutor);
+
+    public SunoAfterGenreSelectionPanel(RegistryService registryService, TgBot tgBot) {
+        super(registryService, tgBot);
     }
 
     @Override
     public void execute(UserSession session) {
-        ModelRequestOptions sunoOptions = session.getModelsConfiguration().computeIfAbsent(GenerationModel.SUNO_V5, model -> SunoOptions.builder()
-                .audioWeight(null)
-                .customMode(false)
-                .instrumental(false)
-                .build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
         session.getChatContext().setModel(GenerationModel.SUNO_V5);
+        ModelRequestOptions sunoOptions = session.getModelsConfiguration().get(GenerationModel.SUNO_V5);
         super.executeSendMessage(session, getText(sunoOptions.getOptionsText()), getKeyboard(), true);
     }
 
     @Override
-    public String getLabel() {
-        return "suno_music_selected";
+    public PanelType getLabel() {
+        return getStaticLabel();
     }
 
-    public static String callback() {
-        return "suno_music_selected";
+    public static PanelType getStaticLabel() {
+        return PanelType.SUNO_SETUP;
     }
 
     private String getText(String genre) {
@@ -62,7 +58,7 @@ public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatP
 
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-        rows.add(List.of(createButton("Главное меню", MainMenuPanel.callback())));
+        rows.add(List.of(registryService.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;

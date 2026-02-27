@@ -1,4 +1,4 @@
-package com.example.tgbot.telegram.buttons;
+package com.example.tgbot.telegram.buttons.enums;
 
 import lombok.Getter;
 
@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Getter
-public enum SunoMusicGenreButton {
+public enum SunoMusicGenreEnum {
     POP("Поп", "pop-genre", "\uD83C\uDFB6 Поп"),
     RAP("Рэп / хип-хоп", "rap-genre", "\uD83C\uDFA4 Рэп / хип-хоп"),
     DISCO("Диско 90-х годов", "disco-genre", "\uD83D\uDC83 Диско 90-х"),
@@ -23,14 +23,14 @@ public enum SunoMusicGenreButton {
     private final String buttonCallback;
     private final String buttonText;
 
-    SunoMusicGenreButton(String buttonValueForOptions, String buttonCallback, String buttonText) {
+    SunoMusicGenreEnum(String buttonValueForOptions, String buttonCallback, String buttonText) {
         this.buttonValueForOptions = buttonValueForOptions;
         this.buttonCallback = buttonCallback;
         this.buttonText = buttonText;
     }
 
-    public static SunoMusicGenreButton getPackageByCallback(String cb) {
-        Optional<SunoMusicGenreButton> pack = Arrays.stream(SunoMusicGenreButton.values()).filter(pp -> pp.buttonCallback.equalsIgnoreCase(cb)).findFirst();
+    public static SunoMusicGenreEnum getPackageByCallback(String cb) {
+        Optional<SunoMusicGenreEnum> pack = Arrays.stream(SunoMusicGenreEnum.values()).filter(pp -> pp.buttonCallback.equalsIgnoreCase(cb)).findFirst();
         return pack.orElse(null);
     }
 }

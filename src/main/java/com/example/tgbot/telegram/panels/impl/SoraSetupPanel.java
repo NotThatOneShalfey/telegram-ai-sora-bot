@@ -1,30 +1,66 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.telegram.TelegramExecutor;
+import com.example.tgbot.RegistryService;
+import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
 @Component
 public class SoraSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public SoraSetupPanel(TelegramExecutor telegramExecutor) {
-        super(telegramExecutor);
+
+    public SoraSetupPanel(RegistryService registryService, TgBot tgBot) {
+        super(registryService, tgBot);
     }
 
     @Override
     public void execute(UserSession session) {
-
+        session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
+        super.executeSendMessage(session, getText(session), getKeyboard(), true);
     }
 
     @Override
-    public String getLabel() {
-        return "sora_setup";
+    public PanelType getLabel() {
+        return PanelType.SORA_2_SETUP;
     }
 
-    public static String callback() {
-        return "sora_setup";
+    private String getText(UserSession session) {
+        String parameters = session.getModelsConfiguration().get(GenerationModel.SORA_2).getOptionsText();
+        return """
+                ✍ Отправить текстовое описание сцены или
+                🖼 Отправить изображение + описание анимации
+                Если отправите только текст — видео будет создано с нуля.
+                Если добавите изображение — оно станет основой сцены.
+                💡 Чем подробнее описание — тем лучше результат.
+                ______________________________________
+                ПАРАМЕТРЫ
+                %s
+                _____________________________________
+                💸 СТОИМОСТЬ: N монет 💸
+                                
+                🪙1 монета = 1 рубль 🪙
+                """.formatted(parameters);
+    }
+
+    private InlineKeyboardMarkup getKeyboard() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        rows.add(List.of(super.registryService.getButton(SORA_2_BACK_TO_MODEL_SELECTION).getKeyboardButton(),
+                super.registryService.getButton(SORA_2_SELECT_FORMAT).getKeyboardButton()));
+        rows.add(List.of(super.registryService.getButton(MAIN_MENU_CALL).getKeyboardButton()));
+        markup.setKeyboard(rows);
+        return markup;
     }
 
 

@@ -1,13 +1,12 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.telegram.TelegramExecutor;
-import com.example.tgbot.telegram.buttons.PaidPackageButton;
 import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -21,11 +20,11 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class PaidPackageSetupPanel implements IChatPanel {
-    private final TelegramExecutor telegramExecutor;
+    private final TgBot tgBot;
 
     @Override
     public void execute(UserSession session) {
-        PaidPackageButton pack = session.getPaymentInfo();
+        PaidPackageEnum pack = session.getPaymentInfo();
         String title = "Покупка пакета";
         String description = "Покупка монет в CreatorLabAi";
         String payload = pack.getButtonName(); // Можно использовать для идентификации заказа
@@ -37,25 +36,25 @@ public class PaidPackageSetupPanel implements IChatPanel {
                 .title(title)
                 .description(description)
                 .payload(payload)
-                .providerToken(telegramExecutor.getProviderToken())
+                .providerToken(tgBot.getProviderToken())
                 .startParameter("LOAD_PARAMETER{}") // параметр для запусков
                 .prices(prices)
                 .currency("RUB") // валюта
                 .build();
         try {
-            telegramExecutor.executeInvoice(invoice);
+            tgBot.execute(invoice);
         } catch (TelegramApiException e) {
             processSendInvoiceError(session.getChatId(), e);
         }
     }
 
     @Override
-    public String getLabel() {
-        return "paid_pack_selected";
+    public PanelType getLabel() {
+        return getStaticLabel();
     }
 
-    public static String callback() {
-        return "paid_pack_selected";
+    public static PanelType getStaticLabel() {
+        return PanelType.PAID_PACKAGE_SETUP;
     }
 
     private void processSendInvoiceError(String chatId, TelegramApiException e) {
@@ -65,7 +64,7 @@ public class PaidPackageSetupPanel implements IChatPanel {
                             Пожалуйста обратитесь в поддержку @CreativeLabAI
                 """;
         try {
-            telegramExecutor.executeMessage(new SendMessage(chatId, errorMessage));
+            tgBot.execute(new SendMessage(chatId, errorMessage));
         } catch (TelegramApiException ex) {
             log.error("Во время обработки ошибка возникла ошибка!!!!! {}", e.getMessage());
         }
