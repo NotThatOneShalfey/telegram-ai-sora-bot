@@ -37,7 +37,7 @@ public class AspectRatioButton implements IButton {
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(aspectRatio.getButtonText());
-        button.setCallbackData(getLabel().toString() + "::" + model.getRequestModelName() + "::" + aspectRatio.getValue());
+        button.setCallbackData(getLabel().toString() + "::" + model + "::" + aspectRatio);
         return button;
     }
 
