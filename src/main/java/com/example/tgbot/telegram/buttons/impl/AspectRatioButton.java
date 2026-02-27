@@ -46,11 +46,12 @@ public class AspectRatioButton implements IButton {
 
     @Override
     public IButton setParameters(Object... parameters) {
+        log.trace("Call setParameters -> {}", parameters);
         for (Object o : parameters) {
             if (o instanceof String s) {
                 try {
-                    this.aspectRatio = AspectRatioEnum.valueOf(o.toString());
-                    this.model = GenerationModel.valueOf(o.toString());
+                    this.aspectRatio = AspectRatioEnum.valueOf(s);
+                    this.model = GenerationModel.valueOf(s);
                 } catch (IllegalArgumentException e) {
                     log.trace("AspectRatioButton setParametersException on parameter - {}", o);
                 }
@@ -67,7 +68,6 @@ public class AspectRatioButton implements IButton {
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
         session.getModelsConfiguration().get(model).setParametersFromJson(getJsonForOptionsChange());
-
         // Определяем какую панель вызывать следующую, в зависимости от модели
         PanelType nextPanel = null;
         if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
@@ -77,7 +77,11 @@ public class AspectRatioButton implements IButton {
         } else if (model.equals(GenerationModel.KLING_3_0)) {
             nextPanel = PanelType.KLING_SETUP;
         }
-        registryServiceProvider.getObject().getChatPanel(nextPanel).execute(session);
+        try {
+            registryServiceProvider.getObject().getChatPanel(nextPanel).execute(session);
+        } catch (NullPointerException e) {
+            log.error("AspectRatioButton: executeOnCallback ERROR -> При получении следующей панели получили NULL!");
+        }
     }
 
     private String getJsonForOptionsChange() {
