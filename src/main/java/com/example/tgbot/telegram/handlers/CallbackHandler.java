@@ -38,7 +38,9 @@ public class CallbackHandler {
         String buttonType = dataArray[0];
         IButton button = registryServiceProvider.getObject().getButton(ButtonType.valueOf(buttonType));
         if (dataArray.length > 1) {
-            button.setParameters((Object) dataArray);
+            for (int i=1; i<dataArray.length; i++) {
+                button.setParameters(dataArray[i]);
+            }
         }
         button.executeOnCallback(userSession);
     }
