@@ -16,24 +16,16 @@ public class PanelHelper {
 
     private static String getQuotedBalance() {
         return """
-                
-                <pre>
-                \uD83D\uDC8E У вас осталось : {balance} монет.
+                <blockquote>
+                \uD83D\uDC8E У вас осталось: {balance} монет.
                 \uD83D\uDCE9 Примеры и советы: https://t.me/sora2examples
-                </pre>
+                </blockquote>
                 """;
     }
 
     public static void addQuotedBalanceToMessage(SendMessage sm, Integer balance) {
         sm.setText(sm.getText() + getQuotedBalance().replaceAll("\\{balance}", String.valueOf(balance)));
         sm.setParseMode("HTML");
-    }
-
-    public static InlineKeyboardButton createButton(String text, String callbackData) {
-        InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText(text);
-        button.setCallbackData(callbackData);
-        return button;
     }
 
 }

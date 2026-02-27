@@ -96,7 +96,7 @@ public class TgBot extends TelegramWebhookBot {
                 if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
                     return;
                 }
-                UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
+                UserSession userSession = sessions.computeIfAbsent(update.getCallbackQuery().getMessage().getChatId().toString(), k -> new UserSession(user));
                 callbackHandler.handleCallback(update.getCallbackQuery(), userSession);
                 return;
             }
