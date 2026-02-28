@@ -19,7 +19,7 @@ import java.util.Map;
 @Setter
 @Slf4j
 @ToString
-public class SoraOptionsI implements IModelRequestOptions {
+public class SoraOptions implements IModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();
     @Builder.Default

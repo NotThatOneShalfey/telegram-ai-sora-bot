@@ -17,7 +17,7 @@ import java.util.Map;
 @Builder
 @Setter
 @ToString
-public class NanoBananaOptionsI implements IModelRequestOptions {
+public class NanoBananaOptions implements IModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
 
     @Builder.Default

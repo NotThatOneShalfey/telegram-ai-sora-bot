@@ -2,7 +2,7 @@ package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
-import com.example.tgbot.models.configurations.SoraOptionsI;
+import com.example.tgbot.models.configurations.SoraOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
@@ -30,7 +30,7 @@ public class SoraSetupPanel extends AbstractSimpleMessagePanel implements IChatP
     @Override
     public void execute(UserSession session) {
         session.getChatContext().setModel(GenerationModel.SORA_2);
-        session.createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptionsI.builder().build());
+        session.createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
         super.executeSendMessage(session, getText(session), getKeyboard(), true);
     }

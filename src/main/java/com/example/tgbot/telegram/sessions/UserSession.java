@@ -34,10 +34,10 @@ public class UserSession {
         this.chatContext = new ChatContext(ChatState.INITIAL);
 
         // Инициализация дефолтных пресетов опций
-        createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptionsI.builder().build());
-        createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptionsI.builder().build());
-        createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptionsI.builder().build());
-        createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptionsI.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
     }
 
     public IModelRequestOptions getCurrentRequestOptionsByModel(GenerationModel model) {

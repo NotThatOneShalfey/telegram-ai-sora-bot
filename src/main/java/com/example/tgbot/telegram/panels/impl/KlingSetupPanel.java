@@ -1,7 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
-import com.example.tgbot.models.configurations.KlingOptionsI;
+import com.example.tgbot.models.configurations.KlingOptions;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
@@ -30,7 +30,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
     @Override
     public void execute(UserSession session) {
         session.getChatContext().setModel(GenerationModel.KLING_3_0);
-        session.createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptionsI.builder().build());
+        session.createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
         super.executeSendMessage(session, getText(session), getKeyboard(), true);
     }

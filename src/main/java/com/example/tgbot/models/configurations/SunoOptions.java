@@ -17,7 +17,7 @@ import java.util.Map;
 @Builder
 @Setter
 @ToString
-public class SunoOptionsI implements IModelRequestOptions {
+public class SunoOptions implements IModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
     @Builder.Default
     @Getter

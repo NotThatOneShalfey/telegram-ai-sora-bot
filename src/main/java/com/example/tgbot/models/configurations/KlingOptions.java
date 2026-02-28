@@ -20,7 +20,7 @@ import java.util.Map;
 @Builder
 @Setter
 @ToString
-public class KlingOptionsI implements IModelRequestOptions {
+public class KlingOptions implements IModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();
 
