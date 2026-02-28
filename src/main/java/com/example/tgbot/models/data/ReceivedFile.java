@@ -1,5 +1,6 @@
 package com.example.tgbot.models.data;
 
+import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,6 +14,7 @@ public class ReceivedFile {
     @Builder.Default
     private final List<String> fileUrls = new ArrayList<>();
     private final GenerationModel model;
+    private ModelRequestOptions requestOptions;
 
     public String getFirstUrl() {
         return fileUrls.stream().findFirst().orElse(null);

@@ -6,6 +6,7 @@ import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.configurations.NanoBananaOptions;
 import com.example.tgbot.models.data.CreateTaskResponse;
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +52,7 @@ public class NanoBananoAdapter implements IRequestAdapter {
                 String taskId = taskResponse.getData().getTaskId();
                 session.setTaskIdForCurrentModelConfiguration(taskId, model);
                 registryServiceProvider.getObject().putWaitingSession(taskId, session);
+                registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_AFTER_PROMPT_RECEIVED).execute(session);
             } catch (JsonProcessingException | RuntimeException e) {
                 log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.getMessage());
             }

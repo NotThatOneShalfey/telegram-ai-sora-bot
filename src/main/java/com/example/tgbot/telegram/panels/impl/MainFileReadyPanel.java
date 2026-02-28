@@ -34,7 +34,7 @@ public class MainFileReadyPanel extends AbstractSimpleMessagePanel implements IC
         GenerationModel model = receivedFile.getModel();
 
         // Формируем текст
-        String prompt = session.getCurrentRequestOptionsByModel(model).getPrompt();
+        String prompt = receivedFile.getRequestOptions().getPrompt();
         String dynamic = "Файл";
 
         if (model.equals(GenerationModel.KLING_3_0) || model.equals(GenerationModel.SORA_2)) {

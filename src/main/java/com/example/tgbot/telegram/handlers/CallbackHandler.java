@@ -51,12 +51,13 @@ public class CallbackHandler {
             urlResponses.add(extractUrlFromRecordInfo(response));
             RegistryService registryService = registryServiceProvider.getObject();
             UserSession session = registryService.getWaitingSession(response.getData().getTaskId());
+            ModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(response.getData().getTaskId(), model);
             session.setReceivedFile(ReceivedFile.builder()
                     .fileUrls(urlResponses)
                     .model(model)
+                    .requestOptions(requestOptions)
                     .build());
             // Снимаем деньги
-            ModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(response.getData().getTaskId(), model);
             userService.consumeOneGeneration(session, requestOptions.getPrice(), objectMapper.writeValueAsString(requestOptions.getRequestInput()));
             // Вызываем панель для отправки файла
             registryService.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
