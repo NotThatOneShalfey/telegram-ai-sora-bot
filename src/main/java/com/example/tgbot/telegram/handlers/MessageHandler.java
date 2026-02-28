@@ -170,6 +170,7 @@ public class MessageHandler {
         List<String> imageUrls = new ArrayList<>();
         for (String s : fileIds) {
             GetFile getFileRequest = new GetFile();
+            getFileRequest.setFileId(s);
             File file = fileExecutorProvider.getObject().executeFile(getFileRequest);
             imageUrls.add("https://api.telegram.org/file/bot" + botToken + "/" + file.getFilePath());
         }
