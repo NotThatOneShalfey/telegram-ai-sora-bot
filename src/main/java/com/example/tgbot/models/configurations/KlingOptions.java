@@ -35,7 +35,8 @@ public class KlingOptions implements ModelRequestOptions {
     private boolean withSound = false;
     @Builder.Default
     private String mode = "std";
-    private boolean multiShots;
+    @Builder.Default
+    private boolean multiShots = false;
     private String[] imageUrls;
     @Getter
     private String prompt;
@@ -73,6 +74,7 @@ public class KlingOptions implements ModelRequestOptions {
             input.put("prompt", prompt);
             input.put("duration", duration);
         }
+        input.put("multi_shots", multiShots);
         return input;
     }
 

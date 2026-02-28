@@ -42,7 +42,7 @@ public class SoraOptions implements ModelRequestOptions {
     public Map<String, Object> getRequestInput() {
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
-        if (imageUrls.length != 0) {
+        if (imageUrls != null && imageUrls.length != 0) {
             input.put("image_urls", imageUrls);
         }
         input.put("aspect_ratio", convertAspectRatioForRequest());
