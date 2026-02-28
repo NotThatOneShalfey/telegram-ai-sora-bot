@@ -34,8 +34,8 @@ public class SoraOptions implements ModelRequestOptions {
     private String[] imageUrls;
 
     @Override
-    public double getPrice() {
-        return 13.51*1.5;
+    public int getPrice() {
+        return Math.round(13.51F*1.5F);
     }
 
     @Override

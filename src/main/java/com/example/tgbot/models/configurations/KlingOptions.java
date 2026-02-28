@@ -43,7 +43,7 @@ public class KlingOptions implements ModelRequestOptions {
     private List<MultiShotRequest> multiShotRequestArray = new ArrayList<>();
 
     @Override
-    public double getPrice() {
+    public int getPrice() {
         double resultingPrice = 7.66;
         if (mode.equalsIgnoreCase("pro")) {
             if (withSound) {
@@ -58,7 +58,7 @@ public class KlingOptions implements ModelRequestOptions {
                 resultingPrice = 7.66;
             }
         }
-        return resultingPrice * duration * 1.5;
+        return Math.round((float) (resultingPrice * duration * 1.5F));
     }
 
     @Override

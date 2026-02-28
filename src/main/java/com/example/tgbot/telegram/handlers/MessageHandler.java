@@ -110,7 +110,7 @@ public class MessageHandler {
         if (session.getChatContext().getModel() != null) {
             GenerationModel model = session.getChatContext().getModel();
             // Финальная проверка на то, хватает ли денег на генерацию
-            double price = session.getCurrentRequestOptionsByModel(model).getPrice();
+            int price = session.getCurrentRequestOptionsByModel(model).getPrice();
             if (!userService.checkBalanceBeforeGeneration(session, price)) {
                 session.setContextualMessage("⚠ У вас закончились монеты для создания видео.\n" +
                         "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E");

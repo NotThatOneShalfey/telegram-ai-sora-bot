@@ -25,7 +25,7 @@ public class User {
     private Long telegramId;
 
     @Column(name = "balance", nullable = false)
-    private Double balance;
+    private Integer balance;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

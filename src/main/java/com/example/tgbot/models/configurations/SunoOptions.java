@@ -35,8 +35,8 @@ public class SunoOptions implements ModelRequestOptions {
 
 
     @Override
-    public double getPrice() {
-        return 299D;
+    public int getPrice() {
+        return 299;
     }
 
     @Override

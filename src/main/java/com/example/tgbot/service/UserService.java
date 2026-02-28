@@ -48,7 +48,7 @@ public class UserService {
         }
         User newUser = User.builder()
                 .telegramId(chatId)
-                .balance(0D)
+                .balance(0)
                 .build();
         return userRepository.save(newUser);
     }
@@ -98,11 +98,11 @@ public class UserService {
     }
 
     @Transactional
-    public User consumeOneGeneration(UserSession session, double price, String generationRequestInput) {
+    public User consumeOneGeneration(UserSession session, int price, String generationRequestInput) {
         User user = session.getUser();
-        double current = user.getBalance();
+        int current = user.getBalance();
         if (user.getDiscount() != 1f) {
-            price = price * user.getDiscount();
+            price = Math.round(price * user.getDiscount());
         }
         user.setBalance(current - price);
         historyRepository.save(OperationsHistory.builder()
@@ -116,7 +116,7 @@ public class UserService {
 
     @Transactional
     public User addGift(User user) {
-        user.setBalance(user.getBalance() + 100D);
+        user.setBalance(user.getBalance() + 100);
         user.setBonusReceived(true);
         historyRepository.save(OperationsHistory.builder()
                 .balanceChange(100F)
@@ -141,9 +141,9 @@ public class UserService {
         return referralLinksRepository.save(newLink);
     }
 
-    public boolean checkBalanceBeforeGeneration(UserSession session, double price) {
+    public boolean checkBalanceBeforeGeneration(UserSession session, int price) {
         User user = session.getUser();
-        double current = user.getBalance();
+        int current = user.getBalance();
         return current >= price;
     }
 }

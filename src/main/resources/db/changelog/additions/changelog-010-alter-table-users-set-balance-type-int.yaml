@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-010-alter-table-users-set-balance-type-int
+      author: Konstantin
+      changes:
+        - modifyDataType:
+            tableName: users
+            columnName: balance
+            newDataType: integer

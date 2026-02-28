@@ -39,8 +39,8 @@ public class NanoBananaOptions implements ModelRequestOptions {
 
 
     @Override
-    public double getPrice() {
-        return 6.95*1.5;
+    public int getPrice() {
+        return Math.round(6.95F*1.5F);
     }
 
     @Override
