@@ -10,6 +10,7 @@ databaseChangeLog:
                   name: is_ambassador
                   remarks: Является ли юзер амбассадором (влияет на цену его услуг)
                   type: boolean
+                  defaultValueBoolean: false
                   constraints:
                     nullable: true
               - column:
