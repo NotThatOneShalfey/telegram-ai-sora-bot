@@ -25,7 +25,8 @@ public class NanoBananaOptions implements ModelRequestOptions {
     @Getter
     private String prompt;
     private String[] imageInput;
-    private String aspectRatio;
+    @Builder.Default
+    private String aspectRatio = AspectRatioEnum.FORMAT_9_16.getValue();
 
     @Builder.Default
     private final String resolution = "2K";
