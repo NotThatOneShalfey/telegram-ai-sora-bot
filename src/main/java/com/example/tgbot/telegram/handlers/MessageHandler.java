@@ -178,7 +178,11 @@ public class MessageHandler {
 
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
-        input.put("image_urls", imageUrls);
+        if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
+            input.put("imageInput", imageUrls);
+        } else {
+            input.put("imageUrls", imageUrls);
+        }
         if (model.equals(GenerationModel.SORA_2)) {
             input.put("model", GenerationModel.SORA_2_WITH_IMAGE);
         }
