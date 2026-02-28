@@ -16,10 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class GenerateMusicPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class SunoGenreSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public GenerateMusicPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public SunoGenreSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
@@ -30,11 +30,7 @@ public class GenerateMusicPanel extends AbstractSimpleMessagePanel implements IC
 
     @Override
     public PanelType getLabel() {
-        return getStaticLabel();
-    }
-
-    public static PanelType getStaticLabel() {
-        return PanelType.SUNO_SETUP;
+        return PanelType.SUNO_GENRE_SELECTION;
     }
 
     private String getText() {
