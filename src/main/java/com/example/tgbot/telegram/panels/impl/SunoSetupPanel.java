@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class SunoAfterGenreSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SunoAfterGenreSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public SunoSetupPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 

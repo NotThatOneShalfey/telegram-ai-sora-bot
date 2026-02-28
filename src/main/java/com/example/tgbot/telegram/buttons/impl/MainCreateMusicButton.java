@@ -35,6 +35,6 @@ public class MainCreateMusicButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        registryServiceProvider.getObject().getChatPanel(PanelType.GENERATE_MUSIC).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_SETUP).execute(session);
     }
 }

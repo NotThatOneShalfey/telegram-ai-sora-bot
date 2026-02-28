@@ -25,8 +25,8 @@ public class NanoBananoSelectSizeButton implements IButton {
     @Override
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText(size.getButtonText());
-        button.setCallbackData(getLabel() + "::" + size.getValue());
+        button.setText("Формат");
+        button.setCallbackData(getLabel().toString());
         return button;
     }
 

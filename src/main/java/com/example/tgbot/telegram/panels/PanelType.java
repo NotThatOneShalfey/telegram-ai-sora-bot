@@ -19,6 +19,5 @@ public enum PanelType {
     SIMPLE_MESSAGE,
     SORA_2_SETUP,
     SUNO_SETUP,
-    SUNO_AFTER_GENRE_SELECTION,
     SUNO_AFTER_PROMPT
 }
