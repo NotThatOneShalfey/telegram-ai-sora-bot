@@ -41,8 +41,6 @@ public class MainCreateImageButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getChatContext().setModel(GenerationModel.NANO_BANANA_PRO);
-        session.createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
         registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_SETUP).execute(session);
     }
 }

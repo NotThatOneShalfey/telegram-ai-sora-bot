@@ -1,7 +1,7 @@
 package com.example.tgbot.telegram.sessions;
 
 import com.example.tgbot.db.User;
-import com.example.tgbot.models.configurations.ModelRequestOptions;
+import com.example.tgbot.models.configurations.*;
 import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
@@ -32,6 +32,12 @@ public class UserSession {
         this.user = user;
         this.chatId = user.getTelegramId().toString();
         this.chatContext = new ChatContext(ChatState.INITIAL);
+
+        // Инициализация дефолтных пресетов опций
+        createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
     }
 
     public ModelRequestOptions getCurrentRequestOptionsByModel(GenerationModel model) {
@@ -67,9 +73,7 @@ public class UserSession {
                 currentConfiguration = configuration;
             }
         }
-        if (currentConfiguration != null) {
-            currentConfiguration.toBuilder().requestOptions(options).build();
-        } else {
+        if (currentConfiguration == null) {
             requestConfigurationList.add(TelegramRequestConfiguration.builder().requestOptions(options).model(model).build());
         }
     }

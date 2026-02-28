@@ -39,8 +39,6 @@ public class SoraSelectModelButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getChatContext().setModel(GenerationModel.SORA_2);
-        session.createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
         registryServiceProvider.getObject().getChatPanel(PanelType.SORA_2_SETUP).execute(session);
     }
 }

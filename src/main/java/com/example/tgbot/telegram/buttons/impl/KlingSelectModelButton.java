@@ -38,8 +38,6 @@ public class KlingSelectModelButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getChatContext().setModel(GenerationModel.KLING_3_0);
-        session.createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
         registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
     }
 }
