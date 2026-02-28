@@ -34,13 +34,13 @@ public class UserSession {
         this.chatContext = new ChatContext(ChatState.INITIAL);
 
         // Инициализация дефолтных пресетов опций
-        createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
-        createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
-        createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
-        createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptionsI.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptionsI.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptionsI.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptionsI.builder().build());
     }
 
-    public ModelRequestOptions getCurrentRequestOptionsByModel(GenerationModel model) {
+    public IModelRequestOptions getCurrentRequestOptionsByModel(GenerationModel model) {
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {
                 return configuration.getRequestOptions();
@@ -49,7 +49,7 @@ public class UserSession {
         return null;
     }
 
-    public ModelRequestOptions getRequestOptionsByTaskIdAndModel(String taskId) {
+    public IModelRequestOptions getRequestOptionsByTaskIdAndModel(String taskId) {
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (Objects.equals(configuration.getTaskId(), taskId)) {
                 return configuration.getRequestOptions();
@@ -59,16 +59,20 @@ public class UserSession {
     }
 
     public void setTaskIdForCurrentModelConfiguration(String taskId, GenerationModel model) {
+        IModelRequestOptions options = null;
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {
                 // Выставляем и сразу же дополняем список дефолтным с тем же опциями
                 configuration.setTaskId(taskId);
-                createNewModelRequestConfiguration(model, configuration.getRequestOptions());
+                options = configuration.getRequestOptions();
             }
+        }
+        if (options != null) {
+            createNewModelRequestConfiguration(model, options);
         }
     }
 
-    public void createNewModelRequestConfiguration(GenerationModel model, ModelRequestOptions options) {
+    public void createNewModelRequestConfiguration(GenerationModel model, IModelRequestOptions options) {
         TelegramRequestConfiguration currentConfiguration = null;
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {

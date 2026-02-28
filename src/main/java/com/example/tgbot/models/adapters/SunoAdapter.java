@@ -1,7 +1,7 @@
 package com.example.tgbot.models.adapters;
 
 import com.example.tgbot.models.KeiAiRequestService;
-import com.example.tgbot.models.configurations.ModelRequestOptions;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -29,7 +28,7 @@ public class SunoAdapter implements IRequestAdapter {
 
     @Override
     public void makeRequest(UserSession session) {
-        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
+        IModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/suno-v5";
         Map<String, Object> payload = options.getRequestInput();
         payload.put("callBackUrl", fullCallbackUrl);

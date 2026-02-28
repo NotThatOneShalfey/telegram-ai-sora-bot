@@ -2,7 +2,6 @@ package com.example.tgbot.models.configurations;
 
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
-import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -18,39 +17,40 @@ import java.util.Map;
 @Builder
 @Setter
 @ToString
-public class SunoOptions implements ModelRequestOptions {
+public class NanoBananaOptionsI implements IModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
+
     @Builder.Default
     @Getter
-    private final GenerationModel model = GenerationModel.SUNO_V5;
-    @Builder.Default
-    private boolean customMode = true;
+    GenerationModel model = GenerationModel.NANO_BANANA_PRO;
+
     @Getter
     private String prompt;
-    private boolean instrumental;
+    private String[] imageInput;
     @Builder.Default
-    private Integer audioWeight = null;
-    private String genre;
+    private String aspectRatio = AspectRatioEnum.FORMAT_9_16.getValue();
 
+    @Builder.Default
+    private final String resolution = "2K";
+
+    @Builder.Default
+    private final String outputFormat = "png";
 
 
     @Override
     public int getPrice() {
-        return 299;
+        return Math.round(6.95F*1.5F);
     }
 
     @Override
     public Map<String, Object> getRequestInput() {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "V5");
-        payload.put("customMode", customMode);
-
-        String resultingPrompt = "Жанр: " + genre + " Описание: " + prompt;
-        payload.put("prompt", resultingPrompt);
-        payload.put("instrumental", false);
-        payload.put("audioWeight", null);
-
-        return payload;
+        Map<String, Object> input = new HashMap<>();
+        input.put("prompt", prompt);
+        input.put("image_urls", imageInput);
+        input.put("aspect_ratio", aspectRatio);
+        input.put("resolution", resolution);
+        input.put("output_format", outputFormat);
+        return input;
     }
 
     @Override
@@ -59,13 +59,13 @@ public class SunoOptions implements ModelRequestOptions {
                 
                 ПАРАМЕТРЫ
                 Модель: {0}
-                Жанр: {1}
+                Формат: {1}
                 
                 """;
 
         return MessageFormat.format(text,
                 model.getLocalizedModelName(),
-                SunoMusicGenreEnum.getButtonTextByValue(genre)
+                AspectRatioEnum.getButtonTextByValue(aspectRatio)
         );
     }
 

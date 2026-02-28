@@ -4,7 +4,7 @@ import com.example.tgbot.models.enums.GenerationModel;
 
 import java.util.Map;
 
-public interface ModelRequestOptions {
+public interface IModelRequestOptions {
     int getPrice();
     Map<String, Object> getRequestInput();
     String getOptionsText();

@@ -1,10 +1,9 @@
 package com.example.tgbot.telegram.handlers;
 
 import com.example.tgbot.RegistryService;
-import com.example.tgbot.models.configurations.ModelRequestOptions;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.models.data.RecordInfoResponse;
-import com.example.tgbot.models.enums.GeneratedFileType;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.buttons.ButtonType;
@@ -53,7 +52,7 @@ public class CallbackHandler {
             // Получаем сессию из ожидающих ответа
             UserSession session = registryService.getWaitingSession(response.getData().getTaskId());
             // Получаем с какими опциями мы делали
-            ModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(response.getData().getTaskId());
+            IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(response.getData().getTaskId());
             // Складываем в инфу о текущем отправляемом файле
             session.setReceivedFile(ReceivedFile.builder()
                     .fileUrls(urlResponses)

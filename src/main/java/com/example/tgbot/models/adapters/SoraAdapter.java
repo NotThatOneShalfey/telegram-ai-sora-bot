@@ -2,8 +2,7 @@ package com.example.tgbot.models.adapters;
 
 import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.KeiAiRequestService;
-import com.example.tgbot.models.configurations.ModelRequestOptions;
-import com.example.tgbot.models.configurations.SoraOptions;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.CreateTaskResponse;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.panels.PanelType;
@@ -41,7 +40,7 @@ public class SoraAdapter implements IRequestAdapter {
 
     @Override
     public void makeRequest(UserSession session) {
-        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
+        IModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/sora2";
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", options.getModel().getRequestModelName());

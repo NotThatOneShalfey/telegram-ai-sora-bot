@@ -1,9 +1,8 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
-import com.example.tgbot.models.configurations.KlingOptions;
-import com.example.tgbot.models.configurations.ModelRequestOptions;
-import com.example.tgbot.models.configurations.SunoOptions;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
+import com.example.tgbot.models.configurations.SunoOptionsI;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
@@ -30,7 +29,7 @@ public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatP
     @Override
     public void execute(UserSession session) {
         session.getChatContext().setModel(GenerationModel.SUNO_V5);
-        session.createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
+        session.createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptionsI.builder().build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
         super.executeSendMessage(session, getText(session), getKeyboard(), true);
     }
@@ -45,7 +44,7 @@ public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatP
     }
 
     private String getText(UserSession session) {
-        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.SUNO_V5);
+        IModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.SUNO_V5);
         String text = """
                 Отлично, с жанром определились!
                 Напиши пару предложений о том, про кого или про что будет песня. Чем больше подробностей, тем круче получится!

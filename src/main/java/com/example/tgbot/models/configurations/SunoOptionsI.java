@@ -1,7 +1,6 @@
 package com.example.tgbot.models.configurations;
 
 import com.example.tgbot.models.enums.GenerationModel;
-import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,40 +17,39 @@ import java.util.Map;
 @Builder
 @Setter
 @ToString
-public class NanoBananaOptions implements ModelRequestOptions {
+public class SunoOptionsI implements IModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
-
     @Builder.Default
     @Getter
-    GenerationModel model = GenerationModel.NANO_BANANA_PRO;
-
+    private final GenerationModel model = GenerationModel.SUNO_V5;
+    @Builder.Default
+    private boolean customMode = true;
     @Getter
     private String prompt;
-    private String[] imageInput;
+    private boolean instrumental;
     @Builder.Default
-    private String aspectRatio = AspectRatioEnum.FORMAT_9_16.getValue();
+    private Integer audioWeight = null;
+    private String genre;
 
-    @Builder.Default
-    private final String resolution = "2K";
-
-    @Builder.Default
-    private final String outputFormat = "png";
 
 
     @Override
     public int getPrice() {
-        return Math.round(6.95F*1.5F);
+        return 299;
     }
 
     @Override
     public Map<String, Object> getRequestInput() {
-        Map<String, Object> input = new HashMap<>();
-        input.put("prompt", prompt);
-        input.put("image_urls", imageInput);
-        input.put("aspect_ratio", aspectRatio);
-        input.put("resolution", resolution);
-        input.put("output_format", outputFormat);
-        return input;
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "V5");
+        payload.put("customMode", customMode);
+
+        String resultingPrompt = "Жанр: " + genre + " Описание: " + prompt;
+        payload.put("prompt", resultingPrompt);
+        payload.put("instrumental", false);
+        payload.put("audioWeight", null);
+
+        return payload;
     }
 
     @Override
@@ -60,13 +58,13 @@ public class NanoBananaOptions implements ModelRequestOptions {
                 
                 ПАРАМЕТРЫ
                 Модель: {0}
-                Формат: {1}
+                Жанр: {1}
                 
                 """;
 
         return MessageFormat.format(text,
                 model.getLocalizedModelName(),
-                AspectRatioEnum.getButtonTextByValue(aspectRatio)
+                SunoMusicGenreEnum.getButtonTextByValue(genre)
         );
     }
 

@@ -1,9 +1,8 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
-import com.example.tgbot.models.configurations.KlingOptions;
-import com.example.tgbot.models.configurations.ModelRequestOptions;
-import com.example.tgbot.models.configurations.NanoBananaOptions;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
+import com.example.tgbot.models.configurations.NanoBananaOptionsI;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
@@ -31,7 +30,7 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
     @Override
     public void execute(UserSession session) {
         session.getChatContext().setModel(GenerationModel.NANO_BANANA_PRO);
-        session.createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
+        session.createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptionsI.builder().build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
         super.executeSendMessage(session, getText(session), getKeyboard(), false);
     }
@@ -45,7 +44,7 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
         return PanelType.NANO_BANANA_SETUP;
     }
     private String getText(UserSession session) {
-        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
+        IModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
         String text = """
                 🖼 Nano Banana Pro — генерация изображений
                                 
