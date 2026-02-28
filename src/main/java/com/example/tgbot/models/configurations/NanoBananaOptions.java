@@ -12,6 +12,7 @@ import lombok.ToString;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Builder
@@ -26,7 +27,7 @@ public class NanoBananaOptions implements IModelRequestOptions {
 
     @Getter
     private String prompt;
-    private String[] imageInput;
+    private List<String> imageInput;
     @Builder.Default
     private String aspectRatio = AspectRatioEnum.FORMAT_9_16.getValue();
 
@@ -46,7 +47,7 @@ public class NanoBananaOptions implements IModelRequestOptions {
     public Map<String, Object> getRequestInput() {
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
-        input.put("image_urls", imageInput);
+        input.put("image_input", imageInput);
         input.put("aspect_ratio", aspectRatio);
         input.put("resolution", resolution);
         input.put("output_format", outputFormat);
@@ -75,6 +76,21 @@ public class NanoBananaOptions implements IModelRequestOptions {
             mapper.updateValue(this, mapper.readTree(json));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void setImageInput(List<String> imageInput) {
+        if (this.imageInput.size() <= 8) {
+            if (this.imageInput.size() + imageInput.size() <= 8) {
+                this.imageInput.addAll(imageInput);
+            } else {
+                for (String image : imageInput) {
+                    this.imageInput.add(image);
+                    if (this.imageInput.size() == 8) {
+                        break;
+                    }
+                }
+            }
         }
     }
 }

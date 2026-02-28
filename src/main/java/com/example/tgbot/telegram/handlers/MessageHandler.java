@@ -24,10 +24,9 @@ import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.example.tgbot.telegram.panels.PanelType.MAIN_MENU;
 
@@ -93,6 +92,11 @@ public class MessageHandler {
         boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
         String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
         log.trace("Call -> handlePrompt -> hasImage={}, text={}, session={}", hasImage, text, session);
+        if (text == null) {
+            session.setContextualMessage("Простите, не понял вашего сообщения.");
+            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
         // Первичные проверки
         if (text.length() > 4999) {
             session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
@@ -142,32 +146,47 @@ public class MessageHandler {
     private void handlePromptAndImage(Message message, UserSession session, GenerationModel model) throws JsonProcessingException {
         log.trace("Call -> handlePromptAndImage");
         String prompt = message.getCaption();
-        String fileId = null;
+        if (prompt == null) {
+            session.setContextualMessage("Не удалось получить текст вместе с изображением. Пожалуйста, отправьте изображение вместе с текстом.");
+            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        List<String> fileIds = new ArrayList<>();
         if (message.hasPhoto()) {
-            fileId = message.getPhoto().stream()
-                    .max((a, b) -> Integer.compare(a.getFileSize(), b.getFileSize()))
+            fileIds = getBestPhotos(message.getPhoto(), message.getPhoto().size()/2)
+                    .stream()
                     .map(PhotoSize::getFileId)
-                    .orElse(null);
+                    .toList();
         } else if (message.hasDocument()) {
-            fileId = message.getDocument().getFileId();
+            fileIds.add(message.getDocument().getFileId());
         }
 
-        if (fileId == null) {
+        if (fileIds.isEmpty()) {
             session.setContextualMessage("Не удалось получить файл изображения.");
             registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
-        GetFile getFileRequest = new GetFile();
-        File file = fileExecutorProvider.getObject().executeFile(getFileRequest);
-        String imageUrl = "https://api.telegram.org/file/bot" + botToken + "/" + file.getFilePath();
+
+        List<String> imageUrls = new ArrayList<>();
+        for (String s : fileIds) {
+            GetFile getFileRequest = new GetFile();
+            File file = fileExecutorProvider.getObject().executeFile(getFileRequest);
+            imageUrls.add("https://api.telegram.org/file/bot" + botToken + "/" + file.getFilePath());
+        }
+
 
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
-        input.put("image_urls", new String[]{imageUrl});
+        input.put("image_urls", imageUrls);
         if (model.equals(GenerationModel.SORA_2)) {
             input.put("model", GenerationModel.SORA_2_WITH_IMAGE);
         }
         session.getCurrentRequestOptionsByModel(model).setParametersFromJson(mapper.writeValueAsString(input));
+    }
+
+    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos, int photoCount) {
+        if (photos.size() < photoCount) return photos;
+        return photos.subList(photos.size() - photoCount, photos.size());
     }
 
 }

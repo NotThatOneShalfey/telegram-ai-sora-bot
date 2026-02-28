@@ -37,7 +37,7 @@ public class KlingOptions implements IModelRequestOptions {
     private String mode = "std";
     @Builder.Default
     private boolean multiShots = false;
-    private String[] imageUrls;
+    private List<String> imageUrls;
     @Getter
     private String prompt;
     @Builder.Default
@@ -117,4 +117,18 @@ public class KlingOptions implements IModelRequestOptions {
         int duration;
     }
 
+    public void setImageUrls(List<String> imageUrls) {
+        if (this.imageUrls.size() <= 2) {
+            if (this.imageUrls.size() + imageUrls.size() <= 2) {
+                this.imageUrls.addAll(imageUrls);
+            } else {
+                for (String image : imageUrls) {
+                    this.imageUrls.add(image);
+                    if (this.imageUrls.size() == 2) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }

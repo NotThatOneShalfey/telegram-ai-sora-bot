@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Builder
@@ -31,7 +32,7 @@ public class SoraOptions implements IModelRequestOptions {
     private String aspectRatio = "9:16";
     @Builder.Default
     private final String nFrames = "10";
-    private String[] imageUrls;
+    private List<String> imageUrls;
 
     @Override
     public int getPrice() {
@@ -42,7 +43,7 @@ public class SoraOptions implements IModelRequestOptions {
     public Map<String, Object> getRequestInput() {
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
-        if (imageUrls != null && imageUrls.length != 0) {
+        if (imageUrls != null && !imageUrls.isEmpty()) {
             input.put("image_urls", imageUrls);
         }
         input.put("aspect_ratio", convertAspectRatioForRequest());
@@ -82,5 +83,20 @@ public class SoraOptions implements IModelRequestOptions {
 
     private String convertAspectRatioForRequest() {
         return aspectRatio.equals("16:9") ? "landscape" : "portrait";
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        if (this.imageUrls.size() <= 2) {
+            if (this.imageUrls.size() + imageUrls.size() <= 2) {
+                this.imageUrls.addAll(imageUrls);
+            } else {
+                for (String image : imageUrls) {
+                    this.imageUrls.add(image);
+                    if (this.imageUrls.size() == 2) {
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

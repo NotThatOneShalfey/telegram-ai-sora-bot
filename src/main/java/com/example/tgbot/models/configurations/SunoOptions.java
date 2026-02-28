@@ -23,7 +23,7 @@ public class SunoOptions implements IModelRequestOptions {
     @Getter
     private final GenerationModel model = GenerationModel.SUNO_V5;
     @Builder.Default
-    private boolean customMode = true;
+    private boolean customMode = false;
     @Getter
     private String prompt;
     private boolean instrumental;
