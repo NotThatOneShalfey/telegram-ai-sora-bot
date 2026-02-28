@@ -37,7 +37,7 @@ public class AfterPaidPackageSelected implements IChatPanel {
                 .description(description)
                 .payload(payload)
                 .providerToken(tgBot.getProviderToken())
-                .startParameter("LOAD_PARAMETER{}") // параметр для запусков
+                .startParameter("START_PARAMETER") // параметр для запусков
                 .prices(prices)
                 .currency("RUB") // валюта
                 .build();
