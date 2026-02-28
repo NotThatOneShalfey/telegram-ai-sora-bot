@@ -1,12 +1,15 @@
 package com.example.tgbot.models.configurations;
 
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
+import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
 import lombok.Setter;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,12 +17,14 @@ import java.util.Map;
 @Setter
 public class SunoOptions implements ModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
-
+    @Builder.Default
     private final GenerationModel model = GenerationModel.SUNO_V5;
-    private boolean customMode;
+    @Builder.Default
+    private boolean customMode = true;
     private String prompt;
     private boolean instrumental;
-    private Integer audioWeight;
+    @Builder.Default
+    private Integer audioWeight = null;
     private String genre;
 
 
@@ -33,7 +38,7 @@ public class SunoOptions implements ModelRequestOptions {
     public Map<String, Object> getRequestInput() {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "V5");
-        payload.put("customMode", false);
+        payload.put("customMode", customMode);
 
         String resultingPrompt = "Жанр: " + genre + " Описание: " + prompt;
         payload.put("prompt", resultingPrompt);
@@ -45,7 +50,18 @@ public class SunoOptions implements ModelRequestOptions {
 
     @Override
     public String getOptionsText() {
-        return null;
+        String text = """
+                
+                ПАРАМЕТРЫ
+                Модель: {0}
+                Жанр: {1}
+                
+                """;
+
+        return MessageFormat.format(text,
+                model.getLocalizedModelName(),
+                SunoMusicGenreEnum.getButtonTextByValue(genre)
+        );
     }
 
     @Override

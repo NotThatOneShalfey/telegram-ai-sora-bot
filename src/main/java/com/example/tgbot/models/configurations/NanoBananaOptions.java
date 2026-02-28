@@ -1,5 +1,8 @@
 package com.example.tgbot.models.configurations;
 
+import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
+import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -7,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +19,8 @@ import java.util.Map;
 public class NanoBananaOptions implements ModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
 
+    @Builder.Default
+    GenerationModel model = GenerationModel.NANO_BANANA_PRO;
 
     @Getter
     private String prompt;
@@ -46,7 +52,18 @@ public class NanoBananaOptions implements ModelRequestOptions {
 
     @Override
     public String getOptionsText() {
-        return null;
+        String text = """
+                
+                ПАРАМЕТРЫ
+                Модель: {0}
+                Формат: {1}
+                
+                """;
+
+        return MessageFormat.format(text,
+                model.getLocalizedModelName(),
+                AspectRatioEnum.getButtonTextByValue(aspectRatio)
+        );
     }
 
     @Override

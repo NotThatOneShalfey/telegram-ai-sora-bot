@@ -23,4 +23,13 @@ public enum SunoMusicGenreEnum {
         this.value = value;
         this.buttonText = buttonText;
     }
+
+    public static String getButtonTextByValue(String value) {
+        for (SunoMusicGenreEnum smge : SunoMusicGenreEnum.values()) {
+            if (smge.getValue().equalsIgnoreCase(value)) {
+                return smge.getButtonText();
+            }
+        }
+        return null;
+    }
 }
