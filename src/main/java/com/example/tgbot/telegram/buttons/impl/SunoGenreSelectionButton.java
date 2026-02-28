@@ -57,7 +57,7 @@ public class SunoGenreSelectionButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         session.getModelsConfiguration().get(GenerationModel.SUNO_V5).setParametersFromJson(getJsonForOptionsChange());
-        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_AFTER_GENRE_SELECTION).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_SETUP).execute(session);
     }
 
     private String getJsonForOptionsChange() {
