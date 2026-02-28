@@ -57,7 +57,7 @@ public class SoraAdapter implements IRequestAdapter {
                 registryServiceProvider.getObject().putWaitingSession(taskId, session);
                 registryServiceProvider.getObject().getChatPanel(PanelType.SORA_2_AFTER_PROMPT_RECEIVED).execute(session);
             } catch (JsonProcessingException | RuntimeException e) {
-                log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.getMessage());
+                log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.toString());
             }
         } catch (Exception e) {
             e.printStackTrace();

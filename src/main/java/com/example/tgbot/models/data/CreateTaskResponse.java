@@ -8,6 +8,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateTaskResponse {
     private int code;
+    @JsonProperty("msg")
     private String message;
     private CreateTaskData data;
 
