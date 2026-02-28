@@ -20,7 +20,6 @@ public class UserSession {
     private final String chatId;
     @Setter
     private LocalDateTime lastActionDateTime;
-    private final Map<GenerationModel, ModelRequestOptions> modelsConfiguration = new HashMap<>();
     @Setter
     private PaidPackageEnum paymentInfo = null;
     @Setter
@@ -63,7 +62,6 @@ public class UserSession {
 
     public void createNewModelRequestConfiguration(GenerationModel model, ModelRequestOptions options) {
         TelegramRequestConfiguration currentConfiguration = null;
-
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {
                 currentConfiguration = configuration;

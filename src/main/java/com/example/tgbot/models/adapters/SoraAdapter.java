@@ -40,7 +40,7 @@ public class SoraAdapter implements IRequestAdapter {
 
     @Override
     public void makeRequest(UserSession session) {
-        ModelRequestOptions options = session.getModelsConfiguration().get(model);
+        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/sora2";
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", options.getModel().getRequestModelName());

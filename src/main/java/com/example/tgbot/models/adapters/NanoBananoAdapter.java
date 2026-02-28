@@ -37,7 +37,7 @@ public class NanoBananoAdapter implements IRequestAdapter {
 
     @Override
     public void makeRequest(UserSession session) {
-        ModelRequestOptions options = session.getModelsConfiguration().get(model);
+        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/nano-banana-pro";
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", model.getRequestModelName());
