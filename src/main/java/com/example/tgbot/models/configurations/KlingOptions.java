@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @Builder
 @Setter
+@ToString
 public class KlingOptions implements ModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();

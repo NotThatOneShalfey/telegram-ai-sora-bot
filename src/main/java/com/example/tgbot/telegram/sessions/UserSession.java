@@ -7,11 +7,13 @@ import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
+@ToString
 public class UserSession {
 
     private final User user;

@@ -92,6 +92,7 @@ public class MessageHandler {
     private void handlePrompt(Message message, UserSession session) {
         boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
         String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
+        log.trace("Call -> handlePrompt -> hasImage={}, text={}, session={}", hasImage, text, session);
         // Первичные проверки
         if (text.length() > 4999) {
             session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
@@ -132,12 +133,14 @@ public class MessageHandler {
     }
 
     private void handlePlainPrompt(String text, UserSession session, GenerationModel model) throws JsonProcessingException {
+        log.trace("Call -> handlePlainPrompt");
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", text);
         session.getCurrentRequestOptionsByModel(model).setParametersFromJson(mapper.writeValueAsString(input));
     }
 
     private void handlePromptAndImage(Message message, UserSession session, GenerationModel model) throws JsonProcessingException {
+        log.trace("Call -> handlePromptAndImage");
         String prompt = message.getCaption();
         String fileId = null;
         if (message.hasPhoto()) {
