@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.text.MessageFormat;
@@ -18,9 +19,11 @@ import java.util.Map;
 public class SunoOptions implements ModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
     @Builder.Default
+    @Getter
     private final GenerationModel model = GenerationModel.SUNO_V5;
     @Builder.Default
     private boolean customMode = true;
+    @Getter
     private String prompt;
     private boolean instrumental;
     @Builder.Default
@@ -30,8 +33,8 @@ public class SunoOptions implements ModelRequestOptions {
 
 
     @Override
-    public int getPrice() {
-        return 0;
+    public double getPrice() {
+        return 299D;
     }
 
     @Override

@@ -34,7 +34,7 @@ public class KlingMultisetSelection implements IButton {
     @Override
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText("Включить мультикадр");
+        button.setText(buttonOn ? "Выключить мультикадр" : "Включить мультикадр");
         button.setCallbackData(getLabel().toString() + "::" + buttonOn);
         return button;
     }
@@ -58,7 +58,7 @@ public class KlingMultisetSelection implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
-        session.getModelsConfiguration().get(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
+        session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
         registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
     }
 

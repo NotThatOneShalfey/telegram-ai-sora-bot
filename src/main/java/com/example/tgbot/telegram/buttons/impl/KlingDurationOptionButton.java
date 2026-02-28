@@ -57,7 +57,7 @@ public class KlingDurationOptionButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
-        session.getModelsConfiguration().get(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
+        session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
         try {
             registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
         } catch (NullPointerException e) {

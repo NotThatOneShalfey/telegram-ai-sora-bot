@@ -8,8 +8,7 @@ public enum VideoDurationEnum {
     DURATION_6(6, "⏱ 6 сек"),
     DURATION_8(8, "⏱ 8 сек"),
     DURATION_10(10,"⏱ 10 сек"),
-    DURATION_12(12,"⏱ 12 сек"),
-    DURATION_14(14,"⏱ 14 сек");
+    DURATION_12(12,"⏱ 12 сек");
 
     private final Integer value;
     private final String buttonText;

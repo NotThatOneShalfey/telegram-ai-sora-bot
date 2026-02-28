@@ -5,29 +5,20 @@ import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
-import lombok.Setter;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.stereotype.Component;
 
-@Component
-public class SimpleMessagePanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class MainSendFileAfterGeneration extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public SimpleMessagePanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public MainSendFileAfterGeneration(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
-
     @Override
     public void execute(UserSession session) {
-        super.executeSendMessage(session, session.getContextualMessage(), null, false);
     }
 
     @Override
     public PanelType getLabel() {
-        return getStaticLabel();
-    }
-
-    public static PanelType getStaticLabel() {
-        return PanelType.MAIN_SIMPLE_MESSAGE;
+        return PanelType.MAIN_SEND_READY_FILE;
     }
 }

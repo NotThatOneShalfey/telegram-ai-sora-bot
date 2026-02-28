@@ -19,7 +19,7 @@ public class NanoBananoSelectSizeButton implements IButton {
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.NANO_BANANO_SELECT_SIZE;
+        return ButtonType.NANO_BANANA_SELECT_SIZE;
     }
 
     @Override

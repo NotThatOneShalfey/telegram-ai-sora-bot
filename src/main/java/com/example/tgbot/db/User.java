@@ -25,7 +25,7 @@ public class User {
     private Long telegramId;
 
     @Column(name = "balance", nullable = false)
-    private Integer balance;
+    private Double balance;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -38,6 +38,12 @@ public class User {
 
     @Column(name = "user_name")
     private String userName;
+
+    @Column(name = "is_ambassador")
+    private boolean ambassador;
+
+    @Column(name = "discount_coefficient")
+    private float discount;
 
     @Column(name = "referral_link_used")
     private String linkUsed;

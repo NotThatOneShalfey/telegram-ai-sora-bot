@@ -1,15 +1,20 @@
 package com.example.tgbot.models.adapters;
 
+import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.KeiAiRequestService;
 import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.configurations.SoraOptions;
+import com.example.tgbot.models.data.CreateTaskResponse;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.sessions.UserSession;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +23,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SoraAdapter implements IRequestAdapter {
 
     @Getter
@@ -28,6 +34,7 @@ public class SoraAdapter implements IRequestAdapter {
     private String endpointVersion;
     @Value("${telegram.bot.webhook-base-url:}")
     private String baseUrl;
+    private final ObjectProvider<RegistryService> registryServiceProvider;
 
     ObjectMapper mapper = new JsonMapper();
 
@@ -36,12 +43,20 @@ public class SoraAdapter implements IRequestAdapter {
         ModelRequestOptions options = session.getModelsConfiguration().get(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/sora2";
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", model.getRequestModelName());
+        payload.put("model", options.getModel().getRequestModelName());
         payload.put("callBackUrl", fullCallbackUrl);
         payload.put("input", options.getRequestInput());
         try {
             String response = requestService.sendPostRequest("/jobs/createTask", mapper.writeValueAsString(payload));
-            System.out.println("Ответ: " + response);
+            log.trace("Response: {}", response);
+            try {
+                CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
+                String taskId = taskResponse.getData().getTaskId();
+                session.setTaskIdForCurrentModelConfiguration(taskId, model);
+                registryServiceProvider.getObject().putWaitingSession(taskId, session);
+            } catch (JsonProcessingException | RuntimeException e) {
+                log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.getMessage());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

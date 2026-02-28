@@ -1,12 +1,9 @@
 package com.example.tgbot.telegram.buttons.impl;
 
 import com.example.tgbot.RegistryService;
-import com.example.tgbot.models.configurations.KlingOptions;
-import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelType;
-import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
@@ -15,18 +12,18 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 @Component
 @RequiredArgsConstructor
-public class KlingSelectModelButton implements IButton {
+public class NanoBananaGenerateNew implements IButton {
     private final ObjectProvider<RegistryService> registryServiceProvider;
 
     @Override
     public ButtonType getLabel() {
-        return ButtonType.KLING_MODEL_SELECTED;
+        return ButtonType.NANO_BANANA_GENERATE_NEW;
     }
 
     @Override
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText("Kling 3.0");
+        button.setText("Сгенерировать новое изображение");
         button.setCallbackData(getLabel().toString());
         return button;
     }
@@ -38,8 +35,6 @@ public class KlingSelectModelButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getChatContext().setModel(GenerationModel.KLING_3_0);
-        session.createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
-        registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.NANO_BANANA_SETUP).execute(session);
     }
 }

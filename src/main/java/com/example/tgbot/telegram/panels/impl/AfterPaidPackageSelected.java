@@ -54,7 +54,7 @@ public class AfterPaidPackageSelected implements IChatPanel {
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.AFTER_PAID_PACKAGE_SELECTED;
+        return PanelType.MAIN_AFTER_PAID_PACKAGE_SELECTED;
     }
 
     private void processSendInvoiceError(String chatId, TelegramApiException e) {

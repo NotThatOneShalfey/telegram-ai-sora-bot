@@ -4,6 +4,7 @@ import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.sessions.UserSession;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class RegistryService {
     private final Map<PanelType, IChatPanel> chatPanels = new ConcurrentHashMap<>();
 
     private final Map<ButtonType, IButton> buttons = new ConcurrentHashMap<>();
+    private final Map<String, UserSession> waitingSessions = new ConcurrentHashMap<>();
 
     public RegistryService(Collection<IChatPanel> panelCollection,
                            Collection<IButton> buttonCollection) {
@@ -32,6 +34,14 @@ public class RegistryService {
 
     public IButton getButton(ButtonType button) {
         return buttons.get(button);
+    }
+
+    public UserSession getWaitingSession(String taskId) {
+        return waitingSessions.get(taskId);
+    }
+
+    public void putWaitingSession(String taskId, UserSession session) {
+        waitingSessions.put(taskId, session);
     }
 
 

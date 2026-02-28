@@ -4,36 +4,56 @@ import com.example.tgbot.RegistryService;
 import com.example.tgbot.db.User;
 import com.example.tgbot.models.adapters.IRequestAdapter;
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.service.RateLimiterService;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
+import com.example.tgbot.telegram.executors.FileExecutor;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.panels.impl.MainMenuPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.example.tgbot.telegram.panels.PanelType.MAIN_MENU;
 
 @Component
+@Slf4j
 public class MessageHandler {
-
+    private final ObjectProvider<FileExecutor> fileExecutorProvider;
     private final ObjectProvider<RegistryService> registryServiceProvider;
     private final UserService userService;
     private final Map<GenerationModel, IRequestAdapter> adapters = new ConcurrentHashMap<>();
+    private final RateLimiterService rateLimiterService;
+    private final ObjectMapper mapper = new JsonMapper();
+
+    @Value("${telegram.bot.token}")
+    private String botToken;
 
     public MessageHandler(UserService userService,
                           Collection<IRequestAdapter> adaptersCollection,
-                          ObjectProvider<RegistryService> registryServiceProvider) {
+                          ObjectProvider<FileExecutor> fileExecutorProvider,
+                          ObjectProvider<RegistryService> registryServiceProvider,
+                          RateLimiterService rateLimiterService) {
         this.userService = userService;
+        this.fileExecutorProvider = fileExecutorProvider;
         this.registryServiceProvider = registryServiceProvider;
+        this.rateLimiterService = rateLimiterService;
         adaptersCollection.forEach(a -> adapters.put(a.getModel(), a));
-
     }
 
 
@@ -70,11 +90,81 @@ public class MessageHandler {
     }
 
     private void handlePrompt(Message message, UserSession session) {
+        boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
+        String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
+        // Первичные проверки
+        if (text.length() > 4999) {
+            session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
+                    "Попробуйте сократить текст до 5000 символов.");
+            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        // Apply per-user rate limiting
+        if (!rateLimiterService.tryConsume(message.getChatId())) {
+            session.setContextualMessage("Превышен лимит запросов. Пожалуйста, подождите и попробуйте позже.");
+            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        // Заполняем настройки
         if (session.getChatContext().getModel() != null) {
             GenerationModel model = session.getChatContext().getModel();
-            adapters.get(model).makeRequest(session);
+            // Финальная проверка на то, хватает ли денег на генерацию
+            double price = session.getCurrentRequestOptionsByModel(model).getPrice();
+            if (!userService.checkBalanceBeforeGeneration(session, price)) {
+                session.setContextualMessage("⚠ У вас закончились монеты для создания видео.\n" +
+                        "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E");
+                registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+                return;
+            }
+
+            try {
+                if (hasImage) {
+                    handlePromptAndImage(message, session, model);
+                } else {
+                    handlePlainPrompt(text, session, model);
+                }
+            } catch (JsonProcessingException e) {
+                log.error("Couldn't process prompt. Error -> {}", e.getMessage());
+            }
+        // Отдаем на исполнение
+        adapters.get(model).makeRequest(session);
         }
     }
 
+    private void handlePlainPrompt(String text, UserSession session, GenerationModel model) throws JsonProcessingException {
+        Map<String, Object> input = new HashMap<>();
+        input.put("prompt", text);
+        session.getCurrentRequestOptionsByModel(model).setParametersFromJson(mapper.writeValueAsString(input));
+    }
+
+    private void handlePromptAndImage(Message message, UserSession session, GenerationModel model) throws JsonProcessingException {
+        String prompt = message.getCaption();
+        String fileId = null;
+        if (message.hasPhoto()) {
+            fileId = message.getPhoto().stream()
+                    .max((a, b) -> Integer.compare(a.getFileSize(), b.getFileSize()))
+                    .map(PhotoSize::getFileId)
+                    .orElse(null);
+        } else if (message.hasDocument()) {
+            fileId = message.getDocument().getFileId();
+        }
+
+        if (fileId == null) {
+            session.setContextualMessage("Не удалось получить файл изображения.");
+            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        GetFile getFileRequest = new GetFile();
+        File file = fileExecutorProvider.getObject().executeFile(getFileRequest);
+        String imageUrl = "https://api.telegram.org/file/bot" + botToken + "/" + file.getFilePath();
+
+        Map<String, Object> input = new HashMap<>();
+        input.put("prompt", prompt);
+        input.put("image_urls", new String[]{imageUrl});
+        if (model.equals(GenerationModel.SORA_2)) {
+            input.put("model", GenerationModel.SORA_2_WITH_IMAGE);
+        }
+        session.getCurrentRequestOptionsByModel(model).setParametersFromJson(mapper.writeValueAsString(input));
+    }
 
 }

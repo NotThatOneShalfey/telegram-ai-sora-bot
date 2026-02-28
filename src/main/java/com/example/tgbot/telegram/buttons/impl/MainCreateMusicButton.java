@@ -7,6 +7,7 @@ import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
@@ -38,7 +39,8 @@ public class MainCreateMusicButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getModelsConfiguration().put(GenerationModel.SUNO_V5, SunoOptions.builder().build());
+        session.getChatContext().setModel(GenerationModel.SUNO_V5);
+        session.createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
         registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_GENRE_SELECTION).execute(session);
     }
 }

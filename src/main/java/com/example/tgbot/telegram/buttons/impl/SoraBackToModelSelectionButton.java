@@ -36,6 +36,6 @@ public class SoraBackToModelSelectionButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        registryServiceProvider.getObject().getChatPanel(PanelType.GENERATE_VIDEO).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_GENERATE_VIDEO).execute(session);
     }
 }

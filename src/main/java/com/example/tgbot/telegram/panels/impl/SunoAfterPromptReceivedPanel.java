@@ -16,10 +16,9 @@ import java.util.List;
 import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
 @Component
-public class NanoBananaAfterPromptPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+public class SunoAfterPromptReceivedPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-
-    public NanoBananaAfterPromptPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public SunoAfterPromptReceivedPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
@@ -30,19 +29,19 @@ public class NanoBananaAfterPromptPanel extends AbstractSimpleMessagePanel imple
 
     @Override
     public PanelType getLabel() {
-        return PanelType.NANO_BANANA_AFTER_PROMPT_RECEIVED;
+        return PanelType.SUNO_AFTER_PROMPT_RECEIVED;
     }
 
     private String getText() {
         return """
-                ⏳ Отлично! Я получил твоё описание. Генерация изображения займёт ~2 минуты. Как только изображение будет готово, я пришлю его сюда!
+                ⏳ Отлично! Я получил твоё описание. Генерация музыкального трека займёт ~3 минуты. Как только трек будет готов, я пришлю его сюда!
                 """;
     }
 
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(super.getButton(NANO_BANANA_GENERATE_NEW).getKeyboardButton()));
+        rows.add(List.of(super.getButton(SUNO_GENERATE_NEW).getKeyboardButton()));
         rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

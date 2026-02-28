@@ -35,6 +35,6 @@ public class GetGiftButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        registryServiceProvider.getObject().getChatPanel(PanelType.GET_GIFT).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_GET_GIFT).execute(session);
     }
 }

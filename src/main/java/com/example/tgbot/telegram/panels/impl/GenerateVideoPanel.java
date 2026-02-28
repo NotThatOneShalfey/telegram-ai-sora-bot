@@ -33,7 +33,7 @@ public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IC
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.GENERATE_VIDEO;
+        return PanelType.MAIN_GENERATE_VIDEO;
     }
 
     public String getText() {

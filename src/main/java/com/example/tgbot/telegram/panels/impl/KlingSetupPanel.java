@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
+import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
@@ -37,7 +38,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
     }
 
     private String getText(UserSession session) {
-        String parameters = session.getModelsConfiguration().get(GenerationModel.KLING_3_0).getOptionsText();
+        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
         return """
                 ✍ Отправить текстовое описание сцены или
                 🖼 Отправить изображение + описание анимации
@@ -48,10 +49,10 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
                 ПАРАМЕТРЫ
                 %s
                 _____________________________________
-                💸 СТОИМОСТЬ: N монет 💸
+                💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
-                """.formatted(parameters);
+                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
     }
 
     private InlineKeyboardMarkup getKeyboard() {

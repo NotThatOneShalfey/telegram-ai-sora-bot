@@ -64,7 +64,7 @@ public class AspectRatioButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
-        session.getModelsConfiguration().get(model).setParametersFromJson(getJsonForOptionsChange());
+        session.getCurrentRequestOptionsByModel(model).setParametersFromJson(getJsonForOptionsChange());
         // Определяем какую панель вызывать следующую, в зависимости от модели
         PanelType nextPanel = null;
         if (model.equals(GenerationModel.NANO_BANANA_PRO)) {

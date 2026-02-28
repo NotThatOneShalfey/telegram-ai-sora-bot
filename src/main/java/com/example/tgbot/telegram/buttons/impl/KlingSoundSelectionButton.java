@@ -32,7 +32,7 @@ public class KlingSoundSelectionButton implements IButton {
     @Override
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText("Включить звуки");
+        button.setText(buttonOn ? "Выключить звуки" : "Включить звуки");
         button.setCallbackData(getLabel().toString() + "::" + buttonOn);
         return button;
     }
@@ -56,7 +56,7 @@ public class KlingSoundSelectionButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
-        session.getModelsConfiguration().get(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
+        session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
         registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
     }
 

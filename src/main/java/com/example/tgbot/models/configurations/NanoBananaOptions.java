@@ -20,6 +20,7 @@ public class NanoBananaOptions implements ModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
 
     @Builder.Default
+    @Getter
     GenerationModel model = GenerationModel.NANO_BANANA_PRO;
 
     @Getter
@@ -36,8 +37,8 @@ public class NanoBananaOptions implements ModelRequestOptions {
 
 
     @Override
-    public int getPrice() {
-        return 0;
+    public double getPrice() {
+        return 6.95*1.5;
     }
 
     @Override

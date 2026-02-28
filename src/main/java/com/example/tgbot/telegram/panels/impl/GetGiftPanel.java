@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
+import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
@@ -18,14 +19,17 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
 @Component
 public class GetGiftPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+    private final UserService userService;
 
 
-    public GetGiftPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public GetGiftPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot, UserService userService) {
         super(registryServiceProvider, tgBot);
+        this.userService = userService;
     }
 
     @Override
     public void execute(UserSession session) {
+        userService.addGift(session.getUser());
         super.executeSendMessage(session, getText(), getKeyboard(), true);
     }
 
@@ -35,7 +39,7 @@ public class GetGiftPanel extends AbstractSimpleMessagePanel implements IChatPan
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.GET_GIFT;
+        return PanelType.MAIN_GET_GIFT;
     }
 
     private String getText() {

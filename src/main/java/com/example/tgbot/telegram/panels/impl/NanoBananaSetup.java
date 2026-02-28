@@ -1,13 +1,12 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.RegistryService;
+import com.example.tgbot.models.configurations.ModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
-import com.example.tgbot.telegram.buttons.ButtonType;
-import com.example.tgbot.telegram.buttons.IButton;
-import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
@@ -29,6 +28,7 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
 
     @Override
     public void execute(UserSession session) {
+        session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
         super.executeSendMessage(session, getText(session), getKeyboard(), false);
     }
 
@@ -41,7 +41,7 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
         return PanelType.NANO_BANANA_SETUP;
     }
     private String getText(UserSession session) {
-        String parameters = session.getModelsConfiguration().get(GenerationModel.NANO_BANANA_PRO).getOptionsText();
+        ModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
         String text = """
                 🖼 Nano Banana Pro — генерация изображений
                                 
@@ -56,17 +56,17 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
                 ______________________________________
                 %s
                 _____________________________________
-                💸 СТОИМОСТЬ: 20 монет 💸
+                💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
-                """.formatted(parameters);
+                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
         return text;
     }
 
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        rows.add(List.of(super.getButton(NANO_BANANO_SELECT_SIZE).getKeyboardButton()));
+        rows.add(List.of(super.getButton(NANO_BANANA_SELECT_SIZE).getKeyboardButton()));
         rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

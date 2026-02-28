@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,9 @@ public class SoraOptions implements ModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();
     @Builder.Default
+    @Getter
     private GenerationModel model = GenerationModel.SORA_2;
+    @Getter
     private String prompt;
     @Builder.Default
     private String aspectRatio = "9:16";
@@ -31,8 +34,8 @@ public class SoraOptions implements ModelRequestOptions {
     private String[] imageUrls;
 
     @Override
-    public int getPrice() {
-        return 0;
+    public double getPrice() {
+        return 13.51*1.5;
     }
 
     @Override

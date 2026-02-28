@@ -2,10 +2,12 @@ package com.example.tgbot.telegram.buttons.impl;
 
 import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.configurations.SoraOptions;
+import com.example.tgbot.models.configurations.SunoOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
@@ -37,7 +39,8 @@ public class SoraSelectModelButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        session.getModelsConfiguration().put(GenerationModel.SORA_2, SoraOptions.builder().build());
+        session.getChatContext().setModel(GenerationModel.SORA_2);
+        session.createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
         registryServiceProvider.getObject().getChatPanel(PanelType.SORA_2_SETUP).execute(session);
     }
 }

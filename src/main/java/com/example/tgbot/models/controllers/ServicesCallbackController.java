@@ -1,6 +1,8 @@
 package com.example.tgbot.models.controllers;
 
 import com.example.tgbot.models.data.RecordInfoResponse;
+import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.handlers.CallbackHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ServicesCallbackController {
 
     ObjectMapper jsonMapper = new JsonMapper();
+    private final CallbackHandler callbackHandler;
 
     @PostMapping("/suno-v5")
     public void handleSunoCallback(@RequestBody String body) {
@@ -25,6 +28,7 @@ public class ServicesCallbackController {
         try {
             RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
             log.trace("Resp object: {}", resp.toString());
+            callbackHandler.handleApiCallback(resp, GenerationModel.SUNO_V5);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -36,6 +40,7 @@ public class ServicesCallbackController {
         try {
             RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
             log.trace("Resp object: {}", resp.toString());
+            callbackHandler.handleApiCallback(resp, GenerationModel.SORA_2);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -47,6 +52,7 @@ public class ServicesCallbackController {
         try {
             RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
             log.trace("Resp object: {}", resp.toString());
+            callbackHandler.handleApiCallback(resp, GenerationModel.KLING_3_0);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -58,6 +64,7 @@ public class ServicesCallbackController {
         try {
             RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
             log.trace("Resp object: {}", resp.toString());
+            callbackHandler.handleApiCallback(resp, GenerationModel.NANO_BANANA_PRO);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

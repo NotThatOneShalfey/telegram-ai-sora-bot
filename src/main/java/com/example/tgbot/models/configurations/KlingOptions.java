@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.text.MessageFormat;
@@ -22,6 +23,7 @@ public class KlingOptions implements ModelRequestOptions {
     private final ObjectMapper mapper = new JsonMapper();
 
     @Builder.Default
+    @Getter
     private final GenerationModel model = GenerationModel.KLING_3_0;
     @Builder.Default
     private String aspect_ratio = "9:16";
@@ -32,21 +34,36 @@ public class KlingOptions implements ModelRequestOptions {
     @Builder.Default
     private String mode = "std";
     private boolean multiShots;
-    private String[] image_urls;
+    private String[] imageUrls;
+    @Getter
     private String prompt;
     @Builder.Default
     private List<MultiShotRequest> multiShotRequestArray = new ArrayList<>();
 
     @Override
-    public int getPrice() {
-        return 0;
+    public double getPrice() {
+        double resultingPrice = 7.66;
+        if (mode.equalsIgnoreCase("pro")) {
+            if (withSound) {
+                resultingPrice = 15.33;
+            } else {
+                resultingPrice = 9.96;
+            }
+        } else if (mode.equalsIgnoreCase("std")) {
+            if (withSound) {
+                resultingPrice = 11.49;
+            } else {
+                resultingPrice = 7.66;
+            }
+        }
+        return resultingPrice * duration * 1.5;
     }
 
     @Override
     public Map<String, Object> getRequestInput() {
         Map<String, Object> input = new HashMap<>();
         input.put("mode", mode);
-        input.put("image_urls", image_urls);
+        input.put("image_urls", imageUrls);
         input.put("aspect_ratio", aspect_ratio);
         if (multiShots) {
             input.put("multi_prompt", multiShotRequestArray);

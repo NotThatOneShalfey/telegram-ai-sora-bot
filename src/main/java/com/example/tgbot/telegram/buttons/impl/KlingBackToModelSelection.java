@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import static com.example.tgbot.telegram.buttons.ButtonType.KLING_BACK_TO_MODEL_SELECTION;
-import static com.example.tgbot.telegram.buttons.ButtonType.SORA_2_BACK_TO_MODEL_SELECTION;
 
 @Component
 @RequiredArgsConstructor
@@ -38,6 +37,6 @@ public class KlingBackToModelSelection implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        registryServiceProvider.getObject().getChatPanel(PanelType.GENERATE_VIDEO).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_GENERATE_VIDEO).execute(session);
     }
 }

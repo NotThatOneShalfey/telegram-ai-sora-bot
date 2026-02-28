@@ -36,6 +36,6 @@ public class BalanceRechargeButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session) {
-        registryServiceProvider.getObject().getChatPanel(PanelType.RECHARGE_BALANCE).execute(session);
+        registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_RECHARGE_BALANCE).execute(session);
     }
 }

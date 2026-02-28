@@ -7,6 +7,7 @@ import com.example.tgbot.db.User;
 import com.example.tgbot.db.repositories.OperationsHistoryRepository;
 import com.example.tgbot.db.repositories.ReferralLinksRepository;
 import com.example.tgbot.db.repositories.UserRepository;
+import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class UserService {
         }
         User newUser = User.builder()
                 .telegramId(chatId)
-                .balance(0)
+                .balance(0D)
                 .build();
         return userRepository.save(newUser);
     }
@@ -96,29 +97,26 @@ public class UserService {
         return userRepository.save(user);
     }
 
-//    @Transactional
-//    public User consumeOneGeneration(User user, UserSession session, int price) {
-//        int current = user.getBalance();
-//        user.setBalance(current - price);
-//
-//        String strPayload = null;
-//        try {
-//            strPayload = objectMapper.writeValueAsString(session.getPayload());
-//        } catch (JsonProcessingException e) {
-//            log.error("Mapping exception e: {}", e.getMessage());
-//        }
-//        historyRepository.save(OperationsHistory.builder()
-//                .balanceChange((float) (price * -1))
-//                .userId(user)
-//                .generationRequestInput(strPayload)
-//                .operationType(HistoryOperationType.GENERATION_REQUEST)
-//                .build());
-//        return userRepository.save(user);
-//    }
+    @Transactional
+    public User consumeOneGeneration(UserSession session, double price, String generationRequestInput) {
+        User user = session.getUser();
+        double current = user.getBalance();
+        if (user.getDiscount() != 1f) {
+            price = price * user.getDiscount();
+        }
+        user.setBalance(current - price);
+        historyRepository.save(OperationsHistory.builder()
+                .balanceChange((float) (price * -1))
+                .userId(user)
+                .generationRequestInput(generationRequestInput)
+                .operationType(HistoryOperationType.GENERATION_REQUEST)
+                .build());
+        return userRepository.save(user);
+    }
 
     @Transactional
     public User addGift(User user) {
-        user.setBalance(user.getBalance() + 100);
+        user.setBalance(user.getBalance() + 100D);
         user.setBonusReceived(true);
         historyRepository.save(OperationsHistory.builder()
                 .balanceChange(100F)
@@ -143,9 +141,9 @@ public class UserService {
         return referralLinksRepository.save(newLink);
     }
 
-//    public boolean checkBalanceBeforeGeneration(User user, UserSession session) {
-//        int current = user.getBalance();
-//        int genPrice = session.getModel().getPrice();
-//        return current >= genPrice;
-//    }
+    public boolean checkBalanceBeforeGeneration(UserSession session, double price) {
+        User user = session.getUser();
+        double current = user.getBalance();
+        return current >= price;
+    }
 }

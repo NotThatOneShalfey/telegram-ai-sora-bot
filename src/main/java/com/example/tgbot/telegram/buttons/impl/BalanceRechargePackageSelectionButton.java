@@ -10,7 +10,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import static com.example.tgbot.telegram.panels.PanelType.AFTER_PAID_PACKAGE_SELECTED;
+import static com.example.tgbot.telegram.panels.PanelType.MAIN_AFTER_PAID_PACKAGE_SELECTED;
 
 @Component
 @RequiredArgsConstructor
@@ -48,6 +48,6 @@ public class BalanceRechargePackageSelectionButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         session.setPaymentInfo(paidPackage);
-        registryService.getObject().getChatPanel(AFTER_PAID_PACKAGE_SELECTED).execute(session);
+        registryService.getObject().getChatPanel(MAIN_AFTER_PAID_PACKAGE_SELECTED).execute(session);
     }
 }

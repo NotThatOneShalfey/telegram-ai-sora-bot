@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-008-alter-table-users-set-balance-type-float
+      author: Konstantin
+      changes:
+        - modifyDataType:
+            tableName: users
+            columnName: balance
+            newDataType: float

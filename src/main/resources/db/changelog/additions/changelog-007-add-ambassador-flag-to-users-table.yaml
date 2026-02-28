@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-007-add-ambassador-flag-to-users-table
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: is_ambassador
+                  remarks: Является ли юзер амбассадором (влияет на цену его услуг)
+                  type: boolean
+                  constraints:
+                    nullable: true
+              - column:
+                  name: discount_coefficient
+                  remarks: Размер скидки на все услуги
+                  type: float
+                  defaultValue: 1,00
+                  constraints:
+                    nullable: true

@@ -32,7 +32,7 @@ public class KlingSetProModButton implements IButton {
     @Override
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText("Перейти на Pro режим");
+        button.setText(proMode ? "Перейти на Стандартный режим" : "Перейти на Pro режим");
         button.setCallbackData(getLabel().toString() + "::" + proMode);
         return button;
     }
@@ -56,7 +56,7 @@ public class KlingSetProModButton implements IButton {
     @Override
     public void executeOnCallback(UserSession session) {
         // Заполняем параметр в конфиге для модели
-        session.getModelsConfiguration().get(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
+        session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
         registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
     }
 

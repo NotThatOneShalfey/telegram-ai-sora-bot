@@ -1,0 +1,79 @@
+package com.example.tgbot.telegram.panels.impl;
+
+import com.example.tgbot.RegistryService;
+import com.example.tgbot.models.data.ReceivedFile;
+import com.example.tgbot.models.enums.GeneratedFileType;
+import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.panels.IChatPanel;
+import com.example.tgbot.telegram.panels.PanelHelper;
+import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.sessions.UserSession;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.tgbot.telegram.buttons.ButtonType.*;
+
+@Component
+public class MainFileReadyPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+
+    public MainFileReadyPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+        super(registryServiceProvider, tgBot);
+    }
+
+    @Override
+    public void execute(UserSession session) {
+        // Получаем модель, по которой мы отдаем файл
+        ReceivedFile receivedFile = session.getReceivedFile();
+        GenerationModel model = receivedFile.getModel();
+
+        // Формируем текст
+        String prompt = session.getCurrentRequestOptionsByModel(model).getPrompt();
+        String dynamic = "Файл";
+
+        if (model.equals(GenerationModel.KLING_3_0) || model.equals(GenerationModel.SORA_2)) {
+            dynamic = "Видео";
+            executeSendVideo(session, receivedFile.getFirstUrl());
+        } else if (model.equals(GenerationModel.SUNO_V5)) {
+            dynamic = "Музыкальный трек";
+            executeSendMusic(session, receivedFile.getFileUrls());
+        } else if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
+            dynamic = "Изображение";
+            executeSendImage(session, receivedFile.getFirstUrl());
+        }
+        super.executeSendMessage(session, getText(prompt, dynamic), getKeyboard(), true);
+    }
+
+    @Override
+    public PanelType getLabel() {
+        return PanelType.MAIN_SEND_READY_FILE;
+    }
+
+    private String getText(String prompt, String dynamicText) {
+        String sourceText = """
+                ✅ {fileType} готово!
+                
+                💾 Промпт:
+                <blockquote>{prompt}</blockquote>
+                """.replaceAll("\\{prompt}", prompt)
+                .replaceAll("\\{fileType}", dynamicText);
+        return sourceText;
+    }
+
+    private InlineKeyboardMarkup getKeyboard() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        rows.add(List.of(super.getButton(MAIN_CREATE_IMAGE_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(MAIN_CREATE_VIDEO_CALL).getKeyboardButton()));
+        rows.add(List.of(super.getButton(MAIN_CREATE_MUSIC_CALL).getKeyboardButton()));
+        rows.add(List.of(PanelHelper.getSupportButton(), super.getButton(RECHARGE_BALANCE_CALL).getKeyboardButton()));
+        markup.setKeyboard(rows);
+        return markup;
+    }
+}

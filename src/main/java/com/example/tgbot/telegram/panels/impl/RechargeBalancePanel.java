@@ -35,7 +35,7 @@ public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements 
     }
 
     public static PanelType getStaticLabel() {
-        return PanelType.RECHARGE_BALANCE;
+        return PanelType.MAIN_RECHARGE_BALANCE;
     }
 
     private String getText() {
