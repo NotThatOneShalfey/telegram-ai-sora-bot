@@ -23,7 +23,7 @@ import java.util.Map;
 public class KlingMultisetSelection implements IButton {
     private final ObjectProvider<RegistryService> registryServiceProvider;
     private final ObjectMapper mapper = new JsonMapper();
-    private Boolean buttonOn;
+    private Boolean buttonOn = false;
 
     @Override
     public ButtonType getLabel() {
