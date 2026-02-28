@@ -49,9 +49,9 @@ public class UserSession {
         return null;
     }
 
-    public ModelRequestOptions getRequestOptionsByTaskIdAndModel(String taskId, GenerationModel model) {
+    public ModelRequestOptions getRequestOptionsByTaskIdAndModel(String taskId) {
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
-            if (configuration.getModel().equals(model) && Objects.equals(configuration.getTaskId(), taskId)) {
+            if (Objects.equals(configuration.getTaskId(), taskId)) {
                 return configuration.getRequestOptions();
             }
         }
@@ -61,7 +61,9 @@ public class UserSession {
     public void setTaskIdForCurrentModelConfiguration(String taskId, GenerationModel model) {
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {
+                // Выставляем и сразу же дополняем список дефолтным с тем же опциями
                 configuration.setTaskId(taskId);
+                createNewModelRequestConfiguration(model, configuration.getRequestOptions());
             }
         }
     }

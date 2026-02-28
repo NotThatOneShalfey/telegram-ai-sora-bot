@@ -44,5 +44,9 @@ public class RegistryService {
         waitingSessions.put(taskId, session);
     }
 
+    public void removeWaitingSession(String taskId) {
+        waitingSessions.remove(taskId);
+    }
+
 
 }

@@ -22,7 +22,7 @@ import java.util.Map;
 public class KlingSetProModButton implements IButton {
     private final ObjectProvider<RegistryService> registryServiceProvider;
     private final ObjectMapper mapper = new JsonMapper();
-    private Boolean proMode;
+    private Boolean proMode = false;
 
     @Override
     public ButtonType getLabel() {
