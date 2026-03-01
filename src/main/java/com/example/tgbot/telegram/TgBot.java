@@ -60,7 +60,6 @@ public class TgBot extends TelegramWebhookBot {
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-        log.debug("Update Received: {}", update);
         taskExecutor.execute(() -> {
             try {
                 processUpdate(update);
