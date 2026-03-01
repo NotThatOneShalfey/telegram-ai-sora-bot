@@ -32,7 +32,7 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
         session.getChatContext().setModel(GenerationModel.NANO_BANANA_PRO);
         session.createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
-        super.executeSendMessage(session, getText(session), getKeyboard(), false);
+        super.executeSendMessage(session, getText(session), getKeyboard(), true);
     }
 
     @Override

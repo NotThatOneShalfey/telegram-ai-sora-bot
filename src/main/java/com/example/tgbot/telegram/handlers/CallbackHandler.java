@@ -59,14 +59,14 @@ public class CallbackHandler {
                     .model(model)
                     .requestOptions(requestOptions)
                     .build());
-            // Вызываем панель для отправки файла
-            registryService.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
             // Убираем настройки с заданием
             session.removeRequestConfigurationAfterTaskCompletion(response.getData().getTaskId());
             // И убираем сессию из списка ожидающих
             registryService.removeWaitingSession(response.getData().getTaskId());
             // Снимаем деньги
             userService.consumeOneGeneration(session, requestOptions.getPrice(), objectMapper.writeValueAsString(requestOptions.getRequestInput()));
+            // Вызываем панель для отправки файла
+            registryService.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
         } catch (IllegalStateException | JsonProcessingException e) {
             log.error(e.getMessage());
         }

@@ -62,6 +62,7 @@ public class ServicesCallbackController {
     public void handleNanoBananaCallback(@RequestBody String body) {
         log.debug("handleNanoBananaCallback method called!");
         try {
+            log.trace("Resp object body: {}", body);
             RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
             log.trace("Resp object: {}", resp.toString());
             callbackHandler.handleApiCallback(resp, GenerationModel.NANO_BANANA_PRO);

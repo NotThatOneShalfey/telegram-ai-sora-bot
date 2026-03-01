@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SunoAdapter implements IRequestAdapter {
     @Getter
     private final GenerationModel model = GenerationModel.SUNO_V5;
@@ -34,7 +36,7 @@ public class SunoAdapter implements IRequestAdapter {
         payload.put("callBackUrl", fullCallbackUrl);
         try {
             String response = requestService.sendPostRequest("/generate", mapper.writeValueAsString(payload));
-            System.out.println("Ответ: " + response);
+            log.trace("Call to suno /generate resp = {}", response);
         } catch (Exception e) {
             e.printStackTrace();
         }
