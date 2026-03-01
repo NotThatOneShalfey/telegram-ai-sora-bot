@@ -4,13 +4,13 @@ import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.models.data.RecordInfoResponse;
+import com.example.tgbot.models.data.SunoInfoResponse;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -45,14 +46,34 @@ public class CallbackHandler {
     }
 
     public void handleApiCallback(RecordInfoResponse response, GenerationModel model) {
-        try {
+        if (Objects.equals(response.getData().getState(), "failed")) {
+            log.error("Response from model {} failed - {}", model, response);
+            processFailedResponse(response.getData().getTaskId());
+        } else if (Objects.equals(response.getData().getState(), "complete") || Objects.equals(response.getData().getState(), "success")) {
             List<String> urlResponses = new ArrayList<>();
             urlResponses.add(extractUrlFromRecordInfo(response));
+            processUrlResponses(response.getData().getTaskId(), urlResponses, model);
+        }
+    }
+
+    public void handleApiCallback(SunoInfoResponse response, GenerationModel model) {
+        if (Objects.equals(response.getData().getCallbackType(), "failed")) {
+            log.error("Response from model {} failed - {}", model, response);
+            processFailedResponse(response.getData().getTaskId());
+        } else if (Objects.equals(response.getData().getCallbackType(), "complete") || Objects.equals(response.getData().getCallbackType(), "success")) {
+            List<String> urlResponses = new ArrayList<>();
+            response.getData().getData().forEach(dataBlock -> urlResponses.add(dataBlock.getAudioUrl()));
+            processUrlResponses(response.getData().getTaskId(), urlResponses, model);
+        }
+    }
+
+    private void processUrlResponses(String taskId, List<String> urlResponses, GenerationModel model) {
+        try {
             RegistryService registryService = registryServiceProvider.getObject();
             // Получаем сессию из ожидающих ответа
-            UserSession session = registryService.getWaitingSession(response.getData().getTaskId());
+            UserSession session = registryService.getWaitingSession(taskId);
             // Получаем с какими опциями мы делали
-            IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(response.getData().getTaskId());
+            IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
             // Складываем в инфу о текущем отправляемом файле
             session.setReceivedFile(ReceivedFile.builder()
                     .fileUrls(urlResponses)
@@ -60,16 +81,24 @@ public class CallbackHandler {
                     .requestOptions(requestOptions)
                     .build());
             // Убираем настройки с заданием
-            session.removeRequestConfigurationAfterTaskCompletion(response.getData().getTaskId());
+            session.removeRequestConfigurationAfterTaskCompletion(taskId);
             // И убираем сессию из списка ожидающих
-            registryService.removeWaitingSession(response.getData().getTaskId());
+            registryService.removeWaitingSession(taskId);
             // Снимаем деньги
-            userService.consumeOneGeneration(session, requestOptions.getPrice(), objectMapper.writeValueAsString(requestOptions.getRequestInput()));
+            userService.consumeOneGeneration(session, requestOptions.getPrice(), requestOptions.getRequestInput());
             // Вызываем панель для отправки файла
             registryService.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
-        } catch (IllegalStateException | JsonProcessingException e) {
+        } catch (IllegalStateException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private void processFailedResponse(String taskId) {
+        UserSession session = registryServiceProvider.getObject().getWaitingSession(taskId);
+        IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
+        userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+        session.setContextualMessage("Не удалось обработать запрос. На ваш счет вернулись монеты. Просим обратиться в поддержку.");
+        registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
     }
 
     private String extractUrlFromRecordInfo(RecordInfoResponse resp) {

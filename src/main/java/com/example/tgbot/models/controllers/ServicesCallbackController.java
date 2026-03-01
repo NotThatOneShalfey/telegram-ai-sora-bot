@@ -1,6 +1,7 @@
 package com.example.tgbot.models.controllers;
 
 import com.example.tgbot.models.data.RecordInfoResponse;
+import com.example.tgbot.models.data.SunoInfoResponse;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.handlers.CallbackHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,8 +27,7 @@ public class ServicesCallbackController {
     public void handleSunoCallback(@RequestBody String body) {
         log.debug("handleSunoCallback method called!");
         try {
-            log.trace("Resp object body: {}", body);
-            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            SunoInfoResponse resp = jsonMapper.readValue(body, SunoInfoResponse.class);
             log.trace("Resp object: {}", resp.toString());
             callbackHandler.handleApiCallback(resp, GenerationModel.SUNO_V5);
         } catch (JsonProcessingException e) {

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -98,19 +99,70 @@ public class UserService {
     }
 
     @Transactional
-    public User consumeOneGeneration(UserSession session, int price, String generationRequestInput) {
+    public User putOnHold(UserSession session, int price, Map<String, Object> requestPayload) {
         User user = session.getUser();
-        int current = user.getBalance();
+        if (price <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
         if (user.getDiscount() != 1f) {
             price = Math.round(price * user.getDiscount());
         }
-        user.setBalance(current - price);
-        historyRepository.save(OperationsHistory.builder()
-                .balanceChange((float) (price * -1))
-                .userId(user)
-                .generationRequestInput(generationRequestInput)
-                .operationType(HistoryOperationType.GENERATION_REQUEST)
-                .build());
+        user.setBalance(user.getBalance() - price);
+        user.setBalanceHold(user.getBalanceHold() + price);
+
+        try {
+            historyRepository.save(OperationsHistory.builder()
+                    .balanceChange((float) (price * -1))
+                    .userId(user)
+                    .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
+                    .operationType(HistoryOperationType.PAYMENT_ON_HOLD)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return userRepository.save(user);
+    }
+    @Transactional
+    public User rechargeFromHold(UserSession session, int price, Map<String, Object> requestPayload) {
+        User user = session.getUser();
+        if (user.getDiscount() != 1f) {
+            price = Math.round(price * user.getDiscount());
+        }
+        user.setBalance(user.getBalance() + price);
+        user.setBalanceHold(user.getBalanceHold() - price);
+
+        try {
+            historyRepository.save(OperationsHistory.builder()
+                    .balanceChange((float) (price * -1))
+                    .userId(user)
+                    .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
+                    .operationType(HistoryOperationType.RESTORE_HOLD_PAYMENT)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload) {
+        User user = session.getUser();
+        if (user.getDiscount() != 1f) {
+            price = Math.round(price * user.getDiscount());
+        }
+        if (user.getBalanceHold() >= price) {
+            user.setBalanceHold(user.getBalanceHold() - price);
+        }
+        try {
+            historyRepository.save(OperationsHistory.builder()
+                    .balanceChange((float) (price * -1))
+                    .userId(user)
+                    .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
+                    .operationType(HistoryOperationType.GENERATION_REQUEST)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return userRepository.save(user);
     }
 
@@ -145,5 +197,12 @@ public class UserService {
         User user = session.getUser();
         int current = user.getBalance();
         return current >= price;
+    }
+
+    private int getDiscountedPrice(User user, int price) {
+        if (user.getDiscount() != 1f) {
+            price = Math.round(price * user.getDiscount());
+        }
+        return price;
     }
 }

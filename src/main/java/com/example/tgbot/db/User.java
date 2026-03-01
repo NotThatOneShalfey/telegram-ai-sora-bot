@@ -48,6 +48,9 @@ public class User {
     @Column(name = "referral_link_used")
     private String linkUsed;
 
+    @Column(name = "balance_hold")
+    private Integer balanceHold;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
