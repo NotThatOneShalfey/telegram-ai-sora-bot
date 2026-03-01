@@ -69,7 +69,7 @@ public class KlingOptions implements IModelRequestOptions {
         input.put("mode", mode);
         input.put("image_urls", imageUrls);
         input.put("aspect_ratio", aspect_ratio);
-        input.put("with_sound", withSound);
+        input.put("sound", withSound);
         if (multiShots) {
             input.put("multi_prompt", multiShotRequestArray);
         } else {
