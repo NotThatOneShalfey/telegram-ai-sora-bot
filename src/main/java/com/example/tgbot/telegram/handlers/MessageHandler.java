@@ -153,7 +153,7 @@ public class MessageHandler {
         }
         List<String> fileIds = new ArrayList<>();
         if (message.hasPhoto()) {
-            fileIds = getBestPhotos(message.getPhoto(), message.getPhoto().size()/2)
+            fileIds = getBestPhotos(message.getPhoto())
                     .stream()
                     .map(PhotoSize::getFileId)
                     .toList();
@@ -189,9 +189,23 @@ public class MessageHandler {
         session.getCurrentRequestOptionsByModel(model).setParametersFromJson(mapper.writeValueAsString(input));
     }
 
-    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos, int photoCount) {
-        if (photos.size() < photoCount) return photos;
-        return photos.subList(photos.size() - photoCount, photos.size());
+//    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos, int photoCount) {
+//        if (photos.size() < photoCount) return photos;
+//        return photos.subList(photos.size() - photoCount, photos.size());
+//    }
+
+    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos) {
+        Map<String, PhotoSize> groups = new LinkedHashMap<>();
+
+        for (PhotoSize photo : photos) {
+            String key = photo.getFileUniqueId().substring(0, Math.min(15, photo.getFileUniqueId().length()));
+
+            groups.merge(key, photo, (existing, newPhoto) ->
+                    newPhoto.getFileSize() > existing.getFileSize() ? newPhoto : existing
+            );
+        }
+
+        return new ArrayList<>(groups.values());
     }
 
 }
