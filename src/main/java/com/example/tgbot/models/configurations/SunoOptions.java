@@ -55,11 +55,9 @@ public class SunoOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
-                
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Жанр: {1}
-                
                 """;
 
         return MessageFormat.format(text,

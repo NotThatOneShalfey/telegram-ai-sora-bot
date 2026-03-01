@@ -59,11 +59,9 @@ public class NanoBananaOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
-                
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Формат: {1}
-                
                 """;
 
         return MessageFormat.format(text,

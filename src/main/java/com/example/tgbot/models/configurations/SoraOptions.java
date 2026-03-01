@@ -56,13 +56,11 @@ public class SoraOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
-                
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Формат: {1}
                 Длительность: {2}
                 Режим: {3}
-                
                 """;
 
         return MessageFormat.format(text,

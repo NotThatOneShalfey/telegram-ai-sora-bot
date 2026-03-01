@@ -83,7 +83,6 @@ public class KlingOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
-                
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Формат: {1}
@@ -91,7 +90,6 @@ public class KlingOptions implements IModelRequestOptions {
                 Звук: {3}
                 Режим: {4}
                 Мультикадр: {5}
-                
                 """;
 
         return MessageFormat.format(text,
