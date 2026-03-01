@@ -12,6 +12,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,8 @@ public class SoraOptions implements IModelRequestOptions {
     private String aspectRatio = "9:16";
     @Builder.Default
     private final String nFrames = "10";
-    private List<String> imageUrls;
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();
 
     @Override
     public int getPrice() {

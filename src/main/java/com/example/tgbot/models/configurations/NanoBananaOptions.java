@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,8 @@ public class NanoBananaOptions implements IModelRequestOptions {
 
     @Getter
     private String prompt;
-    private List<String> imageInput;
+    @Builder.Default
+    private List<String> imageInput = new ArrayList<>();
     @Builder.Default
     private String aspectRatio = AspectRatioEnum.FORMAT_9_16.getValue();
 

@@ -37,7 +37,8 @@ public class KlingOptions implements IModelRequestOptions {
     private String mode = "std";
     @Builder.Default
     private boolean multiShots = false;
-    private List<String> imageUrls;
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();
     @Getter
     private String prompt;
     @Builder.Default
