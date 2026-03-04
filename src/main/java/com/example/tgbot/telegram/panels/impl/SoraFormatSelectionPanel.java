@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
@@ -20,7 +21,7 @@ import java.util.List;
 public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SoraFormatSelectionPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public SoraFormatSelectionPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

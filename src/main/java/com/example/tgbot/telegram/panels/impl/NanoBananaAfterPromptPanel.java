@@ -2,6 +2,7 @@ package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.TgBot;
@@ -22,7 +23,7 @@ public class NanoBananaAfterPromptPanel extends AbstractSimpleMessagePanel imple
     private final UserService userService;
 
 
-    public NanoBananaAfterPromptPanel(ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
+    public NanoBananaAfterPromptPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
         super(buttonRegistry, tgBot);
         this.userService = userService;
     }

@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.models.configurations.KlingOptions;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
@@ -22,7 +23,7 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public KlingSetupPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public KlingSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

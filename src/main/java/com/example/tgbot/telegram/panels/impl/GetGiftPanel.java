@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
@@ -21,7 +22,7 @@ public class GetGiftPanel extends AbstractSimpleMessagePanel implements IChatPan
     private final UserService userService;
 
 
-    public GetGiftPanel(ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
+    public GetGiftPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
         super(buttonRegistry, tgBot);
         this.userService = userService;
     }

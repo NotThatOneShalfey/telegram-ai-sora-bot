@@ -2,6 +2,7 @@ package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.models.enums.GeneratedFileType;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
@@ -22,7 +23,7 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class MainFileReadyPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public MainFileReadyPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public MainFileReadyPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

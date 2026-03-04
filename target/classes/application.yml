@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+telegram:
+  bot:
+    name: ${TELEGRAM_BOT_USERNAME}
+    token: ${TELEGRAM_BOT_TOKEN}
+    webhook-path: ${TELEGRAM_BOT_WEBHOOK_PATH}
+    webhook-base-url: ${TELEGRAM_BOT_WEBHOOK_BASE_URL}
+    payment-token: ${TELEGRAM_BOT_PAYMENT_TOKEN}
+    version-endpoint: ${TELEGRAM_BOT_VERSION_ENDPOINT}
+
+
+kieai:
+  api-key: ${KIEAI_API_KEY}
+
+common:
+  dev-build: ${COMMON_DEV_BUILD}
+
+web:
+  uploaded-files-dir: ${WEB_UPLOADED_FILES_DIR:./uploaded-files}
+  uploaded-files-base-url: ${WEB_UPLOADED_FILES_BASE_URL:${telegram.bot.webhook-base-url:http://localhost:8080}}
+
+logging:
+  level:
+    com.example.tgbot: ${APPLICATION_LOGGING_LEVEL}
+
+server:
+  port: ${APPLICATION_PORT}
+

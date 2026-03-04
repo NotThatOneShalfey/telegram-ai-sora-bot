@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-003-add-username-field-to-users-table
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: user_name
+                  remarks: Никнейм в телеграме
+                  type: varchar2

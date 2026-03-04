@@ -2,6 +2,7 @@ package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.models.configurations.SunoOptions;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
@@ -21,7 +22,7 @@ import java.util.List;
 public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SunoSetupPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public SunoSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

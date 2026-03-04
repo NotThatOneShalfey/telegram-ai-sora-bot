@@ -6,8 +6,8 @@ import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelHelper;
 import com.example.tgbot.telegram.sessions.UserSession;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -24,10 +24,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class AbstractSimpleMessagePanel {
     protected final ButtonRegistry buttonRegistry;
     private final TgBot tgBot;
+
+    protected AbstractSimpleMessagePanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
+        this.buttonRegistry = buttonRegistry;
+        this.tgBot = tgBot;
+    }
 
     private void processSendMessageError(String chatId, Exception e) {
         log.error(e.getMessage());

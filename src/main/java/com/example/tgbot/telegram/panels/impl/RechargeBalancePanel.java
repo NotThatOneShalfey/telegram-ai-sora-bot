@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
@@ -19,7 +20,7 @@ import java.util.List;
 public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public RechargeBalancePanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public RechargeBalancePanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

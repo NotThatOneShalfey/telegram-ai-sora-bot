@@ -2,6 +2,7 @@ package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.TgBot;
@@ -21,7 +22,7 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class SoraAfterPromptReceivedPanel extends AbstractSimpleMessagePanel implements IChatPanel {
     private final UserService userService;
 
-    public SoraAfterPromptReceivedPanel(ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
+    public SoraAfterPromptReceivedPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
         super(buttonRegistry, tgBot);
         this.userService = userService;
     }

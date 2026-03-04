@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.panels.IChatPanel;
@@ -17,7 +18,7 @@ import java.util.List;
 public class GenerateVideoPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public GenerateVideoPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public GenerateVideoPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
@@ -18,7 +19,7 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 @Component
 public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public MainMenuPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public MainMenuPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 

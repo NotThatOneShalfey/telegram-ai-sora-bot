@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
 import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
@@ -18,7 +19,7 @@ import java.util.List;
 public class SunoGenreSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SunoGenreSelectionPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+    public SunoGenreSelectionPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
     }
 
