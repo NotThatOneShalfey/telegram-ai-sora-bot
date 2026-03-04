@@ -3,3 +3,4 @@ pgdata/
 uploaded-files/
 docker-compose.dev.yml
 docker-compose.release.yml
+test_message.json
