@@ -1,9 +1,11 @@
 package com.example.tgbot.models.configurations.dto;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 
 @Builder
+@Data
 public class SunoOptionsDTO {
     private boolean customMode;
     private String prompt;

@@ -1,9 +1,13 @@
 package com.example.tgbot.models.configurations.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+
 import java.util.List;
 
 @Builder
+@Data
 public class KlingOptionsDTO {
 
     private String aspectRatio;
