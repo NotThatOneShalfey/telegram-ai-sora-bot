@@ -26,6 +26,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 @Component
@@ -87,6 +88,16 @@ public class TgBot extends TelegramWebhookBot {
         });
     }
 
+    /** Синхронная обработка web-запроса, возвращает taskId при успешной постановке задачи. */
+    public Optional<String> processWebInterfaceRequestSync(InterfaceDTORequest request) {
+        try {
+            return processWebInterfaceReq(request);
+        } catch (Exception e) {
+            log.error("Error processing web interface request", e);
+            return Optional.empty();
+        }
+    }
+
     @Override
     public String getBotPath() {
         return null;
@@ -146,10 +157,10 @@ public class TgBot extends TelegramWebhookBot {
         return requestOptions.convertToDTO();
     }
 
-    private void processWebInterfaceReq(InterfaceDTORequest request) {
+    private Optional<String> processWebInterfaceReq(InterfaceDTORequest request) {
         log.trace("Call processWebInterfaceReq with request={}", request);
         User user = userService.findUserByUserName(request.getUserName());
         UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
-        interfaceCallHandler.handleRequest(userSession, request.getOptionsBody(), request.getModel());
+        return interfaceCallHandler.handleRequest(userSession, request.getOptionsBody(), request.getModel());
     }
 }

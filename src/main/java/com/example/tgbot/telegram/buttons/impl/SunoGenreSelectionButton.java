@@ -1,6 +1,6 @@
 package com.example.tgbot.telegram.buttons.impl;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -22,10 +22,9 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class SunoGenreSelectionButton implements IButton {
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    @Lazy
+    private final PanelRegistry panelRegistry;
     private final ObjectMapper mapper = new JsonMapper();
-
-    private SunoMusicGenreEnum genre;
 
     @Override
     public ButtonType getLabel() {
@@ -33,34 +32,32 @@ public class SunoGenreSelectionButton implements IButton {
     }
 
     @Override
-    public InlineKeyboardButton getKeyboardButton() {
+    public InlineKeyboardButton getKeyboardButton(Object... parameters) {
+        SunoMusicGenreEnum genre = parseGenre(parameters);
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(genre.getButtonText());
         button.setCallbackData(getLabel().toString() + "::" + genre);
         return button;
     }
 
-    @Override
-    public IButton setParameters(Object... parameters) {
+    private static SunoMusicGenreEnum parseGenre(Object... parameters) {
         for (Object o : parameters) {
-            if (o instanceof SunoMusicGenreEnum smge) {
-                this.genre = smge;
-            } else {
-                try {
-                    this.genre = SunoMusicGenreEnum.valueOf(o.toString());
-                } catch (IllegalArgumentException ignored) {}
-            }
+            if (o instanceof SunoMusicGenreEnum smge) return smge;
+            try {
+                if (o != null) return SunoMusicGenreEnum.valueOf(o.toString());
+            } catch (IllegalArgumentException ignored) {}
         }
-        return this;
+        return SunoMusicGenreEnum.ROCK; // default
     }
 
     @Override
-    public void executeOnCallback(UserSession session) {
-        session.getCurrentRequestOptionsByModel(GenerationModel.SUNO_V5).setParametersFromJson(getJsonForOptionsChange());
-        registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_SETUP).execute(session);
+    public void executeOnCallback(UserSession session, String[] parameters) {
+        SunoMusicGenreEnum genre = parameters.length >= 1 ? SunoMusicGenreEnum.valueOf(parameters[0]) : SunoMusicGenreEnum.ROCK;
+        session.getCurrentRequestOptionsByModel(GenerationModel.SUNO_V5).setParametersFromJson(getJsonForOptionsChange(genre));
+        panelRegistry.getChatPanel(PanelType.SUNO_SETUP).execute(session);
     }
 
-    private String getJsonForOptionsChange() {
+    private String getJsonForOptionsChange(SunoMusicGenreEnum genre) {
         Map<String, Object> jsonObject = new HashMap<>();
         jsonObject.put("genre", genre.getValue());
         try {

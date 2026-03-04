@@ -26,43 +26,32 @@ import java.util.Optional;
 @Slf4j
 public class UserService {
 
+    private final UserQueryService userQueryService;
     private final UserRepository userRepository;
     private final OperationsHistoryRepository historyRepository;
     private final ReferralLinksRepository referralLinksRepository;
     private final ObjectMapper objectMapper;
 
-
-    @Transactional
+    /** Делегирует запрос к UserQueryService, при отсутствии — логирует и возвращает null. */
     public User findUser(Long telegramId) {
-        Optional<User> existing = userRepository.findByTelegramId(telegramId);
-        if (existing.isPresent()) {
-            return existing.get();
-        }
-        log.error("User tgId = {} NOT FOUND!!!", telegramId);
-        return null;
+        return userQueryService.findUser(telegramId)
+                .orElseGet(() -> {
+                    log.error("User tgId = {} NOT FOUND!!!", telegramId);
+                    return null;
+                });
     }
 
-    @Transactional
     public User findOrCreateUser(Long chatId) {
-        Optional<User> existing = userRepository.findByTelegramId(chatId);
-        if (existing.isPresent()) {
-            return existing.get();
-        }
-        User newUser = User.builder()
-                .telegramId(chatId)
-                .balance(0)
-                .build();
-        return userRepository.save(newUser);
+        return userQueryService.findOrCreateUser(chatId);
     }
 
     public User findUserByUserName(String userName) {
-        Optional<User> existing = userRepository.findByUserName(userName);
-        return existing.orElse(null);
+        return userQueryService.findUserByUserName(userName);
     }
 
     @Transactional
     public void updateUserCredentials(User user, String userName, String referralLink) {
-        Optional<User> existing = userRepository.findById(user.getId());
+        Optional<User> existing = userQueryService.findById(user.getId());
         if (existing.isPresent()) {
             User userForUpdate = existing.get();
             boolean changed = false;
@@ -187,7 +176,7 @@ public class UserService {
 
     @Transactional
     public ReferralLinks addReferral(String creatorUserName, String link) {
-        User user = findUserByUserName(creatorUserName);
+        User user = userQueryService.findUserByUserName(creatorUserName);
         ReferralLinks newLink = new ReferralLinks();
         newLink.setLink(link);
         newLink.setCreated_by(user);
@@ -198,12 +187,5 @@ public class UserService {
         User user = session.getUser();
         int current = user.getBalance();
         return current >= price;
-    }
-
-    private int getDiscountedPrice(User user, int price) {
-        if (user.getDiscount() != 1f) {
-            price = Math.round(price * user.getDiscount());
-        }
-        return price;
     }
 }

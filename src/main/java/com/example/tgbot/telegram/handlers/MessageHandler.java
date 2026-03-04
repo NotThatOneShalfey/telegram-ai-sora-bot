@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.handlers;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.AdapterRegistry;
+import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.db.User;
 import com.example.tgbot.models.adapters.IRequestAdapter;
 import com.example.tgbot.models.enums.GenerationModel;
@@ -10,7 +11,6 @@ import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.executors.FileExecutor;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
-import com.example.tgbot.telegram.panels.impl.MainMenuPanel;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +36,8 @@ import static com.example.tgbot.telegram.panels.PanelType.MAIN_MENU;
 @RequiredArgsConstructor
 public class MessageHandler {
     private final ObjectProvider<FileExecutor> fileExecutorProvider;
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    private final PanelRegistry panelRegistry;
+    private final AdapterRegistry adapterRegistry;
     private final UserService userService;
     private final RateLimiterService rateLimiterService;
     private final ObjectMapper mapper = new JsonMapper();
@@ -61,11 +62,8 @@ public class MessageHandler {
         // Если завершение оплаты
         if (message.getSuccessfulPayment() != null) {
             userService.addBalance(user, PaidPackageEnum.getPackagePriceByName(message.getSuccessfulPayment().getInvoicePayload()));
-            IChatPanel panel = registryServiceProvider.getObject().getChatPanel(MAIN_MENU);
-            if (panel instanceof MainMenuPanel mmp) {
-                mmp.setPanelText("Оплата успешно зафиксирована!");
-            }
-            panel.execute(session);
+            session.setContextualMessage("Оплата успешно зафиксирована!");
+            panelRegistry.getChatPanel(MAIN_MENU).execute(session);
             return;
         }
         // В конце концов просто обрабатываем так, будто это промпт
@@ -74,7 +72,7 @@ public class MessageHandler {
 
     private void handleStart(UserSession session, User user, String userName, String referralLink) {
         userService.updateUserCredentials(user, userName, referralLink);
-        registryServiceProvider.getObject().getChatPanel(MAIN_MENU).execute(session);
+        panelRegistry.getChatPanel(MAIN_MENU).execute(session);
     }
 
     private void handlePrompt(Message message, UserSession session) {
@@ -83,20 +81,20 @@ public class MessageHandler {
         log.trace("Call -> handlePrompt -> hasImage={}, text={}, session={}", hasImage, text, session);
         if (text == null) {
             session.setContextualMessage("Простите, не понял вашего сообщения.");
-            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         // Первичные проверки
         if (text.length() > 4999) {
             session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
                     "Попробуйте сократить текст до 5000 символов.");
-            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         // Apply per-user rate limiting
         if (!rateLimiterService.tryConsume(message.getChatId())) {
             session.setContextualMessage("Превышен лимит запросов. Пожалуйста, подождите и попробуйте позже.");
-            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         // Заполняем настройки
@@ -107,7 +105,7 @@ public class MessageHandler {
             if (!userService.checkBalanceBeforeGeneration(session, price)) {
                 session.setContextualMessage("⚠ У вас закончились монеты для создания видео.\n" +
                         "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E");
-                registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+                panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
                 return;
             }
 
@@ -121,7 +119,7 @@ public class MessageHandler {
                 log.error("Couldn't process prompt. Error -> {}", e.getMessage());
             }
         // Отдаем на исполнение
-        registryServiceProvider.getObject().getAdapter(model).makeRequest(session);
+        adapterRegistry.getAdapter(model).makeRequest(session);
         }
     }
 
@@ -137,7 +135,7 @@ public class MessageHandler {
         String prompt = message.getCaption();
         if (prompt == null) {
             session.setContextualMessage("Не удалось получить текст вместе с изображением. Пожалуйста, отправьте изображение вместе с текстом.");
-            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         List<String> fileIds = new ArrayList<>();
@@ -152,7 +150,7 @@ public class MessageHandler {
 
         if (fileIds.isEmpty()) {
             session.setContextualMessage("Не удалось получить файл изображения.");
-            registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
 

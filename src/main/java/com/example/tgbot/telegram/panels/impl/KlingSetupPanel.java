@@ -1,6 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.models.configurations.KlingOptions;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
@@ -9,7 +9,6 @@ import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.ChatState;
 import com.example.tgbot.telegram.sessions.UserSession;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -23,8 +22,8 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public KlingSetupPanel(ObjectProvider<RegistryService> registryService, TgBot tgBot) {
-        super(registryService, tgBot);
+    public KlingSetupPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+        super(buttonRegistry, tgBot);
     }
 
     @Override
@@ -32,7 +31,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
         session.getChatContext().setModel(GenerationModel.KLING_3_0);
         session.createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
         session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
-        super.executeSendMessage(session, getText(session), getKeyboard(), true);
+        super.executeSendMessage(session, getText(session), getKeyboard(session), true);
     }
 
     @Override
@@ -58,15 +57,20 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
                 """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
     }
 
-    private InlineKeyboardMarkup getKeyboard() {
+    private InlineKeyboardMarkup getKeyboard(UserSession session) {
+        com.example.tgbot.models.configurations.KlingOptions options = (com.example.tgbot.models.configurations.KlingOptions) session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
+        boolean proMode = "pro".equalsIgnoreCase(options.getMode());
+        boolean withSound = options.isWithSound();
+        boolean multiShots = options.isMultiShots();
+
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         rows.add(List.of(super.getButton(KLING_BACK_TO_MODEL_SELECTION).getKeyboardButton(),
                 super.getButton(KLING_FORMAT_SELECTION).getKeyboardButton()));
         rows.add(List.of(super.getButton(KLING_DURATION_SELECTION).getKeyboardButton(),
-                super.getButton(KLING_SOUND_SELECTION).getKeyboardButton()));
-        rows.add(List.of(super.getButton(KLING_SET_PRO_MOD).getKeyboardButton(),
-                super.getButton(KLING_MULTISET_SELECTION).getKeyboardButton()));
+                super.getButton(KLING_SOUND_SELECTION).getKeyboardButton(withSound)));
+        rows.add(List.of(super.getButton(KLING_SET_PRO_MOD).getKeyboardButton(proMode),
+                super.getButton(KLING_MULTISET_SELECTION).getKeyboardButton(multiShots)));
         rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

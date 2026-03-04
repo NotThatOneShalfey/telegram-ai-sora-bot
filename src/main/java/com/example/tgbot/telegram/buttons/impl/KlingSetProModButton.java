@@ -1,6 +1,6 @@
 package com.example.tgbot.telegram.buttons.impl;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -20,9 +20,9 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class KlingSetProModButton implements IButton {
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    @Lazy
+    private final PanelRegistry panelRegistry;
     private final ObjectMapper mapper = new JsonMapper();
-    private Boolean proMode = false;
 
     @Override
     public ButtonType getLabel() {
@@ -30,37 +30,34 @@ public class KlingSetProModButton implements IButton {
     }
 
     @Override
-    public InlineKeyboardButton getKeyboardButton() {
+    public InlineKeyboardButton getKeyboardButton(Object... parameters) {
+        boolean proMode = parseProMode(parameters);
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(proMode ? "Перейти на Стандартный режим" : "Перейти на Pro режим");
         button.setCallbackData(getLabel().toString() + "::" + proMode);
         return button;
     }
 
-    // Здесь очень важно!!!
-    // Это одна кнопка с переключалкой, поэтому при получении старого параметра, мы инверсируем значение
-    @Override
-    public IButton setParameters(Object... parameters) {
+    /** Toggle: when building from panel we pass current value; when callback we invert. */
+    private static boolean parseProMode(Object... parameters) {
         for (Object o : parameters) {
-            if (o instanceof Boolean b) {
-                this.proMode = !b;
-            } else {
-                try {
-                    this.proMode = !Boolean.parseBoolean(o.toString());
-                } catch (IllegalArgumentException ignored) {}
-            }
+            if (o instanceof Boolean b) return !b;
+            try {
+                if (o != null) return !Boolean.parseBoolean(o.toString());
+            } catch (IllegalArgumentException ignored) {}
         }
-        return this;
+        return false;
     }
 
     @Override
-    public void executeOnCallback(UserSession session) {
-        // Заполняем параметр в конфиге для модели
-        session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange());
-        registryServiceProvider.getObject().getChatPanel(PanelType.KLING_SETUP).execute(session);
+    public void executeOnCallback(UserSession session, String[] parameters) {
+        boolean currentProMode = parameters.length >= 1 ? Boolean.parseBoolean(parameters[0]) : false;
+        boolean newProMode = !currentProMode; // toggle
+        session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange(newProMode));
+        panelRegistry.getChatPanel(PanelType.KLING_SETUP).execute(session);
     }
 
-    private String getJsonForOptionsChange() {
+    private String getJsonForOptionsChange(boolean proMode) {
         Map<String, Object> jsonObject = new HashMap<>();
         jsonObject.put("mode", proMode ? "pro" : "std");
         try {

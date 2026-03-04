@@ -1,6 +1,7 @@
 package com.example.tgbot.models.adapters;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.PanelRegistry;
+import com.example.tgbot.registry.SessionRegistry;
 import com.example.tgbot.models.KeiAiRequestService;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.CreateTaskResponse;
@@ -13,12 +14,13 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +33,14 @@ public class KlingAdapter implements IRequestAdapter {
     private String endpointVersion;
     @Value("${telegram.bot.webhook-base-url:}")
     private String baseUrl;
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    @Lazy
+    private final PanelRegistry panelRegistry;
+    private final SessionRegistry sessionRegistry;
 
     private final ObjectMapper mapper = new JsonMapper();
 
     @Override
-    public void makeRequest(UserSession session) {
+    public Optional<String> makeRequest(UserSession session) {
         IModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/kling-3-0";
         Map<String, Object> payload = new HashMap<>();
@@ -46,17 +50,18 @@ public class KlingAdapter implements IRequestAdapter {
         try {
             String response = requestService.sendPostRequest("/jobs/createTask", mapper.writeValueAsString(payload));
             log.trace("Response: {}", response);
-            try {
-                CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
-                String taskId = taskResponse.getData().getTaskId();
-                session.setTaskIdForCurrentModelConfiguration(taskId, GenerationModel.KLING_3_0);
-                registryServiceProvider.getObject().putWaitingSession(taskId, session);
-                registryServiceProvider.getObject().getChatPanel(PanelType.KLING_AFTER_PROMPT_RECEIVED).execute(session);
-            } catch (JsonProcessingException | RuntimeException e) {
-                log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.getMessage());
-            }
+            CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
+            String taskId = taskResponse.getData().getTaskId();
+            session.setTaskIdForCurrentModelConfiguration(taskId, GenerationModel.KLING_3_0);
+            sessionRegistry.putWaitingSession(taskId, session);
+            panelRegistry.getChatPanel(PanelType.KLING_AFTER_PROMPT_RECEIVED).execute(session);
+            return Optional.of(taskId);
+        } catch (JsonProcessingException | RuntimeException e) {
+            log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.getMessage());
+            return Optional.empty();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error sending Kling request", e);
+            return Optional.empty();
         }
     }
 }

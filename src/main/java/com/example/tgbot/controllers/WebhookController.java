@@ -1,4 +1,4 @@
-package com.example.tgbot.telegram.controllers;
+package com.example.tgbot.controllers;
 
 import com.example.tgbot.telegram.TgBot;
 import com.fasterxml.jackson.core.JsonProcessingException;

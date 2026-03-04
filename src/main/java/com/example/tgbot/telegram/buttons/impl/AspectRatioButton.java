@@ -1,7 +1,7 @@
 package com.example.tgbot.telegram.buttons.impl;
 
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -25,10 +25,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class AspectRatioButton implements IButton {
-    private final ObjectProvider<RegistryService> registryServiceProvider;
-    private AspectRatioEnum aspectRatio;
-    private GenerationModel model;
-
+    @Lazy
+    private final PanelRegistry panelRegistry;
     private final ObjectMapper mapper = new JsonMapper();
 
     @Override
@@ -37,7 +35,9 @@ public class AspectRatioButton implements IButton {
     }
 
     @Override
-    public InlineKeyboardButton getKeyboardButton() {
+    public InlineKeyboardButton getKeyboardButton(Object... parameters) {
+        AspectRatioEnum aspectRatio = parseAspectRatio(parameters);
+        GenerationModel model = parseModel(parameters);
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(aspectRatio.getButtonText());
         button.setCallbackData(getLabel().toString() + "::" + model + "::" + aspectRatio);
@@ -45,43 +45,46 @@ public class AspectRatioButton implements IButton {
     }
 
     @Override
-    public IButton setParameters(Object... parameters) {
-        for (Object o : parameters) {
-            if (o instanceof AspectRatioEnum are) {
-                this.aspectRatio = are;
-            } else if (o instanceof GenerationModel gm) {
-                this.model = gm;
-            } else {
-                try {
-                    this.aspectRatio = AspectRatioEnum.valueOf(o.toString());
-                    this.model = GenerationModel.valueOf(o.toString());
-                } catch (IllegalArgumentException ignored) {}
-            }
-        }
-        return this;
-    }
+    public void executeOnCallback(UserSession session, String[] parameters) {
+        GenerationModel model = parameters.length >= 1 ? GenerationModel.valueOf(parameters[0]) : GenerationModel.SORA_2;
+        AspectRatioEnum aspectRatio = parameters.length >= 2 ? AspectRatioEnum.valueOf(parameters[1]) : AspectRatioEnum.FORMAT_9_16;
 
-    @Override
-    public void executeOnCallback(UserSession session) {
-        // Заполняем параметр в конфиге для модели
-        session.getCurrentRequestOptionsByModel(model).setParametersFromJson(getJsonForOptionsChange());
-        // Определяем какую панель вызывать следующую, в зависимости от модели
-        PanelType nextPanel = null;
-        if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
-            nextPanel = PanelType.NANO_BANANA_SETUP;
-        } else if (model.equals(GenerationModel.SORA_2)) {
-            nextPanel = PanelType.SORA_2_SETUP;
-        } else if (model.equals(GenerationModel.KLING_3_0)) {
-            nextPanel = PanelType.KLING_SETUP;
-        }
+        session.getCurrentRequestOptionsByModel(model).setParametersFromJson(getJsonForOptionsChange(aspectRatio));
+
+        PanelType nextPanel = switch (model) {
+            case NANO_BANANA_PRO -> PanelType.NANO_BANANA_SETUP;
+            case SORA_2, SORA_2_WITH_IMAGE -> PanelType.SORA_2_SETUP;
+            case KLING_3_0 -> PanelType.KLING_SETUP;
+            default -> PanelType.MAIN_MENU;
+        };
         try {
-            registryServiceProvider.getObject().getChatPanel(nextPanel).execute(session);
+            panelRegistry.getChatPanel(nextPanel).execute(session);
         } catch (NullPointerException e) {
             log.error("AspectRatioButton: executeOnCallback ERROR -> При получении следующей панели получили NULL!");
         }
     }
 
-    private String getJsonForOptionsChange() {
+    private static AspectRatioEnum parseAspectRatio(Object... parameters) {
+        for (Object o : parameters) {
+            if (o instanceof AspectRatioEnum are) return are;
+            try {
+                if (o != null) return AspectRatioEnum.valueOf(o.toString());
+            } catch (IllegalArgumentException ignored) {}
+        }
+        return AspectRatioEnum.FORMAT_9_16;
+    }
+
+    private static GenerationModel parseModel(Object... parameters) {
+        for (Object o : parameters) {
+            if (o instanceof GenerationModel gm) return gm;
+            try {
+                if (o != null) return GenerationModel.valueOf(o.toString());
+            } catch (IllegalArgumentException ignored) {}
+        }
+        return GenerationModel.SORA_2;
+    }
+
+    private String getJsonForOptionsChange(AspectRatioEnum aspectRatio) {
         Map<String, Object> jsonObject = new HashMap<>();
         jsonObject.put("aspectRatio", aspectRatio.getValue());
         try {
@@ -90,6 +93,4 @@ public class AspectRatioButton implements IButton {
             throw new RuntimeException(e);
         }
     }
-
-
 }

@@ -1,6 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
@@ -9,7 +9,6 @@ import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -21,8 +20,8 @@ import java.util.List;
 public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SoraFormatSelectionPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
-        super(registryServiceProvider, tgBot);
+    public SoraFormatSelectionPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+        super(buttonRegistry, tgBot);
     }
 
     @Override
@@ -49,9 +48,8 @@ public class SoraFormatSelectionPanel extends AbstractSimpleMessagePanel impleme
     public InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        IButton aspectRatioButton = super.getButton(ButtonType.ASPECT_RATIO_SELECTION).setParameters(GenerationModel.SORA_2);
-        rows.add(List.of(aspectRatioButton.setParameters(AspectRatioEnum.FORMAT_16_9).getKeyboardButton(),
-                aspectRatioButton.setParameters(AspectRatioEnum.FORMAT_9_16).getKeyboardButton()));
+        rows.add(List.of(super.getButton(ButtonType.ASPECT_RATIO_SELECTION).getKeyboardButton(GenerationModel.SORA_2, AspectRatioEnum.FORMAT_16_9),
+                super.getButton(ButtonType.ASPECT_RATIO_SELECTION).getKeyboardButton(GenerationModel.SORA_2, AspectRatioEnum.FORMAT_9_16)));
         rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;

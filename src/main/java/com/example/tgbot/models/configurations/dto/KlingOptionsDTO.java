@@ -8,6 +8,8 @@ import java.util.List;
 
 @Builder
 @Data
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class KlingOptionsDTO {
 
     private String aspectRatio;

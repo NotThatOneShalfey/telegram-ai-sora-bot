@@ -1,7 +1,7 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.RegistryService;
 import com.example.tgbot.models.data.ReceivedFile;
+import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.models.enums.GeneratedFileType;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.TgBot;
@@ -9,7 +9,6 @@ import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -23,8 +22,8 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class MainFileReadyPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public MainFileReadyPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
-        super(registryServiceProvider, tgBot);
+    public MainFileReadyPanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+        super(buttonRegistry, tgBot);
     }
 
     @Override

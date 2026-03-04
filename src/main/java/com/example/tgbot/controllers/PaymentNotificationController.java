@@ -1,4 +1,4 @@
-package com.example.tgbot.telegram.controllers;
+package com.example.tgbot.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

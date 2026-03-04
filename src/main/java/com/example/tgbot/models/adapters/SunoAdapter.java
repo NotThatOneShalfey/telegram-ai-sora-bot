@@ -1,6 +1,7 @@
 package com.example.tgbot.models.adapters;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.PanelRegistry;
+import com.example.tgbot.registry.SessionRegistry;
 import com.example.tgbot.models.KeiAiRequestService;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.CreateTaskResponse;
@@ -12,11 +13,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,25 +31,29 @@ public class SunoAdapter implements IRequestAdapter {
     private String endpointVersion;
     @Value("${telegram.bot.webhook-base-url:}")
     private String baseUrl;
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    @Lazy
+    private final PanelRegistry panelRegistry;
+    private final SessionRegistry sessionRegistry;
 
     ObjectMapper mapper = new JsonMapper();
 
     @Override
-    public void makeRequest(UserSession session) {
+    public Optional<String> makeRequest(UserSession session) {
         IModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/suno-v5";
         Map<String, Object> payload = options.getRequestInput();
         payload.put("callBackUrl", fullCallbackUrl);
         try {
             String response = requestService.sendPostRequest("/generate", mapper.writeValueAsString(payload));
-            CreateTaskResponse taskResponse  = mapper.readValue(response, CreateTaskResponse.class);
+            CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
             String taskId = taskResponse.getData().getTaskId();
             session.setTaskIdForCurrentModelConfiguration(taskId, model);
-            registryServiceProvider.getObject().putWaitingSession(taskId, session);
-            registryServiceProvider.getObject().getChatPanel(PanelType.SUNO_AFTER_PROMPT_RECEIVED).execute(session);
+            sessionRegistry.putWaitingSession(taskId, session);
+            panelRegistry.getChatPanel(PanelType.SUNO_AFTER_PROMPT_RECEIVED).execute(session);
+            return Optional.of(taskId);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error sending Suno request", e);
+            return Optional.empty();
         }
     }
 }

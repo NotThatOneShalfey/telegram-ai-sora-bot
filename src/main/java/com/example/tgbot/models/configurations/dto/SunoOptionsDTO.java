@@ -6,6 +6,8 @@ import lombok.Getter;
 
 @Builder
 @Data
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class SunoOptionsDTO {
     private boolean customMode;
     private String prompt;

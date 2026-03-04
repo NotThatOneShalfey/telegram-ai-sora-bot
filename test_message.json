@@ -1,0 +1,40 @@
+{
+  "code": 200,
+  "data": {
+    "callbackType": "complete",
+    "data": [
+      {
+        "audio_url": "https://tempfile.aiquickdraw.com/r/20cdef71d14e4d3ea89b057c57056a92.mp3",
+        "createTime": 1772326123910,
+        "duration": 161.0,
+        "id": "a5fdba5c-a5f6-4e48-a8aa-8c760f3d761b",
+        "image_url": "https://musicfile.kie.ai/YTVmZGJhNWMtYTVmNi00ZTQ4LWE4YWEtOGM3NjBmM2Q3NjFi.jpeg",
+        "model_name": "chirp-crow",
+        "prompt": "[Verse 1]\nБудильник режет темноту\nОпять вставать в один и тот же день\nКофе горчит\nКак чья-то суть\nЧто прожигает изнутри мне грудь\n\nЛюди спешат\nКак в хоровод\nКто счет ведет\nКому тут важен счет\nПальцы листают новостей бинт\nНо рана все равно молчит как сплин\n\n[Chorus]\nЯ застрял\nМежду буднями и бездной\nГромко дышу\nА будто вышел из игры\nКаждый шаг\nЭто круг по той же лестнице\nИ ни вверх\nИ ни вниз — только \"смотри\"\n\n[Verse 2]\nВечер глотает города\nЯ в телефоне прячу пустоту\nТени знакомых в зеркалах\nС теми же шрамами на костюмах снов\n\n\"Как дела?\" — \"Да вроде\nКак всегда\"\nЭто пароль в молчание утра\nСмехом прикрою липкий страх\nЧто жизнь идет\nА я стою в кулак\n\n[Chorus]\nЯ застрял\nМежду буднями и бездной\nГромко дышу\nА будто вышел из игры\nКаждый шаг\nЭто круг по той же лестнице\nИ ни вверх\nИ ни вниз — только \"смотри\"\n\n[Bridge]\nСкажи\nГде край этой прямой\nГде перестанет жечь вопрос: \"зачем?\"\nЯ подпишусь своей тишиной\nПод договором\nЧто вернусь совсем\n\nНо если завтра — снова в ноль\nСнова чек-лист\nОпять чужой пароль\nТо почему в груди пожар\nКогда считаю свой календарь\n\n[Chorus]\nЯ застрял\nМежду буднями и бездной\nГромко дышу\nА будто вышел из игры\nКаждый шаг\nЭто круг по той же лестнице\nИ ни вверх\nИ ни вниз — только \"смотри\"\n\n[Outro]\nМожет\nВесь смысл — идти вперед\nДаже когда не веришь в этот ход\nЯ сделаю шаг — и в темноте\nЧей-то такой же взгляд найдет меня (эй)",
+        "source_audio_url": "https://tempfile.aiquickdraw.com/r/20cdef71d14e4d3ea89b057c57056a92.mp3",
+        "source_image_url": "https://cdn2.suno.ai/image_a5fdba5c-a5f6-4e48-a8aa-8c760f3d761b.jpeg",
+        "source_stream_audio_url": "https://cdn1.suno.ai/a5fdba5c-a5f6-4e48-a8aa-8c760f3d761b.mp3",
+        "stream_audio_url": "https://musicfile.kie.ai/YTVmZGJhNWMtYTVmNi00ZTQ4LWE4YWEtOGM3NjBmM2Q3NjFi",
+        "tags": "Dark modern rock with heavy drop-tuned guitars, tight bass, and live drums locking into a mid-tempo stomp. Male vocals leap from intimate low murmurs to piercing high belts and raw screams on key words; verses stay tense and restrained, choruses explode with stacked harmonies and wide guitars. Subtle synth pad under the bridge, tom-driven build into a final, cathartic chorus and a sudden stop on the last chord.",
+        "title": "Между буднями и бездной"
+      },
+      {
+        "audio_url": "https://tempfile.aiquickdraw.com/r/1ca0543b73ba4613a175ac47c774e4b7.mp3",
+        "createTime": 1772326123910,
+        "duration": 206.2,
+        "id": "0dfedffa-7381-4dbb-ae46-95047f7f9889",
+        "image_url": "https://musicfile.kie.ai/MGRmZWRmZmEtNzM4MS00ZGJiLWFlNDYtOTUwNDdmN2Y5ODg5.jpeg",
+        "model_name": "chirp-crow",
+        "prompt": "[Verse 1]\nБудильник режет темноту\nОпять вставать в один и тот же день\nКофе горчит\nКак чья-то суть\nЧто прожигает изнутри мне грудь\n\nЛюди спешат\nКак в хоровод\nКто счет ведет\nКому тут важен счет\nПальцы листают новостей бинт\nНо рана все равно молчит как сплин\n\n[Chorus]\nЯ застрял\nМежду буднями и бездной\nГромко дышу\nА будто вышел из игры\nКаждый шаг\nЭто круг по той же лестнице\nИ ни вверх\nИ ни вниз — только \"смотри\"\n\n[Verse 2]\nВечер глотает города\nЯ в телефоне прячу пустоту\nТени знакомых в зеркалах\nС теми же шрамами на костюмах снов\n\n\"Как дела?\" — \"Да вроде\nКак всегда\"\nЭто пароль в молчание утра\nСмехом прикрою липкий страх\nЧто жизнь идет\nА я стою в кулак\n\n[Chorus]\nЯ застрял\nМежду буднями и бездной\nГромко дышу\nА будто вышел из игры\nКаждый шаг\nЭто круг по той же лестнице\nИ ни вверх\nИ ни вниз — только \"смотри\"\n\n[Bridge]\nСкажи\nГде край этой прямой\nГде перестанет жечь вопрос: \"зачем?\"\nЯ подпишусь своей тишиной\nПод договором\nЧто вернусь совсем\n\nНо если завтра — снова в ноль\nСнова чек-лист\nОпять чужой пароль\nТо почему в груди пожар\nКогда считаю свой календарь\n\n[Chorus]\nЯ застрял\nМежду буднями и бездной\nГромко дышу\nА будто вышел из игры\nКаждый шаг\nЭто круг по той же лестнице\nИ ни вверх\nИ ни вниз — только \"смотри\"\n\n[Outro]\nМожет\nВесь смысл — идти вперед\nДаже когда не веришь в этот ход\nЯ сделаю шаг — и в темноте\nЧей-то такой же взгляд найдет меня (эй)",
+        "source_audio_url": "https://tempfile.aiquickdraw.com/r/1ca0543b73ba4613a175ac47c774e4b7.mp3",
+        "source_image_url": "https://cdn2.suno.ai/image_0dfedffa-7381-4dbb-ae46-95047f7f9889.jpeg",
+        "source_stream_audio_url": "https://cdn1.suno.ai/0dfedffa-7381-4dbb-ae46-95047f7f9889.mp3",
+        "stream_audio_url": "https://musicfile.kie.ai/MGRmZWRmZmEtNzM4MS00ZGJiLWFlNDYtOTUwNDdmN2Y5ODg5",
+        "tags": "Dark modern rock with heavy drop-tuned guitars, tight bass, and live drums locking into a mid-tempo stomp. Male vocals leap from intimate low murmurs to piercing high belts and raw screams on key words; verses stay tense and restrained, choruses explode with stacked harmonies and wide guitars. Subtle synth pad under the bridge, tom-driven build into a final, cathartic chorus and a sudden stop on the last chord.",
+        "title": "Между буднями и бездной"
+      }
+    ],
+    "task_id": "ba0e0dd7788399173c4848377fb0ad6b"
+  },
+  "msg": "All generated successfully."
+}

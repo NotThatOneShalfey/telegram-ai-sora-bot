@@ -1,6 +1,11 @@
 package com.example.tgbot.telegram.handlers;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.ButtonRegistry;
+import com.example.tgbot.registry.PanelRegistry;
+import com.example.tgbot.registry.SessionRegistry;
+import com.example.tgbot.registry.TaskResultRegistry;
+import com.example.tgbot.service.ImageUploadService;
+import com.example.tgbot.util.UploadedImageUrlsExtractor;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.models.data.RecordInfoResponse;
@@ -15,11 +20,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,21 +33,25 @@ import java.util.Objects;
 @Slf4j
 public class CallbackHandler {
 
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    private final ButtonRegistry buttonRegistry;
+    private final PanelRegistry panelRegistry;
+    private final SessionRegistry sessionRegistry;
+    private final TaskResultRegistry taskResultRegistry;
+    private final UploadedImageUrlsExtractor uploadedImageUrlsExtractor;
+    private final ImageUploadService imageUploadService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserService userService;
 
     public void handleCallback(CallbackQuery cq, UserSession userSession) {
-        log.trace("call handleCallback ---> CallbackData={}", cq.getData());
+        log.trace("handleCallback -> CallbackData={}", cq.getData());
         String[] dataArray = cq.getData().split("::");
-        String buttonType = dataArray[0];
-        IButton button = registryServiceProvider.getObject().getButton(ButtonType.valueOf(buttonType));
-        if (dataArray.length > 1) {
-            for (int i=1; i<dataArray.length; i++) {
-                button.setParameters(dataArray[i]);
-            }
-        }
-        button.executeOnCallback(userSession);
+        ButtonType buttonType = ButtonType.valueOf(dataArray[0]);
+        String[] parameters = dataArray.length > 1
+                ? Arrays.copyOfRange(dataArray, 1, dataArray.length)
+                : new String[0];
+
+        IButton button = buttonRegistry.getButton(buttonType);
+        button.executeOnCallback(userSession, parameters);
     }
 
     public void handleApiCallback(RecordInfoResponse response, GenerationModel model) {
@@ -69,11 +78,20 @@ public class CallbackHandler {
 
     private void processUrlResponses(String taskId, List<String> urlResponses, GenerationModel model) {
         try {
-            RegistryService registryService = registryServiceProvider.getObject();
             // Получаем сессию из ожидающих ответа
-            UserSession session = registryService.getWaitingSession(taskId);
+            UserSession session = sessionRegistry.getWaitingSession(taskId);
             // Получаем с какими опциями мы делали
             IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
+            // Сохраняем результат для web-интерфейса (запрос по userName + taskId)
+            String userName = session.getUser().getUserName();
+            if (userName != null && !userName.isBlank()) {
+                taskResultRegistry.put(taskId, new TaskResultRegistry.TaskResultRecord(
+                        userName,
+                        model,
+                        requestOptions.convertToDTO(),
+                        urlResponses
+                ));
+            }
             // Складываем в инфу о текущем отправляемом файле
             session.setReceivedFile(ReceivedFile.builder()
                     .fileUrls(urlResponses)
@@ -83,22 +101,36 @@ public class CallbackHandler {
             // Убираем настройки с заданием
             session.removeRequestConfigurationAfterTaskCompletion(taskId);
             // И убираем сессию из списка ожидающих
-            registryService.removeWaitingSession(taskId);
+            sessionRegistry.removeWaitingSession(taskId);
             // Снимаем деньги
             userService.consumeOneGeneration(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+            // Удаляем загруженные изображения после успешной генерации
+            deleteUploadedImages(requestOptions);
             // Вызываем панель для отправки файла
-            registryService.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
+            panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
         } catch (IllegalStateException e) {
             log.error(e.getMessage());
         }
     }
 
     private void processFailedResponse(String taskId) {
-        UserSession session = registryServiceProvider.getObject().getWaitingSession(taskId);
+        UserSession session = sessionRegistry.getWaitingSession(taskId);
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
         userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+        deleteUploadedImages(requestOptions);
         session.setContextualMessage("Не удалось обработать запрос. На ваш счет вернулись монеты. Просим обратиться в поддержку.");
-        registryServiceProvider.getObject().getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+        panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+    }
+
+    private void deleteUploadedImages(IModelRequestOptions requestOptions) {
+        try {
+            var urls = uploadedImageUrlsExtractor.extractOurUploadedUrls(requestOptions);
+            if (!urls.isEmpty()) {
+                imageUploadService.deleteByUrls(urls);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to delete uploaded images: {}", e.getMessage());
+        }
     }
 
     private String extractUrlFromRecordInfo(RecordInfoResponse resp) {

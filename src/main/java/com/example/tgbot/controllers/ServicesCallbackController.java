@@ -1,4 +1,4 @@
-package com.example.tgbot.models.controllers;
+package com.example.tgbot.controllers;
 
 import com.example.tgbot.models.data.RecordInfoResponse;
 import com.example.tgbot.models.data.SunoInfoResponse;

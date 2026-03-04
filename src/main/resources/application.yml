@@ -30,6 +30,10 @@ kieai:
 common:
   dev-build: ${COMMON_DEV_BUILD}
 
+web:
+  uploaded-files-dir: ${WEB_UPLOADED_FILES_DIR:./uploaded-files}
+  uploaded-files-base-url: ${WEB_UPLOADED_FILES_BASE_URL:${telegram.bot.webhook-base-url:http://localhost:8080}}
+
 logging:
   level:
     com.example.tgbot: ${APPLICATION_LOGGING_LEVEL}

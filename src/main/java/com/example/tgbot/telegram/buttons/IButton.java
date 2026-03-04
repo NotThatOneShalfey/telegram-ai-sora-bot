@@ -5,7 +5,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 public interface IButton {
     ButtonType getLabel();
-    InlineKeyboardButton getKeyboardButton();
-    IButton setParameters(Object... parameters);
-    void executeOnCallback(UserSession session);
+
+    /** Creates keyboard button with given parameters (for building UI). Parameters order must match callback data format. */
+    InlineKeyboardButton getKeyboardButton(Object... parameters);
+
+    /** Handles callback execution. parameters are parsed from callback data (excluding button type). */
+    void executeOnCallback(UserSession session, String[] parameters);
 }

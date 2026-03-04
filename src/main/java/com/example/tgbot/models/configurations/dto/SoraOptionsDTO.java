@@ -9,6 +9,8 @@ import java.util.List;
 
 @Builder
 @Data
+@lombok.NoArgsConstructor(force = true)
+@lombok.AllArgsConstructor
 public class SoraOptionsDTO {
     private String prompt;
     private String aspectRatio;

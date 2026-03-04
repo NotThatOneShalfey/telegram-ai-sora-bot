@@ -10,6 +10,8 @@ import java.util.List;
 
 @Builder
 @Data
+@lombok.NoArgsConstructor(force = true)
+@lombok.AllArgsConstructor
 public class NanoBananaOptionsDTO {
     private String prompt;
     private List<String> imageInput;

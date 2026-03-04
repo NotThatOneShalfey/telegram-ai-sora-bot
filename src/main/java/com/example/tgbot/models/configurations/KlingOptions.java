@@ -32,10 +32,13 @@ public class KlingOptions implements IModelRequestOptions {
     private String aspectRatio = "9:16";
     @Builder.Default
     private int duration = 10;
+    @Getter
     @Builder.Default
     private boolean withSound = false;
+    @Getter
     @Builder.Default
     private String mode = "std";
+    @Getter
     @Builder.Default
     private boolean multiShots = false;
     @Builder.Default

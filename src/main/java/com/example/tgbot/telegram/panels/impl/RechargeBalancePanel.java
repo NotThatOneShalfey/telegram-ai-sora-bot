@@ -1,6 +1,6 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
@@ -8,7 +8,6 @@ import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelHelper;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -20,8 +19,8 @@ import java.util.List;
 public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public RechargeBalancePanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
-        super(registryServiceProvider, tgBot);
+    public RechargeBalancePanel(ButtonRegistry buttonRegistry, TgBot tgBot) {
+        super(buttonRegistry, tgBot);
     }
 
     @Override
@@ -59,7 +58,7 @@ public class RechargeBalancePanel extends AbstractSimpleMessagePanel implements 
     private InlineKeyboardMarkup getKeyboard() {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         for (PaidPackageEnum p : PaidPackageEnum.values()) {
-            rows.add(List.of(super.getButton(ButtonType.BALANCE_RECHARGE_PACKAGE_SELECTION).setParameters(p).getKeyboardButton()));
+            rows.add(List.of(super.getButton(ButtonType.BALANCE_RECHARGE_PACKAGE_SELECTION).getKeyboardButton(p)));
         }
         rows.add(List.of(super.getButton(ButtonType.MAIN_MENU_CALL).getKeyboardButton()));
         rows.add(List.of(PanelHelper.getSupportButton()));

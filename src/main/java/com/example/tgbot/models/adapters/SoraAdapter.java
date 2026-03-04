@@ -1,6 +1,7 @@
 package com.example.tgbot.models.adapters;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.PanelRegistry;
+import com.example.tgbot.registry.SessionRegistry;
 import com.example.tgbot.models.KeiAiRequestService;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.CreateTaskResponse;
@@ -14,12 +15,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,12 +36,14 @@ public class SoraAdapter implements IRequestAdapter {
     private String endpointVersion;
     @Value("${telegram.bot.webhook-base-url:}")
     private String baseUrl;
-    private final ObjectProvider<RegistryService> registryServiceProvider;
+    @Lazy
+    private final PanelRegistry panelRegistry;
+    private final SessionRegistry sessionRegistry;
 
     ObjectMapper mapper = new JsonMapper();
 
     @Override
-    public void makeRequest(UserSession session) {
+    public Optional<String> makeRequest(UserSession session) {
         IModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
         String fullCallbackUrl = baseUrl + endpointVersion + "/callbacks/sora2";
         Map<String, Object> payload = new HashMap<>();
@@ -49,18 +53,15 @@ public class SoraAdapter implements IRequestAdapter {
         try {
             String response = requestService.sendPostRequest("/jobs/createTask", mapper.writeValueAsString(payload));
             log.trace("Response: {}", response);
-            try {
-                CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
-                String taskId = taskResponse.getData().getTaskId();
-                session.setTaskIdForCurrentModelConfiguration(taskId, model);
-                registryServiceProvider.getObject().putWaitingSession(taskId, session);
-                registryServiceProvider.getObject().getChatPanel(PanelType.SORA_2_AFTER_PROMPT_RECEIVED).execute(session);
-            } catch (JsonProcessingException | RuntimeException e) {
-                log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.toString());
-                throw e;
-            }
+            CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
+            String taskId = taskResponse.getData().getTaskId();
+            session.setTaskIdForCurrentModelConfiguration(taskId, model);
+            sessionRegistry.putWaitingSession(taskId, session);
+            panelRegistry.getChatPanel(PanelType.SORA_2_AFTER_PROMPT_RECEIVED).execute(session);
+            return Optional.of(taskId);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error sending Sora request", e);
+            return Optional.empty();
         }
     }
 

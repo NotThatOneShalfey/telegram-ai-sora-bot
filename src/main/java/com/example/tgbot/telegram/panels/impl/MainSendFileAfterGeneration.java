@@ -1,16 +1,14 @@
 package com.example.tgbot.telegram.panels.impl;
 
-import com.example.tgbot.RegistryService;
+import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
-import org.springframework.beans.factory.ObjectProvider;
-
 public class MainSendFileAfterGeneration extends AbstractSimpleMessagePanel implements IChatPanel {
 
-    public MainSendFileAfterGeneration(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
-        super(registryServiceProvider, tgBot);
+    public MainSendFileAfterGeneration(ButtonRegistry buttonRegistry, TgBot tgBot) {
+        super(buttonRegistry, tgBot);
     }
 
     @Override
