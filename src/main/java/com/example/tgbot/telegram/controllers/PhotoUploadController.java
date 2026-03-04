@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 /**
  * API controller for frontend (React Mini App).
  * Accepts photo upload via multipart/form-data and returns the URL to access the stored photo.
