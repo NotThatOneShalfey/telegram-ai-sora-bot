@@ -12,10 +12,12 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class InterfaceCallHandler {
-    @Lazy
     private final AdapterRegistry adapterRegistry;
+
+    public InterfaceCallHandler(@Lazy AdapterRegistry adapterRegistry) {
+        this.adapterRegistry = adapterRegistry;
+    }
 
     public Optional<String> handleRequest(UserSession session, String dtoBody, GenerationModel model) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(model);
