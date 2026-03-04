@@ -1,4 +1,4 @@
-package com.example.tgbot.telegram.controllers;
+package com.example.tgbot.controllers;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
