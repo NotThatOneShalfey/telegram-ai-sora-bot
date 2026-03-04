@@ -9,6 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class InterfaceDTORequest {
     private GenerationModel model;
-    private String userName;
+    /** User.telegramId */
+    private Long userId;
     private String optionsBody;
 }

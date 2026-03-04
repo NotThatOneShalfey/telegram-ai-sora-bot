@@ -85,7 +85,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userName": "telegram_username",
+  "userId": 123456789,
   "options": {
     "aspectRatio": "9:16",
     "duration": 10,
@@ -103,7 +103,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userName | string | да | Telegram username пользователя (без @) |
+| userId | number | да | User.telegramId — идентификатор пользователя в Telegram |
 | options.aspectRatio | string | нет | Соотношение сторон: `"9:16"`, `"16:9"` и др. |
 | options.duration | number | нет | Длительность в секундах (по умолчанию 10) |
 | options.withSound | boolean | нет | Добавлять ли звук |
@@ -141,7 +141,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userName": "telegram_username",
+  "userId": 123456789,
   "options": {
     "prompt": "Текстовое описание сцены",
     "aspectRatio": "9:16",
@@ -153,7 +153,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userName | string | да | Telegram username пользователя |
+| userId | number | да | User.telegramId |
 | options.prompt | string | да | Промпт для генерации |
 | options.aspectRatio | string | нет | `"9:16"`, `"16:9"` |
 | options.nFrames | string | нет | Количество кадров (по умолчанию "10") |
@@ -185,7 +185,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userName": "telegram_username",
+  "userId": 123456789,
   "options": {
     "customMode": false,
     "prompt": "Описание музыки",
@@ -198,7 +198,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userName | string | да | Telegram username пользователя |
+| userId | number | да | User.telegramId |
 | options.customMode | boolean | нет | Режим кастомизации |
 | options.prompt | string | да | Описание желаемой музыки |
 | options.instrumental | boolean | нет | Инструментальная композиция |
@@ -231,7 +231,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userName": "telegram_username",
+  "userId": 123456789,
   "options": {
     "prompt": "Описание изображения",
     "imageInput": ["https://..."],
@@ -244,7 +244,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userName | string | да | Telegram username пользователя |
+| userId | number | да | User.telegramId |
 | options.prompt | string | да | Промпт для генерации |
 | options.imageInput | string[] | нет | URL изображений (результат `/upload`) |
 | options.aspectRatio | string | нет | Соотношение сторон |
@@ -268,12 +268,12 @@ const { urls } = await response.json();
 
 **`GET /v1/web/result`**
 
-Возвращает результат завершённой генерации по `userName` и `taskId`. Запрос имеет смысл только после того, как генерация завершена (успешно или с ошибкой).
+Возвращает результат завершённой генерации по `userId` и `taskId`. Запрос имеет смысл только после того, как генерация завершена (успешно или с ошибкой).
 
 ### Request
 
 - **Query параметры:**
-  - `userName` (string) — Telegram username пользователя
+  - `userId` (number) — User.telegramId
   - `taskId` (string) — ID задачи из ответа методов generate
 
 ### Response
@@ -298,7 +298,7 @@ const { urls } = await response.json();
 | links | Массив URL на результат (видео/аудио/изображения) |
 | options | Опции, с которыми была запущена генерация |
 
-**404 Not Found** — задача не найдена, ещё не завершена или `userName` не совпадает
+**404 Not Found** — задача не найдена, ещё не завершена или `userId` не совпадает
 
 > Результат можно запросить только один раз. После успешного ответа он удаляется с сервера.
 
@@ -309,7 +309,7 @@ const { urls } = await response.json();
 1. **Загрузка изображений** (если нужны): `POST /upload` → получить `urls`
 2. **Запуск генерации**: `POST /kling` (или `/sora2`, `/suno`, `/nanobanana`) с `userName`, `options` (в т.ч. `imageUrls`/`imageInput` из шага 1)
 3. **Получение `taskId`** из ответа
-4. **Опрос результата**: `GET /result?userName=...&taskId=...` (polling или по событию)
+4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
 5. **Отображение/сохранение** ссылок из `response.links`
 
 ---

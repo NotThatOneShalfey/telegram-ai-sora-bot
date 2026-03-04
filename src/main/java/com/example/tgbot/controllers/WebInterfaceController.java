@@ -91,14 +91,14 @@ public class WebInterfaceController {
     }
 
     /**
-     * Получение результата задачи по userName и taskId.
+     * Получение результата задачи по userId (User.telegramId) и taskId.
      * Возвращает WebGenerateResponse с опциями модели и результирующими ссылками.
      */
     @GetMapping("/result")
     public ResponseEntity<?> getTaskResult(
-            @RequestParam String userName,
+            @RequestParam Long userId,
             @RequestParam String taskId) {
-        Optional<WebGenerateResponse<?>> result = webInterfaceService.getTaskResult(userName, taskId);
+        Optional<WebGenerateResponse<?>> result = webInterfaceService.getTaskResult(userId, taskId);
         return result
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -108,7 +108,7 @@ public class WebInterfaceController {
         try {
             WebGenerateRequest<T> request = mapper.readValue(body, typeRef);
             String optionsBody = mapper.writeValueAsString(request.getOptions());
-            InterfaceDTORequest dtoRequest = new InterfaceDTORequest(model, request.getUserName(), optionsBody);
+            InterfaceDTORequest dtoRequest = new InterfaceDTORequest(model, request.getUserId(), optionsBody);
             Optional<String> taskId = webInterfaceService.submitAndGetTaskId(dtoRequest);
             return taskId
                     .map(id -> ResponseEntity.ok(new WebGenerateSubmittedResponse(id)))

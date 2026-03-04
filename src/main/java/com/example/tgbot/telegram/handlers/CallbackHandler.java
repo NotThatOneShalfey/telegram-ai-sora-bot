@@ -94,11 +94,11 @@ public class CallbackHandler {
             UserSession session = sessionRegistry.getWaitingSession(taskId);
             // Получаем с какими опциями мы делали
             IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
-            // Сохраняем результат для web-интерфейса (запрос по userName + taskId)
-            String userName = session.getUser().getUserName();
-            if (userName != null && !userName.isBlank()) {
+            // Сохраняем результат для web-интерфейса (запрос по userId + taskId)
+            Long userId = session.getUser().getTelegramId();
+            if (userId != null) {
                 taskResultRegistry.put(taskId, new TaskResultRegistry.TaskResultRecord(
-                        userName,
+                        userId,
                         model,
                         requestOptions.convertToDTO(),
                         urlResponses

@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Response wrapper for completed web generation.
- * Contains result links and model-specific options DTO (analog of WebGenerateRequest, but links instead of userName).
+ * Contains result links and model-specific options DTO (analog of WebGenerateRequest, but links instead of userId).
  */
 @Data
 @NoArgsConstructor

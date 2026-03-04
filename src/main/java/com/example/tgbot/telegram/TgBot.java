@@ -159,7 +159,7 @@ public class TgBot extends TelegramWebhookBot {
 
     private Optional<String> processWebInterfaceReq(InterfaceDTORequest request) {
         log.trace("Call processWebInterfaceReq with request={}", request);
-        User user = userService.findUserByUserName(request.getUserName());
+        User user = userService.findOrCreateUser(request.getUserId());
         UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
         return interfaceCallHandler.handleRequest(userSession, request.getOptionsBody(), request.getModel());
     }

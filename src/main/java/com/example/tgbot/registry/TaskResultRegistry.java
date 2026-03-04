@@ -30,7 +30,8 @@ public class TaskResultRegistry {
 
     @Data
     public static class TaskResultRecord {
-        private final String userName;
+        /** User.telegramId */
+        private final Long userId;
         private final GenerationModel model;
         private final String optionsJson;
         private final List<String> links;

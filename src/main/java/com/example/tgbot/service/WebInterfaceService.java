@@ -25,27 +25,27 @@ public class WebInterfaceService {
     private final ObjectMapper objectMapper;
 
     public void submitGenerationRequest(InterfaceDTORequest request) {
-        log.trace("WebInterfaceService: submitting request for model={}, userName={}", request.getModel(), request.getUserName());
+        log.trace("WebInterfaceService: submitting request for model={}, userId={}", request.getModel(), request.getUserId());
         tgBot.onWebInterfaceRequest(request);
     }
 
     /** Синхронно отправляет задачу и возвращает taskId при успехе. */
     public Optional<String> submitAndGetTaskId(InterfaceDTORequest request) {
-        log.trace("WebInterfaceService: submitting request for model={}, userName={}", request.getModel(), request.getUserName());
+        log.trace("WebInterfaceService: submitting request for model={}, userId={}", request.getModel(), request.getUserId());
         return tgBot.processWebInterfaceRequestSync(request);
     }
 
     /**
-     * Возвращает результат выполненной задачи по userName и taskId.
+     * Возвращает результат выполненной задачи по userId (User.telegramId) и taskId.
      * Результат содержит опции модели и результирующие ссылки.
      * Результат извлекается из реестра и удаляется после чтения.
      */
-    public Optional<WebGenerateResponse<?>> getTaskResult(String userName, String taskId) {
+    public Optional<WebGenerateResponse<?>> getTaskResult(Long userId, String taskId) {
         TaskResultRegistry.TaskResultRecord record = taskResultRegistry.get(taskId);
         if (record == null) {
             return Optional.empty();
         }
-        if (!record.getUserName().equals(userName)) {
+        if (!record.getUserId().equals(userId)) {
             return Optional.empty();
         }
         try {
