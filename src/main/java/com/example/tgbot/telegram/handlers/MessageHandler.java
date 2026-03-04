@@ -42,7 +42,7 @@ public class MessageHandler {
     private final ObjectMapper mapper = new JsonMapper();
 
     public MessageHandler(ObjectProvider<FileExecutor> fileExecutorProvider, @Lazy PanelRegistry panelRegistry,
-                          AdapterRegistry adapterRegistry, UserService userService, RateLimiterService rateLimiterService) {
+                          @Lazy AdapterRegistry adapterRegistry, UserService userService, RateLimiterService rateLimiterService) {
         this.fileExecutorProvider = fileExecutorProvider;
         this.panelRegistry = panelRegistry;
         this.adapterRegistry = adapterRegistry;

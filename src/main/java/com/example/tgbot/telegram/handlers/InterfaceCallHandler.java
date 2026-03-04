@@ -6,6 +6,7 @@ import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -13,8 +14,8 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class InterfaceCallHandler {
+    @Lazy
     private final AdapterRegistry adapterRegistry;
-    private final UserService userService;
 
     public Optional<String> handleRequest(UserSession session, String dtoBody, GenerationModel model) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(model);

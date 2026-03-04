@@ -42,7 +42,7 @@ public class CallbackHandler {
     private final UserService userService;
 
     public CallbackHandler(@Lazy ButtonRegistry buttonRegistry, @Lazy PanelRegistry panelRegistry,
-                           SessionRegistry sessionRegistry, TaskResultRegistry taskResultRegistry,
+                           @Lazy SessionRegistry sessionRegistry, @Lazy TaskResultRegistry taskResultRegistry,
                            UploadedImageUrlsExtractor uploadedImageUrlsExtractor, ImageUploadService imageUploadService,
                            UserService userService) {
         this.buttonRegistry = buttonRegistry;
