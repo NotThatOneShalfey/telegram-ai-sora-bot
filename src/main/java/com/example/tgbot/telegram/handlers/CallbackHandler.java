@@ -18,8 +18,8 @@ import com.example.tgbot.telegram.panels.PanelType;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class CallbackHandler {
 
@@ -41,6 +40,19 @@ public class CallbackHandler {
     private final ImageUploadService imageUploadService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserService userService;
+
+    public CallbackHandler(@Lazy ButtonRegistry buttonRegistry, @Lazy PanelRegistry panelRegistry,
+                           SessionRegistry sessionRegistry, TaskResultRegistry taskResultRegistry,
+                           UploadedImageUrlsExtractor uploadedImageUrlsExtractor, ImageUploadService imageUploadService,
+                           UserService userService) {
+        this.buttonRegistry = buttonRegistry;
+        this.panelRegistry = panelRegistry;
+        this.sessionRegistry = sessionRegistry;
+        this.taskResultRegistry = taskResultRegistry;
+        this.uploadedImageUrlsExtractor = uploadedImageUrlsExtractor;
+        this.imageUploadService = imageUploadService;
+        this.userService = userService;
+    }
 
     public void handleCallback(CallbackQuery cq, UserSession userSession) {
         log.trace("handleCallback -> CallbackData={}", cq.getData());
