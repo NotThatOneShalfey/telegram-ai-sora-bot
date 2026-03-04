@@ -15,9 +15,9 @@ import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
@@ -33,7 +33,6 @@ import static com.example.tgbot.telegram.panels.PanelType.MAIN_MENU;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class MessageHandler {
     private final ObjectProvider<FileExecutor> fileExecutorProvider;
     private final PanelRegistry panelRegistry;
@@ -41,6 +40,15 @@ public class MessageHandler {
     private final UserService userService;
     private final RateLimiterService rateLimiterService;
     private final ObjectMapper mapper = new JsonMapper();
+
+    public MessageHandler(ObjectProvider<FileExecutor> fileExecutorProvider, @Lazy PanelRegistry panelRegistry,
+                          AdapterRegistry adapterRegistry, UserService userService, RateLimiterService rateLimiterService) {
+        this.fileExecutorProvider = fileExecutorProvider;
+        this.panelRegistry = panelRegistry;
+        this.adapterRegistry = adapterRegistry;
+        this.userService = userService;
+        this.rateLimiterService = rateLimiterService;
+    }
 
     @Value("${telegram.bot.token}")
     private String botToken;
