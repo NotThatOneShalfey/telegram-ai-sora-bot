@@ -1,5 +1,6 @@
 package com.example.tgbot.models.configurations;
 
+import com.example.tgbot.models.configurations.dto.SunoOptionsDTO;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.SunoMusicGenreEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -56,8 +57,10 @@ public class SunoOptions implements IModelRequestOptions {
     public String getOptionsText() {
         String text = """
                 ПАРАМЕТРЫ
+                <pre>
                 Модель: {0}
                 Жанр: {1}
+                </pre>
                 """;
 
         return MessageFormat.format(text,
@@ -70,6 +73,20 @@ public class SunoOptions implements IModelRequestOptions {
     public void setParametersFromJson(String json) {
         try {
             mapper.updateValue(this, mapper.readTree(json));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String convertToDTO() {
+        try {
+            return mapper.writeValueAsString(SunoOptionsDTO.builder()
+                    .audioWeight(this.audioWeight)
+                    .customMode(this.customMode)
+                    .genre(this.genre)
+                    .instrumental(this.instrumental)
+                    .prompt(this.prompt)
+                    .build());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

@@ -23,7 +23,7 @@ public class MainCreateMusicButton implements IButton {
     @Override
     public InlineKeyboardButton getKeyboardButton() {
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText("Создать музыку (Suno)");
+        button.setText("Создать музыку");
         button.setCallbackData(getLabel().toString());
         return button;
     }

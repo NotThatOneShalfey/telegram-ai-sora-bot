@@ -11,4 +11,5 @@ public interface IModelRequestOptions {
     void setParametersFromJson(String json);
     String getPrompt();
     GenerationModel getModel();
+    String convertToDTO();
 }

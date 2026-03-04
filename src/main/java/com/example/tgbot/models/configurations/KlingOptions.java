@@ -1,5 +1,6 @@
 package com.example.tgbot.models.configurations;
 
+import com.example.tgbot.models.configurations.dto.KlingOptionsDTO;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,7 +29,7 @@ public class KlingOptions implements IModelRequestOptions {
     @Getter
     private final GenerationModel model = GenerationModel.KLING_3_0;
     @Builder.Default
-    private String aspect_ratio = "9:16";
+    private String aspectRatio = "9:16";
     @Builder.Default
     private int duration = 10;
     @Builder.Default
@@ -68,7 +69,7 @@ public class KlingOptions implements IModelRequestOptions {
         Map<String, Object> input = new HashMap<>();
         input.put("mode", mode);
         input.put("image_urls", imageUrls);
-        input.put("aspect_ratio", aspect_ratio);
+        input.put("aspect_ratio", aspectRatio);
         input.put("sound", withSound);
         if (multiShots) {
             input.put("multi_prompt", multiShotRequestArray);
@@ -83,6 +84,7 @@ public class KlingOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
+                <pre>
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Формат: {1}
@@ -90,11 +92,12 @@ public class KlingOptions implements IModelRequestOptions {
                 Звук: {3}
                 Режим: {4}
                 Мультикадр: {5}
+                </pre>
                 """;
 
         return MessageFormat.format(text,
                 model.getLocalizedModelName(),
-                AspectRatioEnum.getButtonTextByValue(aspect_ratio),
+                AspectRatioEnum.getButtonTextByValue(aspectRatio),
                 duration + " секунд",
                 withSound ? "Включен" : "Выключен",
                 mode.equalsIgnoreCase("std") ? "Стандарт" : "Про",
@@ -129,6 +132,28 @@ public class KlingOptions implements IModelRequestOptions {
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public String convertToDTO() {
+        List<KlingOptionsDTO.MultiShotRequestDTO> msrDTOList = new ArrayList<>();
+        for (MultiShotRequest msr : this.multiShotRequestArray) {
+            msrDTOList.add(KlingOptionsDTO.MultiShotRequestDTO.builder().duration(msr.duration).prompt(msr.prompt).build());
+        }
+        try {
+            return mapper.writeValueAsString(KlingOptionsDTO.builder()
+                    .aspectRatio(this.aspectRatio)
+                    .prompt(this.prompt)
+                    .duration(this.duration)
+                    .multiShotRequestArray(msrDTOList)
+                    .mode(this.mode)
+                    .multiShots(this.multiShots)
+                    .withSound(this.withSound)
+                    .imageUrls(this.imageUrls)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

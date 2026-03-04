@@ -1,5 +1,7 @@
 package com.example.tgbot.models.configurations;
 
+import com.example.tgbot.models.configurations.dto.KlingOptionsDTO;
+import com.example.tgbot.models.configurations.dto.NanoBananaOptionsDTO;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,9 +61,11 @@ public class NanoBananaOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
+                <pre>
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Формат: {1}
+                </pre>
                 """;
 
         return MessageFormat.format(text,
@@ -91,6 +95,20 @@ public class NanoBananaOptions implements IModelRequestOptions {
                     }
                 }
             }
+        }
+    }
+
+    public String convertToDTO() {
+        try {
+            return mapper.writeValueAsString(NanoBananaOptionsDTO.builder()
+                    .aspectRatio(this.aspectRatio)
+                    .prompt(this.prompt)
+                    .imageInput(this.imageInput)
+                    .outputFormat(this.outputFormat)
+                    .resolution(this.resolution)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

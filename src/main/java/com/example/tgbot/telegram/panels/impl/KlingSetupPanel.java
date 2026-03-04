@@ -43,10 +43,11 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
     private String getText(UserSession session) {
         IModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
         return """
-                ✍ Отправить текстовое описание сцены или
-                🖼 Отправить изображение + описание анимации
-                Если отправите только текст — видео будет создано с нуля.
-                Если добавите изображение — оно станет основой сцены.
+                ✍️ Отправить текстовое описание сцены или
+
+                🖼 Отправить изображение +
+                описание анимации
+
                 💡 Чем подробнее описание — тем лучше результат.
                 ______________________________________
                 %s

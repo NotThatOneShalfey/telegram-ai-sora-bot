@@ -1,8 +1,12 @@
 package com.example.tgbot.telegram;
 
 import com.example.tgbot.db.User;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
+import com.example.tgbot.models.configurations.dto.InterfaceDTORequest;
+import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.handlers.CallbackHandler;
+import com.example.tgbot.telegram.handlers.InterfaceCallHandler;
 import com.example.tgbot.telegram.handlers.InvoiceHandler;
 import com.example.tgbot.telegram.handlers.MessageHandler;
 import com.example.tgbot.telegram.panels.IChatPanel;
@@ -34,6 +38,7 @@ public class TgBot extends TelegramWebhookBot {
     private final MessageHandler messageHandler;
     private final InvoiceHandler invoiceHandler;
     private final UserService userService;
+    private final InterfaceCallHandler interfaceCallHandler;
 
     @Getter
     @Value("${telegram.bot.payment-token:}")
@@ -48,6 +53,7 @@ public class TgBot extends TelegramWebhookBot {
                  CallbackHandler callbackHandler,
                  MessageHandler messageHandler,
                  InvoiceHandler invoiceHandler,
+                 InterfaceCallHandler interfaceCallHandler,
                  UserService userService,
                  @Qualifier("botExecutor") Executor taskExecutor) {
         super(botToken);
@@ -56,6 +62,7 @@ public class TgBot extends TelegramWebhookBot {
         this.invoiceHandler = invoiceHandler;
         this.taskExecutor = taskExecutor;
         this.userService = userService;
+        this.interfaceCallHandler = interfaceCallHandler;
     }
 
     @Override
@@ -68,6 +75,16 @@ public class TgBot extends TelegramWebhookBot {
             }
         });
         return null;
+    }
+
+    public void onWebInterfaceRequest(InterfaceDTORequest request) {
+        taskExecutor.execute(() -> {
+            try {
+                processWebInterfaceReq(request);
+            } catch (Exception e) {
+                log.error("Unhandled exception while processing update", e);
+            }
+        });
     }
 
     @Override
@@ -119,5 +136,20 @@ public class TgBot extends TelegramWebhookBot {
         } catch (Exception e) {
             log.error("Error processing update", e);
         }
+    }
+
+    public String processExampleRequest(String userName, GenerationModel model) {
+        log.trace("Call processExampleRequest with UserName={}", userName);
+        User user = userService.findUserByUserName(userName);
+        UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
+        IModelRequestOptions requestOptions = userSession.getCurrentRequestOptionsByModel(model);
+        return requestOptions.convertToDTO();
+    }
+
+    private void processWebInterfaceReq(InterfaceDTORequest request) {
+        log.trace("Call processWebInterfaceReq with request={}", request);
+        User user = userService.findUserByUserName(request.getUserName());
+        UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
+        interfaceCallHandler.handleRequest(userSession, request.getOptionsBody(), request.getModel());
     }
 }

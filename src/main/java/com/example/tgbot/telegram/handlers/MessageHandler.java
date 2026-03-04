@@ -15,6 +15,7 @@ import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,28 +33,16 @@ import static com.example.tgbot.telegram.panels.PanelType.MAIN_MENU;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class MessageHandler {
     private final ObjectProvider<FileExecutor> fileExecutorProvider;
     private final ObjectProvider<RegistryService> registryServiceProvider;
     private final UserService userService;
-    private final Map<GenerationModel, IRequestAdapter> adapters = new ConcurrentHashMap<>();
     private final RateLimiterService rateLimiterService;
     private final ObjectMapper mapper = new JsonMapper();
 
     @Value("${telegram.bot.token}")
     private String botToken;
-
-    public MessageHandler(UserService userService,
-                          Collection<IRequestAdapter> adaptersCollection,
-                          ObjectProvider<FileExecutor> fileExecutorProvider,
-                          ObjectProvider<RegistryService> registryServiceProvider,
-                          RateLimiterService rateLimiterService) {
-        this.userService = userService;
-        this.fileExecutorProvider = fileExecutorProvider;
-        this.registryServiceProvider = registryServiceProvider;
-        this.rateLimiterService = rateLimiterService;
-        adaptersCollection.forEach(a -> adapters.put(a.getModel(), a));
-    }
 
 
     public void handleMessage(Message message, UserSession session) {
@@ -132,7 +121,7 @@ public class MessageHandler {
                 log.error("Couldn't process prompt. Error -> {}", e.getMessage());
             }
         // Отдаем на исполнение
-        adapters.get(model).makeRequest(session);
+        registryServiceProvider.getObject().getAdapter(model).makeRequest(session);
         }
     }
 

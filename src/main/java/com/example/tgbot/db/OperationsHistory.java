@@ -1,6 +1,5 @@
 package com.example.tgbot.db;
 
-
 import com.example.tgbot.data.HistoryOperationType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

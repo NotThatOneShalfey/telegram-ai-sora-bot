@@ -20,10 +20,10 @@ import java.util.List;
 import static com.example.tgbot.telegram.buttons.ButtonType.*;
 
 @Component
-public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChatPanel {
+public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public NanoBananaSetup(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
+    public NanoBananaSetupPanel(ObjectProvider<RegistryService> registryServiceProvider, TgBot tgBot) {
         super(registryServiceProvider, tgBot);
     }
 
@@ -47,15 +47,11 @@ public class NanoBananaSetup extends AbstractSimpleMessagePanel implements IChat
         IModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
         String text = """
                 🖼 Nano Banana Pro — генерация изображений
-                                
+                
                 Отправь:
-                                
                 ✍️ Текстовый промпт — и я создам изображение с нуля
                 или
-                🖼 Промпт + картинку — чтобы изменить или доработать загруженное изображение
-                                
-                Просто отправь описание одним сообщением.
-                Если хочешь изменить конкретную картинку — прикрепи её вместе с текстом.
+                🖼 Промпт + картинку — чтобы изменить или доработать загруженное изображение (до 8 изображений)
                 ______________________________________
                 %s
                 _____________________________________

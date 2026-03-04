@@ -1,5 +1,6 @@
 package com.example.tgbot.models.configurations;
 
+import com.example.tgbot.models.configurations.dto.SoraOptionsDTO;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.telegram.buttons.enums.AspectRatioEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -56,11 +57,13 @@ public class SoraOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
+                <pre>
                 ПАРАМЕТРЫ
                 Модель: {0}
                 Формат: {1}
                 Длительность: {2}
                 Режим: {3}
+                </pre>
                 """;
 
         return MessageFormat.format(text,
@@ -97,6 +100,19 @@ public class SoraOptions implements IModelRequestOptions {
                     }
                 }
             }
+        }
+    }
+
+    public String convertToDTO() {
+        try {
+            return mapper.writeValueAsString(SoraOptionsDTO.builder()
+                    .aspectRatio(this.aspectRatio)
+                    .prompt(this.prompt)
+                    .nFrames(this.nFrames)
+                    .imageUrls(this.imageUrls)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }
