@@ -13,6 +13,10 @@ spring:
         format_sql: true
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 telegram:
   bot:
@@ -29,6 +33,13 @@ kieai:
 
 common:
   dev-build: ${COMMON_DEV_BUILD}
+
+# Photo upload API for frontend (React Mini App)
+app:
+  base-url: ${APP_BASE_URL:}
+  uploads:
+    directory: ${APP_UPLOADS_DIRECTORY:uploads/photos}
+    path-prefix: /uploads/photos
 
 logging:
   level:
