@@ -1,5 +1,7 @@
 package com.example.tgbot.telegram.handlers;
 
+import com.example.tgbot.data.ErrorCode;
+import com.example.tgbot.data.Operation;
 import com.example.tgbot.registry.AdapterRegistry;
 import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.db.User;
@@ -11,6 +13,7 @@ import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.executors.FileExecutor;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.util.ErrorMessageHelper;
 import com.example.tgbot.telegram.collector.TelegramMediaBatchCollector;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -109,7 +112,7 @@ public class MessageHandler {
         }
         // Apply per-user rate limiting
         if (!rateLimiterService.tryConsume(message.getChatId())) {
-            session.setContextualMessage("Превышен лимит запросов. Пожалуйста, подождите и попробуйте позже.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E009));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -119,8 +122,7 @@ public class MessageHandler {
             // Финальная проверка на то, хватает ли денег на генерацию
             int price = session.getCurrentRequestOptionsByModel(model).getPrice();
             if (!userService.checkBalanceBeforeGeneration(session, price)) {
-                session.setContextualMessage("⚠ У вас закончились монеты для создания видео.\n" +
-                        "\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E");
+                session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E004));
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
                 return;
             }
@@ -133,9 +135,11 @@ public class MessageHandler {
                 }
             } catch (JsonProcessingException e) {
                 log.error("Couldn't process prompt. Error -> {}", e.getMessage());
+                session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E005));
+                panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+                return;
             }
-        // Отдаем на исполнение
-        adapterRegistry.getAdapter(model).makeRequest(session);
+            adapterRegistry.getAdapter(model).makeRequest(session);
         }
     }
 
@@ -194,7 +198,7 @@ public class MessageHandler {
         }
 
         if (!rateLimiterService.tryConsume(session.getUser().getTelegramId())) {
-            session.setContextualMessage("Превышен лимит запросов. Пожалуйста, подождите и попробуйте позже.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E009));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -206,7 +210,7 @@ public class MessageHandler {
             return;
         }
         if (!userService.checkBalanceBeforeGeneration(session, session.getCurrentRequestOptionsByModel(model).getPrice())) {
-            session.setContextualMessage("⚠ У вас закончились монеты для создания видео.\n\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E004));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -216,6 +220,8 @@ public class MessageHandler {
             adapterRegistry.getAdapter(model).makeRequest(session);
         } catch (JsonProcessingException e) {
             log.error("Couldn't process media batch. Error -> {}", e.getMessage());
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E005));
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
         }
     }
 

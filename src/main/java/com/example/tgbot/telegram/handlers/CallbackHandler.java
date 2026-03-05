@@ -1,9 +1,13 @@
 package com.example.tgbot.telegram.handlers;
 
+import com.example.tgbot.data.ErrorCode;
+import com.example.tgbot.data.Operation;
 import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.registry.SessionRegistry;
+import com.example.tgbot.registry.TaskErrorRegistry;
 import com.example.tgbot.registry.TaskResultRegistry;
+import com.example.tgbot.util.ErrorMessageHelper;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.models.data.RecordInfoResponse;
@@ -34,16 +38,18 @@ public class CallbackHandler {
     private final PanelRegistry panelRegistry;
     private final SessionRegistry sessionRegistry;
     private final TaskResultRegistry taskResultRegistry;
+    private final TaskErrorRegistry taskErrorRegistry;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserService userService;
 
     public CallbackHandler(@Lazy ButtonRegistry buttonRegistry, @Lazy PanelRegistry panelRegistry,
                            @Lazy SessionRegistry sessionRegistry, @Lazy TaskResultRegistry taskResultRegistry,
-                           UserService userService) {
+                           TaskErrorRegistry taskErrorRegistry, UserService userService) {
         this.buttonRegistry = buttonRegistry;
         this.panelRegistry = panelRegistry;
         this.sessionRegistry = sessionRegistry;
         this.taskResultRegistry = taskResultRegistry;
+        this.taskErrorRegistry = taskErrorRegistry;
         this.userService = userService;
     }
 
@@ -114,15 +120,40 @@ public class CallbackHandler {
             panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
         } catch (IllegalStateException e) {
             log.error(e.getMessage());
+            try {
+                UserSession session = sessionRegistry.getWaitingSession(taskId);
+                if (session != null) {
+                    IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
+                    userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+                    Long userId = session.getUser().getTelegramId();
+                    if (userId != null) taskErrorRegistry.put(taskId, userId, ErrorCode.E007);
+                    session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(requestOptions.getModel()), ErrorCode.E007));
+                    sessionRegistry.removeWaitingSession(taskId);
+                    panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+                }
+            } catch (Exception ex) {
+                log.error("Error handling parse failure", ex);
+            }
         }
     }
 
     private void processFailedResponse(String taskId) {
         UserSession session = sessionRegistry.getWaitingSession(taskId);
-        if (session != null) session.touch();
+        if (session == null) {
+            log.error("No session for failed taskId={}", taskId);
+            return;
+        }
+        session.touch();
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
         userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
-        session.setContextualMessage("Не удалось обработать запрос. На ваш счет вернулись монеты. Просим обратиться в поддержку.");
+
+        Operation operation = Operation.fromModel(requestOptions.getModel());
+        ErrorCode errorCode = ErrorCode.E011;
+        Long userId = session.getUser().getTelegramId();
+        if (userId != null) {
+            taskErrorRegistry.put(taskId, userId, errorCode);
+        }
+        session.setContextualMessage(ErrorMessageHelper.forTelegram(operation, errorCode));
         panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
     }
 

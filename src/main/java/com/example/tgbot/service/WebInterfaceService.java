@@ -2,6 +2,7 @@ package com.example.tgbot.service;
 
 import com.example.tgbot.models.configurations.dto.*;
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.registry.TaskErrorRegistry;
 import com.example.tgbot.registry.TaskResultRegistry;
 import com.example.tgbot.telegram.TgBot;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,6 +23,7 @@ import java.util.Optional;
 public class WebInterfaceService {
     private final TgBot tgBot;
     private final TaskResultRegistry taskResultRegistry;
+    private final TaskErrorRegistry taskErrorRegistry;
     private final ObjectMapper objectMapper;
 
     public void submitGenerationRequest(InterfaceDTORequest request) {
@@ -36,27 +38,28 @@ public class WebInterfaceService {
     }
 
     /**
-     * Возвращает результат выполненной задачи по userId (User.telegramId) и taskId.
-     * Результат содержит опции модели и результирующие ссылки.
-     * Результат извлекается из реестра и удаляется после чтения.
+     * Возвращает результат выполненной задачи по userId и taskId.
+     * При успехе — WebGenerateResponse. При ошибке задачи — ErrorResponseDTO.
+     * При отсутствии — Optional.empty().
      */
-    public Optional<WebGenerateResponse<?>> getTaskResult(Long userId, String taskId) {
+    public Optional<Object> getTaskResult(Long userId, String taskId) {
         TaskResultRegistry.TaskResultRecord record = taskResultRegistry.get(taskId);
-        if (record == null) {
-            return Optional.empty();
+        if (record != null && record.getUserId().equals(userId)) {
+            try {
+                Object options = parseOptions(record.getModel(), record.getOptionsJson());
+                WebGenerateResponse<Object> response = new WebGenerateResponse<>(record.getLinks(), options);
+                taskResultRegistry.remove(taskId);
+                return Optional.of(response);
+            } catch (JsonProcessingException e) {
+                log.warn("Failed to parse options for taskId={}, model={}", taskId, record.getModel(), e);
+            }
         }
-        if (!record.getUserId().equals(userId)) {
-            return Optional.empty();
+        TaskErrorRegistry.TaskErrorRecord errorRecord = taskErrorRegistry.get(taskId);
+        if (errorRecord != null && errorRecord.getUserId().equals(userId)) {
+            taskErrorRegistry.remove(taskId);
+            return Optional.of(ErrorResponseDTO.from(errorRecord.getErrorCode()));
         }
-        try {
-            Object options = parseOptions(record.getModel(), record.getOptionsJson());
-            WebGenerateResponse<Object> response = new WebGenerateResponse<>(record.getLinks(), options);
-            taskResultRegistry.remove(taskId);
-            return Optional.of(response);
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to parse options for taskId={}, model={}", taskId, record.getModel(), e);
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 
     private Object parseOptions(GenerationModel model, String optionsJson) throws JsonProcessingException {

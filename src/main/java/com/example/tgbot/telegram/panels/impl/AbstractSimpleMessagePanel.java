@@ -1,10 +1,13 @@
 package com.example.tgbot.telegram.panels.impl;
 
+import com.example.tgbot.data.ErrorCode;
+import com.example.tgbot.data.Operation;
 import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
 import com.example.tgbot.telegram.panels.PanelHelper;
+import com.example.tgbot.util.ErrorMessageHelper;
 import com.example.tgbot.telegram.sessions.UserSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -35,27 +38,19 @@ public abstract class AbstractSimpleMessagePanel {
 
     private void processSendMessageError(String chatId, Exception e) {
         log.error(e.getMessage());
-        String errorMessage = """
-                           \uD83D\uDEA7 Генерация временно недоступна \uD83D\uDEA7
-                Мы уже работаем над этим - попробуйте чуть позже или обратитесь в поддержку @CreativeLabAI
-                """;
-        try {
-            tgBot.execute(new SendMessage(chatId, errorMessage));
-        } catch (TelegramApiException ex) {
-            log.error("Во время обработки ошибка возникла ошибка!!!!! {}", e.getMessage());
-        }
+        sendErrorToChat(chatId, Operation.VIDEO_GENERATION, ErrorCode.E010);
     }
 
     private void processSendFileError(String chatId, Exception e) {
         log.error(e.getMessage());
-        String errorMessage = """
-                           \uD83D\uDEA7 Простите, нам не удалось отправить файл. \uD83D\uDEA7
-                                    Пожалуйста, обратитесь в поддержку @CreativeLabAI
-                """;
+        sendErrorToChat(chatId, Operation.VIDEO_GENERATION, ErrorCode.E010);
+    }
+
+    private void sendErrorToChat(String chatId, Operation operation, ErrorCode errorCode) {
         try {
-            tgBot.execute(new SendMessage(chatId, errorMessage));
+            tgBot.execute(new SendMessage(chatId, ErrorMessageHelper.forTelegram(operation, errorCode)));
         } catch (TelegramApiException ex) {
-            log.error("Во время обработки ошибка возникла ошибка!!!!! {}", e.getMessage());
+            log.error("Failed to send error message to chat {}", chatId, ex);
         }
     }
 

@@ -93,14 +93,14 @@ public class WebInterfaceController {
     }
 
     /**
-     * Получение результата задачи по userId (User.telegramId) и taskId.
-     * Возвращает WebGenerateResponse с опциями модели и результирующими ссылками.
+     * Получение результата задачи по userId и taskId (polling).
+     * При успехе — WebGenerateResponse. При ошибке задачи — ErrorResponseDTO (code, description).
      */
     @GetMapping("/result")
     public ResponseEntity<?> getTaskResult(
             @RequestParam Long userId,
             @RequestParam String taskId) {
-        Optional<WebGenerateResponse<?>> result = webInterfaceService.getTaskResult(userId, taskId);
+        Optional<Object> result = webInterfaceService.getTaskResult(userId, taskId);
         return result
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
