@@ -49,9 +49,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
                 описание анимации
 
                 💡 Чем подробнее описание — тем лучше результат.
-                ______________________________________
                 %s
-                _____________________________________
                 💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
