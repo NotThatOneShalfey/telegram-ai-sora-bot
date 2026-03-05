@@ -1,9 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: changelog-009-alter-table-users-set-default-value-ambassador
-      author: Konstantin
-      changes:
-        - addDefaultValue:
-            tableName: users
-            columnName: is_ambassador
-            defaultValueBoolean: false
