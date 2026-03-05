@@ -75,8 +75,8 @@ public class AmbassadorStatsService {
         int day = today.getDayOfMonth();
         String month = today.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, new Locale("ru"));
         if (day < 15) {
-            return "%s: с 1 по %d".formatted(month.toUpperCase(), day);
+            return "%s: с начала месяца по 15 число".formatted(month.toUpperCase());
         }
-        return "%s: с 15 по %d".formatted(month.toUpperCase(), day);
+        return "%s: с 15го числа по конец месяца".formatted(month.toUpperCase());
     }
 }
