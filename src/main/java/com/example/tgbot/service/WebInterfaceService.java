@@ -1,8 +1,6 @@
 package com.example.tgbot.service;
 
-import com.example.tgbot.models.configurations.dto.InterfaceDTORequest;
-import com.example.tgbot.models.configurations.dto.WebGenerateResponse;
-import com.example.tgbot.models.configurations.dto.WebSubmitResult;
+import com.example.tgbot.models.configurations.dto.*;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.registry.TaskResultRegistry;
 import com.example.tgbot.telegram.TgBot;

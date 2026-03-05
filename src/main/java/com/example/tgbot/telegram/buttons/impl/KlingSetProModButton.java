@@ -41,7 +41,7 @@ public class KlingSetProModButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session, String[] parameters) {
-        boolean currentProMode = parameters.length >= 1 ? Boolean.parseBoolean(parameters[0]) : false;
+        boolean currentProMode = parameters.length >= 1 && Boolean.parseBoolean(parameters[0]);
         boolean newProMode = !currentProMode; // toggle
         session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange(newProMode));
         panelRegistry.getChatPanel(PanelType.KLING_SETUP).execute(session);
