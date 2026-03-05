@@ -57,7 +57,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
     }
 
     private InlineKeyboardMarkup getKeyboard(UserSession session) {
-        com.example.tgbot.models.configurations.KlingOptions options = (com.example.tgbot.models.configurations.KlingOptions) session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
+        KlingOptions options = (KlingOptions) session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
         boolean proMode = "pro".equalsIgnoreCase(options.getMode());
         boolean withSound = options.isWithSound();
         boolean multiShots = options.isMultiShots();

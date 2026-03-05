@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -31,22 +32,11 @@ public class KlingSetProModButton implements IButton {
 
     @Override
     public InlineKeyboardButton getKeyboardButton(Object... parameters) {
-        boolean proMode = parseProMode(parameters);
+        boolean currentProMode = parameters.length >= 1 && Boolean.parseBoolean(String.valueOf(parameters[0]));
         InlineKeyboardButton button = new InlineKeyboardButton();
-        button.setText(proMode ? "Перейти на Стандартный режим" : "Перейти на Pro режим");
-        button.setCallbackData(getLabel().toString() + "::" + proMode);
+        button.setText(currentProMode ? "Перейти на Стандартный режим" : "Перейти на Pro режим");
+        button.setCallbackData(getLabel().toString() + "::" + currentProMode);
         return button;
-    }
-
-    /** Toggle: when building from panel we pass current value; when callback we invert. */
-    private static boolean parseProMode(Object... parameters) {
-        for (Object o : parameters) {
-            if (o instanceof Boolean b) return !b;
-            try {
-                if (o != null) return !Boolean.parseBoolean(o.toString());
-            } catch (IllegalArgumentException ignored) {}
-        }
-        return false;
     }
 
     @Override
