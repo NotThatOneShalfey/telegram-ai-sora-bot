@@ -37,7 +37,7 @@ public class AmbassadorStatsPanel extends AbstractSimpleMessagePanel implements 
         String text = """
                 📊 Статистика амбассадора
                 
-                Период: %s
+                Период %s
                 
                 💰 Общие затраты на генерацию абонентов по вашим реферальным ссылкам: %d монет
                 """.formatted(period, total);
