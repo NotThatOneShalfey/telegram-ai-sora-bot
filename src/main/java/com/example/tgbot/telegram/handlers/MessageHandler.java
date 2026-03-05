@@ -11,6 +11,7 @@ import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.executors.FileExecutor;
 import com.example.tgbot.telegram.panels.IChatPanel;
 import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.collector.TelegramMediaBatchCollector;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,15 +40,18 @@ public class MessageHandler {
     private final AdapterRegistry adapterRegistry;
     private final UserService userService;
     private final RateLimiterService rateLimiterService;
+    private final TelegramMediaBatchCollector mediaBatchCollector;
     private final ObjectMapper mapper = new JsonMapper();
 
     public MessageHandler(ObjectProvider<FileExecutor> fileExecutorProvider, @Lazy PanelRegistry panelRegistry,
-                          @Lazy AdapterRegistry adapterRegistry, UserService userService, RateLimiterService rateLimiterService) {
+                          @Lazy AdapterRegistry adapterRegistry, UserService userService, RateLimiterService rateLimiterService,
+                          TelegramMediaBatchCollector mediaBatchCollector) {
         this.fileExecutorProvider = fileExecutorProvider;
         this.panelRegistry = panelRegistry;
         this.adapterRegistry = adapterRegistry;
         this.userService = userService;
         this.rateLimiterService = rateLimiterService;
+        this.mediaBatchCollector = mediaBatchCollector;
     }
 
     @Value("${telegram.bot.token}")
@@ -84,7 +88,11 @@ public class MessageHandler {
     }
 
     private void handlePrompt(Message message, UserSession session) {
-        boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
+        boolean hasImage = (message.hasDocument() && message.getDocument().getMimeType() != null && message.getDocument().getMimeType().contains("image")) || message.hasPhoto();
+        // Если сообщение с media_group_id (альбом) — буферизуем и обработаем батчем
+        if (hasImage && mediaBatchCollector.offer(message, session)) {
+            return;
+        }
         String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
         log.trace("Call -> handlePrompt -> hasImage={}, text={}, session={}", hasImage, text, session);
         if (text == null) {
@@ -148,29 +156,77 @@ public class MessageHandler {
         }
         List<String> fileIds = new ArrayList<>();
         if (message.hasPhoto()) {
-            fileIds = getBestPhotos(message.getPhoto())
-                    .stream()
-                    .map(PhotoSize::getFileId)
-                    .toList();
+            fileIds = getBestPhotos(message.getPhoto()).stream().map(PhotoSize::getFileId).toList();
         } else if (message.hasDocument()) {
             fileIds.add(message.getDocument().getFileId());
         }
-
         if (fileIds.isEmpty()) {
             session.setContextualMessage("Не удалось получить файл изображения.");
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
+        handlePromptWithFileIds(prompt, fileIds, session, model);
+    }
 
+//    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos, int photoCount) {
+//        if (photos.size() < photoCount) return photos;
+//        return photos.subList(photos.size() - photoCount, photos.size());
+//    }
+
+    /**
+     * Обрабатывает батч из альбома: prompt и fileIds уже извлечены коллектором.
+     */
+    public void handleMediaGroupBatch(String prompt, List<String> fileIds, UserSession session) {
+        if (prompt == null || prompt.isBlank()) {
+            session.setContextualMessage("Не удалось получить текст вместе с изображениями. Пожалуйста, отправьте альбом с подписью.");
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        if (prompt.length() > 4999) {
+            session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\nПопробуйте сократить текст до 5000 символов.");
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        if (fileIds == null || fileIds.isEmpty()) {
+            session.setContextualMessage("Не удалось получить файлы изображений.");
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+
+        if (!rateLimiterService.tryConsume(session.getUser().getTelegramId())) {
+            session.setContextualMessage("Превышен лимит запросов. Пожалуйста, подождите и попробуйте позже.");
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+
+        GenerationModel model = session.getChatContext().getModel();
+        if (model == null) {
+            session.setContextualMessage("Простите, не понял вашего сообщения.");
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+        if (!userService.checkBalanceBeforeGeneration(session, session.getCurrentRequestOptionsByModel(model).getPrice())) {
+            session.setContextualMessage("⚠ У вас закончились монеты для создания видео.\n\uD83D\uDC8EПожалуйста пополните баланс\uD83D\uDC8E");
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            return;
+        }
+
+        try {
+            handlePromptWithFileIds(prompt, fileIds, session, model);
+            adapterRegistry.getAdapter(model).makeRequest(session);
+        } catch (JsonProcessingException e) {
+            log.error("Couldn't process media batch. Error -> {}", e.getMessage());
+        }
+    }
+
+    private void handlePromptWithFileIds(String prompt, List<String> fileIds, UserSession session, GenerationModel model) throws JsonProcessingException {
         List<String> imageUrls = new ArrayList<>();
-        for (String s : fileIds) {
+        for (String fileId : fileIds) {
             GetFile getFileRequest = new GetFile();
-            getFileRequest.setFileId(s);
+            getFileRequest.setFileId(fileId);
             File file = fileExecutorProvider.getObject().executeFile(getFileRequest);
             imageUrls.add("https://api.telegram.org/file/bot" + botToken + "/" + file.getFilePath());
         }
-
-
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);
         if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
@@ -183,11 +239,6 @@ public class MessageHandler {
         }
         session.getCurrentRequestOptionsByModel(model).setParametersFromJson(mapper.writeValueAsString(input));
     }
-
-//    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos, int photoCount) {
-//        if (photos.size() < photoCount) return photos;
-//        return photos.subList(photos.size() - photoCount, photos.size());
-//    }
 
     public List<PhotoSize> getBestPhotos(List<PhotoSize> photos) {
         Map<String, PhotoSize> groups = new LinkedHashMap<>();
