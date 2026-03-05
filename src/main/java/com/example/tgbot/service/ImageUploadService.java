@@ -10,9 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -123,6 +127,34 @@ public class ImageUploadService {
         } catch (IOException e) {
             log.warn("Failed to delete uploaded file {}: {}", fileId, e.getMessage());
         }
+    }
+
+    /**
+     * Удаляет загруженные файлы старше заданного количества дней.
+     * Использует время последней модификации файла (при сохранении оно равно времени создания).
+     */
+    public int deleteFilesOlderThanDays(int days) {
+        if (days <= 0) return 0;
+        Instant cutoff = Instant.now().minus(Duration.ofDays(days));
+        int deleted = 0;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(uploadPath)) {
+            for (Path entry : stream) {
+                if (!Files.isRegularFile(entry)) continue;
+                BasicFileAttributes attrs = Files.readAttributes(entry, BasicFileAttributes.class);
+                Instant fileTime = attrs.lastModifiedTime().toInstant();
+                if (fileTime.isBefore(cutoff)) {
+                    Files.delete(entry);
+                    deleted++;
+                    log.trace("Deleted old uploaded file: {}", entry.getFileName());
+                }
+            }
+            if (deleted > 0) {
+                log.info("Deleted {} old uploaded files (older than {} days)", deleted, days);
+            }
+        } catch (IOException e) {
+            log.warn("Failed to clean old uploaded files: {}", e.getMessage());
+        }
+        return deleted;
     }
 
     private void validateFile(MultipartFile file) {

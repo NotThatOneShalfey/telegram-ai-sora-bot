@@ -85,6 +85,7 @@ public class CallbackHandler {
         try {
             // Получаем сессию из ожидающих ответа
             UserSession session = sessionRegistry.getWaitingSession(taskId);
+            if (session != null) session.touch();
             // Получаем с какими опциями мы делали
             IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
             // Сохраняем результат для web-интерфейса (запрос по userId + taskId)
@@ -118,6 +119,7 @@ public class CallbackHandler {
 
     private void processFailedResponse(String taskId) {
         UserSession session = sessionRegistry.getWaitingSession(taskId);
+        if (session != null) session.touch();
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
         userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
         session.setContextualMessage("Не удалось обработать запрос. На ваш счет вернулись монеты. Просим обратиться в поддержку.");

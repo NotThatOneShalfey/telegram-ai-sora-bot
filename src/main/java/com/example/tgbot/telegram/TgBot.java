@@ -25,7 +25,8 @@ import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -125,6 +126,7 @@ public class TgBot extends TelegramWebhookBot {
                     return;
                 }
                 UserSession userSession = sessions.computeIfAbsent(update.getCallbackQuery().getMessage().getChatId().toString(), k -> new UserSession(user));
+                userSession.touch();
                 callbackHandler.handleCallback(update.getCallbackQuery(), userSession);
                 return;
             }
@@ -143,6 +145,7 @@ public class TgBot extends TelegramWebhookBot {
                     return;
                 }
                 UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
+                userSession.touch();
                 messageHandler.handleMessage(update.getMessage(), userSession);
             }
         } catch (Exception e) {
@@ -154,14 +157,34 @@ public class TgBot extends TelegramWebhookBot {
         log.trace("Call processExampleRequest with UserName={}", userName);
         User user = userService.findUserByUserName(userName);
         UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
+        userSession.touch();
         IModelRequestOptions requestOptions = userSession.getCurrentRequestOptionsByModel(model);
         return requestOptions.convertToDTO();
+    }
+
+    /** Удаляет сессии, не активные более заданного времени. */
+    public int cleanSessionsOlderThan(LocalDateTime cutoff) {
+        int removed = 0;
+        Iterator<Map.Entry<String, UserSession>> it = sessions.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, UserSession> e = it.next();
+            LocalDateTime last = e.getValue().getLastActionDateTime();
+            if (last != null && last.isBefore(cutoff)) {
+                it.remove();
+                removed++;
+            }
+        }
+        if (removed > 0) {
+            log.info("Cleaned {} stale user sessions", removed);
+        }
+        return removed;
     }
 
     private Optional<WebSubmitResult> processWebInterfaceReq(InterfaceDTORequest request) {
         log.trace("Call processWebInterfaceReq with request={}", request);
         User user = userService.findOrCreateUser(request.getUserId());
         UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
+        userSession.touch();
         return interfaceCallHandler.handleRequest(userSession, request.getOptionsBody(), request.getModel());
     }
 }

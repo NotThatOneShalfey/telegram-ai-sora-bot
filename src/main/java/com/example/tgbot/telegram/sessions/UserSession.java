@@ -32,6 +32,7 @@ public class UserSession {
         this.user = user;
         this.chatId = user.getTelegramId().toString();
         this.chatContext = new ChatContext(ChatState.INITIAL);
+        this.lastActionDateTime = LocalDateTime.now();
 
         // Инициализация дефолтных пресетов опций
         createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
@@ -94,6 +95,11 @@ public class UserSession {
 
     public String getContextualMessage() {
         return chatContext.getContextualMessage();
+    }
+
+    /** Обновляет lastActionDateTime текущим временем. Вызывать при любой операции с сессией. */
+    public void touch() {
+        this.lastActionDateTime = LocalDateTime.now();
     }
 
 }
