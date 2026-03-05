@@ -3,6 +3,7 @@ package com.example.tgbot.controllers;
 import com.example.tgbot.models.configurations.dto.*;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.ImageUploadService;
+import com.example.tgbot.service.OperationsHistoryService;
 import com.example.tgbot.service.WebInterfaceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -29,6 +30,7 @@ import java.util.Optional;
 public class WebInterfaceController {
     private final WebInterfaceService webInterfaceService;
     private final ImageUploadService imageUploadService;
+    private final OperationsHistoryService operationsHistoryService;
     private final ObjectMapper mapper = new JsonMapper();
 
     @PostMapping("/kling")
@@ -102,6 +104,15 @@ public class WebInterfaceController {
         return result
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Получение истории операций пользователя по userId (User.telegramId).
+     * Список отсортирован по дате по убыванию.
+     */
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory(@RequestParam Long userId) {
+        return ResponseEntity.ok(operationsHistoryService.getHistory(userId));
     }
 
     private <T> ResponseEntity<?> processGenerate(String body, GenerationModel model, TypeReference<WebGenerateRequest<T>> typeRef) {

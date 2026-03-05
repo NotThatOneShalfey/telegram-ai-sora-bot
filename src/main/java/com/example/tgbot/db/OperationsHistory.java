@@ -35,6 +35,9 @@ public class OperationsHistory {
     @Column(name = "oh_gen_input")
     private String generationRequestInput;
 
+    @Column(name = "oh_result_urls")
+    private String resultUrls;
+
     @Column(name = "oh_balance_change")
     private Float balanceChange;
 

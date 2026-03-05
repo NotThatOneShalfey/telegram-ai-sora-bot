@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -135,7 +136,7 @@ public class UserService {
     }
 
     @Transactional
-    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload) {
+    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload, List<String> resultUrls) {
         User user = session.getUser();
         if (user.getDiscount() != 1f) {
             price = Math.round(price * user.getDiscount());
@@ -144,10 +145,14 @@ public class UserService {
             user.setBalanceHold(user.getBalanceHold() - price);
         }
         try {
+            String resultUrlsJson = resultUrls != null && !resultUrls.isEmpty()
+                    ? objectMapper.writeValueAsString(resultUrls)
+                    : null;
             historyRepository.save(OperationsHistory.builder()
                     .balanceChange((float) (price * -1))
                     .userId(user)
                     .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
+                    .resultUrls(resultUrlsJson)
                     .operationType(HistoryOperationType.GENERATION_REQUEST)
                     .build());
         } catch (JsonProcessingException e) {
