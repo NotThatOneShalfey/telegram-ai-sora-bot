@@ -1,0 +1,22 @@
+package com.example.tgbot.models.configurations.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.Map;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class HistoryItemDTO {
+    /** Опции запроса (параметры генерации). */
+    private Map<String, Object> options;
+    /** Изменение баланса (отрицательное при списании). */
+    private Float balanceChange;
+    /** Дата и время операции. */
+    private String date;
+    /** URL результатов после выполнения задания (пустой список, если не применимо). */
+    private List<String> resultUrls;
+}

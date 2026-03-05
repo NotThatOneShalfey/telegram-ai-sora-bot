@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-012-add-result-urls-to-operations-history
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_result_urls
+                  type: text
