@@ -109,9 +109,9 @@ public class WebInterfaceController {
             WebGenerateRequest<T> request = mapper.readValue(body, typeRef);
             String optionsBody = mapper.writeValueAsString(request.getOptions());
             InterfaceDTORequest dtoRequest = new InterfaceDTORequest(model, request.getUserId(), optionsBody);
-            Optional<String> taskId = webInterfaceService.submitAndGetTaskId(dtoRequest);
-            return taskId
-                    .map(id -> ResponseEntity.ok(new WebGenerateSubmittedResponse(id)))
+            Optional<WebSubmitResult> result = webInterfaceService.submitAndGetTaskId(dtoRequest);
+            return result
+                    .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.internalServerError().build());
         } catch (JsonProcessingException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

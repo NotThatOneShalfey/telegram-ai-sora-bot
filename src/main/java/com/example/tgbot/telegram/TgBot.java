@@ -3,6 +3,7 @@ package com.example.tgbot.telegram;
 import com.example.tgbot.db.User;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.configurations.dto.InterfaceDTORequest;
+import com.example.tgbot.models.configurations.dto.WebSubmitResult;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.handlers.CallbackHandler;
@@ -88,8 +89,8 @@ public class TgBot extends TelegramWebhookBot {
         });
     }
 
-    /** Синхронная обработка web-запроса, возвращает taskId при успешной постановке задачи. */
-    public Optional<String> processWebInterfaceRequestSync(InterfaceDTORequest request) {
+    /** Синхронная обработка web-запроса, возвращает taskId и баланс при успешной постановке задачи. */
+    public Optional<WebSubmitResult> processWebInterfaceRequestSync(InterfaceDTORequest request) {
         try {
             return processWebInterfaceReq(request);
         } catch (Exception e) {
@@ -157,7 +158,7 @@ public class TgBot extends TelegramWebhookBot {
         return requestOptions.convertToDTO();
     }
 
-    private Optional<String> processWebInterfaceReq(InterfaceDTORequest request) {
+    private Optional<WebSubmitResult> processWebInterfaceReq(InterfaceDTORequest request) {
         log.trace("Call processWebInterfaceReq with request={}", request);
         User user = userService.findOrCreateUser(request.getUserId());
         UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));

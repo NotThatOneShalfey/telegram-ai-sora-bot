@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WebGenerateSubmittedResponse {
+public class WebSubmitResult {
     private String taskId;
+    private int balance;
 }

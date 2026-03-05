@@ -1,6 +1,8 @@
 package com.example.tgbot.service;
 
-import com.example.tgbot.models.configurations.dto.*;
+import com.example.tgbot.models.configurations.dto.InterfaceDTORequest;
+import com.example.tgbot.models.configurations.dto.WebGenerateResponse;
+import com.example.tgbot.models.configurations.dto.WebSubmitResult;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.registry.TaskResultRegistry;
 import com.example.tgbot.telegram.TgBot;
@@ -29,8 +31,8 @@ public class WebInterfaceService {
         tgBot.onWebInterfaceRequest(request);
     }
 
-    /** Синхронно отправляет задачу и возвращает taskId при успехе. */
-    public Optional<String> submitAndGetTaskId(InterfaceDTORequest request) {
+    /** Синхронно отправляет задачу и возвращает taskId и баланс при успехе. */
+    public Optional<WebSubmitResult> submitAndGetTaskId(InterfaceDTORequest request) {
         log.trace("WebInterfaceService: submitting request for model={}, userId={}", request.getModel(), request.getUserId());
         return tgBot.processWebInterfaceRequestSync(request);
     }
