@@ -14,7 +14,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.tgbot.telegram.buttons.ButtonType.*;
+import static com.example.tgbot.telegram.buttons.ButtonType.AMBASSADOR_STATS_CALL;
+import static com.example.tgbot.telegram.buttons.ButtonType.GET_GIFT_CALL;
+import static com.example.tgbot.telegram.buttons.ButtonType.MAIN_CREATE_IMAGE_CALL;
+import static com.example.tgbot.telegram.buttons.ButtonType.MAIN_CREATE_MUSIC_CALL;
+import static com.example.tgbot.telegram.buttons.ButtonType.MAIN_CREATE_VIDEO_CALL;
+import static com.example.tgbot.telegram.buttons.ButtonType.RECHARGE_BALANCE_CALL;
 
 @Component
 public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPanel {
@@ -72,6 +77,9 @@ public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPa
         boolean addGift = us.getUser().getLinkUsed() == null && !us.getUser().isBonusReceived();
         if (addGift) {
             rows.add(List.of(super.getButton(GET_GIFT_CALL).getKeyboardButton()));
+        }
+        if (us.getUser().isAmbassador()) {
+            rows.add(List.of(super.getButton(AMBASSADOR_STATS_CALL).getKeyboardButton()));
         }
         rows.add(List.of(PanelHelper.getSupportButton(), super.getButton(RECHARGE_BALANCE_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
