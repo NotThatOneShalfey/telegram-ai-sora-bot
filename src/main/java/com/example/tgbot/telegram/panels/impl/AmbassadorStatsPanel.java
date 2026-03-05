@@ -29,7 +29,7 @@ public class AmbassadorStatsPanel extends AbstractSimpleMessagePanel implements 
     @Override
     public void execute(UserSession session) {
         if (!session.getUser().isAmbassador()) {
-            super.executeSendMessage(session, "У вас нет доступа к этой панели.", null, true);
+            super.executeSendMessage(session, "У вас нет доступа к этой панели.", null, false);
             return;
         }
         int total = ambassadorStatsService.getReferralGenerationTotal(session.getUser());
