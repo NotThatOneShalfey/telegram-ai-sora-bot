@@ -1,16 +1,14 @@
 package com.example.tgbot.service;
 
-
-import com.example.tgbot.data.GenerationType;
-import com.example.tgbot.data.HistoryOperationType;
-import com.example.tgbot.db.OperationsHistory;
-import com.example.tgbot.db.ReferralLinks;
-import com.example.tgbot.db.User;
-import com.example.tgbot.db.repositories.OperationsHistoryRepository;
-import com.example.tgbot.db.repositories.ReferralLinksRepository;
-import com.example.tgbot.models.enums.GenerationModel;
-import com.example.tgbot.db.repositories.UserRepository;
-import com.example.tgbot.telegram.sessions.UserSession;
+import com.example.tgbot.domain.enums.HistoryOperationType;
+import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.domain.model.OperationsHistory;
+import com.example.tgbot.domain.model.ReferralLinks;
+import com.example.tgbot.domain.model.User;
+import com.example.tgbot.repository.OperationsHistoryRepository;
+import com.example.tgbot.repository.ReferralLinksRepository;
+import com.example.tgbot.repository.UserRepository;
+import com.example.tgbot.telegram.session.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.example.tgbot.util;
 
-import com.example.tgbot.models.configurations.IModelRequestOptions;
+import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.service.ImageUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

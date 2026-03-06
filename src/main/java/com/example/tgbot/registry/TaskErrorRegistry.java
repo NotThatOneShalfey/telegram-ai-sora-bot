@@ -1,6 +1,6 @@
 package com.example.tgbot.registry;
 
-import com.example.tgbot.data.ErrorCode;
+import com.example.tgbot.domain.value.ErrorCode;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 

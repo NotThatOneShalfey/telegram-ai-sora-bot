@@ -1,7 +1,7 @@
 package com.example.tgbot.util;
 
-import com.example.tgbot.data.ErrorCode;
-import com.example.tgbot.data.Operation;
+import com.example.tgbot.domain.value.ErrorCode;
+import com.example.tgbot.domain.value.Operation;
 
 /**
  * Формирует пользовательские сообщения об ошибках.

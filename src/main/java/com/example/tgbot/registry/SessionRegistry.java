@@ -1,6 +1,6 @@
 package com.example.tgbot.registry;
 
-import com.example.tgbot.telegram.sessions.UserSession;
+import com.example.tgbot.telegram.session.UserSession;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

@@ -1,7 +1,7 @@
 package com.example.tgbot.service;
 
-import com.example.tgbot.db.User;
-import com.example.tgbot.db.repositories.UserRepository;
+import com.example.tgbot.domain.model.User;
+import com.example.tgbot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
 package com.example.tgbot.registry;
 
-import com.example.tgbot.telegram.buttons.ButtonType;
-import com.example.tgbot.telegram.buttons.IButton;
+import com.example.tgbot.telegram.button.ButtonType;
+import com.example.tgbot.telegram.button.IButton;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;

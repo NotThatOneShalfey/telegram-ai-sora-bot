@@ -1,6 +1,6 @@
 package com.example.tgbot.registry;
 
-import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.domain.enums.GenerationModel;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 

@@ -1,14 +1,14 @@
 package com.example.tgbot.service;
 
-import com.example.tgbot.data.PriceCoefficient;
-import com.example.tgbot.db.CurrencyRate;
-import com.example.tgbot.db.PriceRegistry;
-import com.example.tgbot.db.User;
-import com.example.tgbot.db.repositories.CurrencyRateRepository;
-import com.example.tgbot.db.repositories.PriceRegistryRepository;
-import com.example.tgbot.models.configurations.IModelRequestOptions;
-import com.example.tgbot.models.configurations.KlingOptions;
-import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.domain.model.CurrencyRate;
+import com.example.tgbot.domain.model.PriceRegistry;
+import com.example.tgbot.domain.model.User;
+import com.example.tgbot.domain.value.PriceCoefficient;
+import com.example.tgbot.integration.config.IModelRequestOptions;
+import com.example.tgbot.integration.config.KlingOptions;
+import com.example.tgbot.repository.CurrencyRateRepository;
+import com.example.tgbot.repository.PriceRegistryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

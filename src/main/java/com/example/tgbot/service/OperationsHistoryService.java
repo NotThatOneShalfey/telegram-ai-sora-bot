@@ -1,10 +1,10 @@
 package com.example.tgbot.service;
 
-import com.example.tgbot.data.GenerationType;
-import com.example.tgbot.db.OperationsHistory;
-import com.example.tgbot.db.repositories.OperationsHistoryRepository;
-import com.example.tgbot.models.configurations.dto.HistoryItemDTO;
-import com.example.tgbot.models.configurations.dto.HistoryResponseDTO;
+import com.example.tgbot.domain.enums.GenerationType;
+import com.example.tgbot.domain.model.OperationsHistory;
+import com.example.tgbot.dto.api.HistoryItemDTO;
+import com.example.tgbot.dto.api.HistoryResponseDTO;
+import com.example.tgbot.repository.OperationsHistoryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

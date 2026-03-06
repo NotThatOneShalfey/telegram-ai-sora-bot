@@ -1,10 +1,10 @@
 package com.example.tgbot.scheduler;
 
-import com.example.tgbot.data.HistoryOperationType;
-import com.example.tgbot.db.User;
-import com.example.tgbot.db.repositories.OperationsHistoryRepository;
-import com.example.tgbot.db.repositories.ReferralLinksRepository;
-import com.example.tgbot.db.repositories.UserRepository;
+import com.example.tgbot.domain.enums.HistoryOperationType;
+import com.example.tgbot.domain.model.User;
+import com.example.tgbot.repository.OperationsHistoryRepository;
+import com.example.tgbot.repository.ReferralLinksRepository;
+import com.example.tgbot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

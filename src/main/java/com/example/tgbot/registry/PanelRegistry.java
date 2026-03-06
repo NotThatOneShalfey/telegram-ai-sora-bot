@@ -1,7 +1,7 @@
 package com.example.tgbot.registry;
 
-import com.example.tgbot.telegram.panels.IChatPanel;
-import com.example.tgbot.telegram.panels.PanelType;
+import com.example.tgbot.telegram.panel.IChatPanel;
+import com.example.tgbot.telegram.panel.PanelType;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;

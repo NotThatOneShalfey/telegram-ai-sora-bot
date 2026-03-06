@@ -1,0 +1,75 @@
+package com.example.tgbot.telegram.panel.impl;
+
+import com.example.tgbot.integration.config.IModelRequestOptions;
+import com.example.tgbot.registry.ButtonRegistry;
+import org.springframework.context.annotation.Lazy;
+import com.example.tgbot.integration.config.NanoBananaOptions;
+import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.panel.IChatPanel;
+import com.example.tgbot.telegram.panel.PanelType;
+import com.example.tgbot.telegram.session.ChatState;
+import com.example.tgbot.telegram.session.UserSession;
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.tgbot.telegram.button.ButtonType.*;
+
+@Component
+public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
+
+
+    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
+
+    public NanoBananaSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot,
+                                com.example.tgbot.service.PriceRegistryService priceRegistryService) {
+        super(buttonRegistry, tgBot);
+        this.priceRegistryService = priceRegistryService;
+    }
+
+    @Override
+    public void execute(UserSession session) {
+        session.getChatContext().setModel(GenerationModel.NANO_BANANA_PRO);
+        session.createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
+        session.getChatContext().setState(ChatState.WAITING_FOR_TEXT);
+        super.executeSendMessage(session, getText(session), getKeyboard(), true);
+    }
+
+    @Override
+    public PanelType getLabel() {
+        return getStaticLabel();
+    }
+
+    public static PanelType getStaticLabel() {
+        return PanelType.NANO_BANANA_SETUP;
+    }
+    private String getText(UserSession session) {
+        IModelRequestOptions options = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
+        String text = """
+                🖼 Nano Banana Pro — генерация изображений
+                
+                Отправь:
+                ✍️ Текстовый промпт — и я создам изображение с нуля
+                или
+                🖼 Промпт + картинку — чтобы изменить или доработать загруженное изображение (до 8 изображений)
+                %s
+                💸 СТОИМОСТЬ: {price} монет 💸
+                                
+                🪙1 монета = 1 рубль 🪙
+                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(priceRegistryService.calculatePrice(GenerationModel.NANO_BANANA_PRO, options, session.getUser())));
+        return text;
+    }
+
+    private InlineKeyboardMarkup getKeyboard() {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        rows.add(List.of(super.getButton(NANO_BANANA_SELECT_SIZE).getKeyboardButton()));
+        rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
+        markup.setKeyboard(rows);
+        return markup;
+    }
+}

@@ -1,7 +1,7 @@
 package com.example.tgbot.telegram.collector;
 
-import com.example.tgbot.telegram.handlers.MessageHandler;
-import com.example.tgbot.telegram.sessions.UserSession;
+import com.example.tgbot.telegram.handler.MessageHandler;
+import com.example.tgbot.telegram.session.UserSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;

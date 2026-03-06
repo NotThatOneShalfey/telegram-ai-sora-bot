@@ -1,7 +1,7 @@
 package com.example.tgbot.service;
 
-import com.example.tgbot.models.configurations.dto.*;
-import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.dto.api.*;
 import com.example.tgbot.registry.TaskErrorRegistry;
 import com.example.tgbot.registry.TaskResultRegistry;
 import com.example.tgbot.telegram.TgBot;

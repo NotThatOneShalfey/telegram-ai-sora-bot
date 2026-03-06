@@ -1,7 +1,7 @@
 package com.example.tgbot.registry;
 
-import com.example.tgbot.models.adapters.IRequestAdapter;
-import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.integration.adapter.IRequestAdapter;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;

@@ -1,0 +1,88 @@
+package com.example.tgbot.integration.config;
+
+import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.dto.api.SunoOptionsDTO;
+import com.example.tgbot.telegram.button.enums.SunoMusicGenreEnum;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+@Builder
+@Setter
+@ToString
+public class SunoOptions implements IModelRequestOptions {
+    private final ObjectMapper mapper = new JsonMapper();
+    @Builder.Default
+    @Getter
+    private final GenerationModel model = GenerationModel.SUNO_V5;
+    @Builder.Default
+    private boolean customMode = false;
+    @Getter
+    private String prompt;
+    private boolean instrumental;
+    @Builder.Default
+    private Integer audioWeight = null;
+    private String genre;
+
+
+
+    @Override
+    public Map<String, Object> getRequestInput() {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "V5");
+        payload.put("customMode", customMode);
+
+        String resultingPrompt = "Жанр: " + genre + " Описание: " + prompt;
+        payload.put("prompt", resultingPrompt);
+        payload.put("instrumental", false);
+        payload.put("audioWeight", null);
+
+        return payload;
+    }
+
+    @Override
+    public String getOptionsText() {
+        String text = """
+                <pre>
+                Модель: {0}
+                Жанр: {1}
+                </pre>
+                """;
+
+        return MessageFormat.format(text,
+                model.getLocalizedModelName(),
+                SunoMusicGenreEnum.getButtonTextByValue(genre)
+        );
+    }
+
+    @Override
+    public void setParametersFromJson(String json) {
+        try {
+            mapper.updateValue(this, mapper.readTree(json));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String convertToDTO() {
+        try {
+            return mapper.writeValueAsString(SunoOptionsDTO.builder()
+                    .audioWeight(this.audioWeight)
+                    .customMode(this.customMode)
+                    .genre(this.genre)
+                    .instrumental(this.instrumental)
+                    .prompt(this.prompt)
+                    .build());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
