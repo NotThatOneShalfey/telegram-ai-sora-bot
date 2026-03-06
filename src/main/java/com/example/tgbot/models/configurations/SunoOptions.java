@@ -56,7 +56,6 @@ public class SunoOptions implements IModelRequestOptions {
     @Override
     public String getOptionsText() {
         String text = """
-                ПАРАМЕТРЫ
                 <pre>
                 Модель: {0}
                 Жанр: {1}

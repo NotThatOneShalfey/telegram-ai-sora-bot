@@ -48,14 +48,14 @@ public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatP
         String text = """
                 Отлично, с жанром определились!
                 Напиши пару предложений о том, про кого или про что будет песня. Чем больше подробностей, тем круче получится!
-                                
-                Жанр: {genre}
+                
+                {parameters}
                                 
                 💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
                 Отправь мне сообщение и я сгенерирую песню 👇
-                """.replaceAll("\\{genre}", options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
+                """.replaceAll("\\{parameters}", options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
         return text;
     }
 
