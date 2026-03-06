@@ -30,6 +30,7 @@ public class SunoInfoResponse {
     @lombok.Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DataBlock {
+        @JsonProperty("audio_url")
         private String audioUrl;
         private double duration;
         private String id;
