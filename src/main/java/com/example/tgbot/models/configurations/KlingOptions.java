@@ -31,6 +31,7 @@ public class KlingOptions implements IModelRequestOptions {
     @Builder.Default
     private String aspectRatio = "9:16";
     @Builder.Default
+    @Getter
     private int duration = 10;
     @Getter
     @Builder.Default
@@ -42,25 +43,6 @@ public class KlingOptions implements IModelRequestOptions {
     private List<String> imageUrls = new ArrayList<>();
     @Getter
     private String prompt;
-
-    @Override
-    public int getPrice() {
-        double resultingPrice = 7.66;
-        if (mode.equalsIgnoreCase("pro")) {
-            if (withSound) {
-                resultingPrice = 15.33;
-            } else {
-                resultingPrice = 9.96;
-            }
-        } else if (mode.equalsIgnoreCase("std")) {
-            if (withSound) {
-                resultingPrice = 11.49;
-            } else {
-                resultingPrice = 7.66;
-            }
-        }
-        return Math.round((float) (resultingPrice * duration * 1.5F));
-    }
 
     @Override
     public Map<String, Object> getRequestInput() {

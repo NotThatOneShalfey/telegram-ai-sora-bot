@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-015-create-price-registry
+      author: Konstantin
+      changes:
+        - createTable:
+            tableName: price_registry
+            columns:
+              - column:
+                  name: pr_id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: pr_model
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pr_price_key
+                  type: varchar(128)
+                  remarks:
+                    Для Kling — JSON опций (напр. {"mode":"pro","with_sound":false}). NULL для фиксированных.
+              - column:
+                  name: pr_base_price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_0}
+              - column:
+                  name: pr_price_key
+                  value: '{"mode":"std","with_sound":false}'
+              - column: {name: pr_base_price, valueDecimal: 7.66}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_0}
+              - column:
+                  name: pr_price_key
+                  value: '{"mode":"std","with_sound":true}'
+              - column: {name: pr_base_price, valueDecimal: 11.49}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_0}
+              - column:
+                  name: pr_price_key
+                  value: '{"mode":"pro","with_sound":false}'
+              - column: {name: pr_base_price, valueDecimal: 9.96}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_0}
+              - column:
+                  name: pr_price_key
+                  value: '{"mode":"pro","with_sound":true}'
+              - column: {name: pr_base_price, valueDecimal: 15.33}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: SORA_2}
+              - column: {name: pr_base_price, valueDecimal: 80}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: SORA_2_WITH_IMAGE}
+              - column: {name: pr_base_price, valueDecimal: 80}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: SUNO_V5}
+              - column: {name: pr_base_price, valueDecimal: 100}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: NANO_BANANA_PRO}
+              - column: {name: pr_base_price, valueDecimal: 20}

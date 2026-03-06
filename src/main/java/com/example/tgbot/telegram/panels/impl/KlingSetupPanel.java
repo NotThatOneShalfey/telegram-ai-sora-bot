@@ -23,8 +23,12 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public KlingSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
+    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
+
+    public KlingSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot,
+                           com.example.tgbot.service.PriceRegistryService priceRegistryService) {
         super(buttonRegistry, tgBot);
+        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
@@ -53,7 +57,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
                 💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
-                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
+                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(priceRegistryService.calculatePrice(GenerationModel.KLING_3_0, options, session.getUser())));
     }
 
     private InlineKeyboardMarkup getKeyboard(UserSession session) {

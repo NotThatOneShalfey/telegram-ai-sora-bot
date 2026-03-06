@@ -43,11 +43,6 @@ public class NanoBananaOptions implements IModelRequestOptions {
 
 
     @Override
-    public int getPrice() {
-        return Math.round(6.95F*1.5F);
-    }
-
-    @Override
     public Map<String, Object> getRequestInput() {
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);

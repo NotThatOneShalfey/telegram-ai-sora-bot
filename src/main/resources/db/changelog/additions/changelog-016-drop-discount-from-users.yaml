@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-016-drop-discount-from-users
+      author: Konstantin
+      changes:
+        - dropColumn:
+            tableName: users
+            columnName: discount_coefficient

@@ -13,6 +13,7 @@ import com.example.tgbot.models.data.ReceivedFile;
 import com.example.tgbot.models.data.RecordInfoResponse;
 import com.example.tgbot.models.data.SunoInfoResponse;
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.service.PriceRegistryService;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.buttons.ButtonType;
 import com.example.tgbot.telegram.buttons.IButton;
@@ -41,16 +42,19 @@ public class CallbackHandler {
     private final TaskErrorRegistry taskErrorRegistry;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserService userService;
+    private final PriceRegistryService priceRegistryService;
 
     public CallbackHandler(@Lazy ButtonRegistry buttonRegistry, @Lazy PanelRegistry panelRegistry,
                            @Lazy SessionRegistry sessionRegistry, @Lazy TaskResultRegistry taskResultRegistry,
-                           TaskErrorRegistry taskErrorRegistry, UserService userService) {
+                           TaskErrorRegistry taskErrorRegistry, UserService userService,
+                           PriceRegistryService priceRegistryService) {
         this.buttonRegistry = buttonRegistry;
         this.panelRegistry = panelRegistry;
         this.sessionRegistry = sessionRegistry;
         this.taskResultRegistry = taskResultRegistry;
         this.taskErrorRegistry = taskErrorRegistry;
         this.userService = userService;
+        this.priceRegistryService = priceRegistryService;
     }
 
     public void handleCallback(CallbackQuery cq, UserSession userSession) {
@@ -114,8 +118,9 @@ public class CallbackHandler {
             session.removeRequestConfigurationAfterTaskCompletion(taskId);
             // И убираем сессию из списка ожидающих
             sessionRegistry.removeWaitingSession(taskId);
-            // Снимаем деньги
-            userService.consumeOneGeneration(session, requestOptions.getPrice(), requestOptions.getRequestInput(), urlResponses, requestOptions.getModel());
+            // Снимаем деньги (итоговая цена с учётом коэффициента амбассадора)
+            int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
+            userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), urlResponses, requestOptions.getModel());
             // Вызываем панель для отправки файла
             panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
         } catch (IllegalStateException e) {
@@ -124,7 +129,8 @@ public class CallbackHandler {
                 UserSession session = sessionRegistry.getWaitingSession(taskId);
                 if (session != null) {
                     IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
-                    userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+                    int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
+                    userService.rechargeFromHold(session, price, requestOptions.getRequestInput());
                     Long userId = session.getUser().getTelegramId();
                     if (userId != null) taskErrorRegistry.put(taskId, userId, ErrorCode.E007);
                     session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(requestOptions.getModel()), ErrorCode.E007));
@@ -145,7 +151,8 @@ public class CallbackHandler {
         }
         session.touch();
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
-        userService.rechargeFromHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+        int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
+        userService.rechargeFromHold(session, price, requestOptions.getRequestInput());
 
         Operation operation = Operation.fromModel(requestOptions.getModel());
         ErrorCode errorCode = ErrorCode.E011;

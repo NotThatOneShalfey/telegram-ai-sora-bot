@@ -38,11 +38,6 @@ public class SoraOptions implements IModelRequestOptions {
     private List<String> imageUrls = new ArrayList<>();
 
     @Override
-    public int getPrice() {
-        return Math.round(13.51F*1.5F);
-    }
-
-    @Override
     public Map<String, Object> getRequestInput() {
         Map<String, Object> input = new HashMap<>();
         input.put("prompt", prompt);

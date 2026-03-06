@@ -23,8 +23,12 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class SoraSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SoraSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
+    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
+
+    public SoraSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot,
+                          com.example.tgbot.service.PriceRegistryService priceRegistryService) {
         super(buttonRegistry, tgBot);
+        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class SoraSetupPanel extends AbstractSimpleMessagePanel implements IChatP
                 💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
-                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
+                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(priceRegistryService.calculatePrice(GenerationModel.SORA_2, options, session.getUser())));
     }
 
     private InlineKeyboardMarkup getKeyboard() {

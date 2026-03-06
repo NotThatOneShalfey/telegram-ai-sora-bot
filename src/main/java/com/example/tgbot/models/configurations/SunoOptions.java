@@ -35,11 +35,6 @@ public class SunoOptions implements IModelRequestOptions {
 
 
     @Override
-    public int getPrice() {
-        return 299;
-    }
-
-    @Override
     public Map<String, Object> getRequestInput() {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", "V5");

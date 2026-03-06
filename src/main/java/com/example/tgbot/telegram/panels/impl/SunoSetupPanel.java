@@ -22,8 +22,12 @@ import java.util.List;
 public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public SunoSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
+    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
+
+    public SunoSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot,
+                          com.example.tgbot.service.PriceRegistryService priceRegistryService) {
         super(buttonRegistry, tgBot);
+        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
@@ -53,7 +57,7 @@ public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatP
                                 
                 🪙1 монета = 1 рубль 🪙
                 Отправь мне сообщение и я сгенерирую песню 👇
-                """.replaceAll("\\{parameters}", options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
+                """.replaceAll("\\{parameters}", options.getOptionsText()).replaceAll("\\{price}", String.valueOf(priceRegistryService.calculatePrice(GenerationModel.SUNO_V5, options, session.getUser())));
         return text;
     }
 

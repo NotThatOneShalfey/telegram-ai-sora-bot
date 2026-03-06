@@ -42,9 +42,6 @@ public class User {
     @Column(name = "is_ambassador")
     private boolean ambassador;
 
-    @Column(name = "discount_coefficient")
-    private float discount;
-
     @Column(name = "referral_link_used")
     private String linkUsed;
 

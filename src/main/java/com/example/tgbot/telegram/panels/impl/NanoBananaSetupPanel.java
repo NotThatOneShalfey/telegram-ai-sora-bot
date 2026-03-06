@@ -23,8 +23,12 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements IChatPanel {
 
 
-    public NanoBananaSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
+    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
+
+    public NanoBananaSetupPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot,
+                                com.example.tgbot.service.PriceRegistryService priceRegistryService) {
         super(buttonRegistry, tgBot);
+        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class NanoBananaSetupPanel extends AbstractSimpleMessagePanel implements 
                 💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
-                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(options.getPrice()));
+                """.formatted(options.getOptionsText()).replaceAll("\\{price}", String.valueOf(priceRegistryService.calculatePrice(GenerationModel.NANO_BANANA_PRO, options, session.getUser())));
         return text;
     }
 

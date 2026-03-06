@@ -6,7 +6,9 @@ import com.example.tgbot.registry.AdapterRegistry;
 import com.example.tgbot.registry.PanelRegistry;
 import com.example.tgbot.db.User;
 import com.example.tgbot.models.adapters.IRequestAdapter;
+import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.enums.GenerationModel;
+import com.example.tgbot.service.PriceRegistryService;
 import com.example.tgbot.service.RateLimiterService;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.buttons.enums.PaidPackageEnum;
@@ -44,17 +46,19 @@ public class MessageHandler {
     private final UserService userService;
     private final RateLimiterService rateLimiterService;
     private final TelegramMediaBatchCollector mediaBatchCollector;
+    private final PriceRegistryService priceRegistryService;
     private final ObjectMapper mapper = new JsonMapper();
 
     public MessageHandler(ObjectProvider<FileExecutor> fileExecutorProvider, @Lazy PanelRegistry panelRegistry,
                           @Lazy AdapterRegistry adapterRegistry, UserService userService, RateLimiterService rateLimiterService,
-                          TelegramMediaBatchCollector mediaBatchCollector) {
+                          TelegramMediaBatchCollector mediaBatchCollector, PriceRegistryService priceRegistryService) {
         this.fileExecutorProvider = fileExecutorProvider;
         this.panelRegistry = panelRegistry;
         this.adapterRegistry = adapterRegistry;
         this.userService = userService;
         this.rateLimiterService = rateLimiterService;
         this.mediaBatchCollector = mediaBatchCollector;
+        this.priceRegistryService = priceRegistryService;
     }
 
     @Value("${telegram.bot.token}")
@@ -120,7 +124,8 @@ public class MessageHandler {
         if (session.getChatContext().getModel() != null) {
             GenerationModel model = session.getChatContext().getModel();
             // Финальная проверка на то, хватает ли денег на генерацию
-            int price = session.getCurrentRequestOptionsByModel(model).getPrice();
+            IModelRequestOptions options = session.getCurrentRequestOptionsByModel(model);
+            int price = priceRegistryService.calculatePrice(model, options, session.getUser());
             if (!userService.checkBalanceBeforeGeneration(session, price)) {
                 session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E004));
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
@@ -209,7 +214,9 @@ public class MessageHandler {
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
-        if (!userService.checkBalanceBeforeGeneration(session, session.getCurrentRequestOptionsByModel(model).getPrice())) {
+        IModelRequestOptions opts = session.getCurrentRequestOptionsByModel(model);
+        int price = priceRegistryService.calculatePrice(model, opts, session.getUser());
+        if (!userService.checkBalanceBeforeGeneration(session, price)) {
             session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E004));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;

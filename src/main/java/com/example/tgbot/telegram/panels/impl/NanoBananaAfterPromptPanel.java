@@ -21,17 +21,19 @@ import static com.example.tgbot.telegram.buttons.ButtonType.*;
 @Component
 public class NanoBananaAfterPromptPanel extends AbstractSimpleMessagePanel implements IChatPanel {
     private final UserService userService;
+    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
 
-
-    public NanoBananaAfterPromptPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService) {
+    public NanoBananaAfterPromptPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService,
+                                      com.example.tgbot.service.PriceRegistryService priceRegistryService) {
         super(buttonRegistry, tgBot);
         this.userService = userService;
+        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
     public void execute(UserSession session) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
-        userService.putOnHold(session, requestOptions.getPrice(), requestOptions.getRequestInput());
+        userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.NANO_BANANA_PRO, requestOptions, session.getUser()), requestOptions.getRequestInput());
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 

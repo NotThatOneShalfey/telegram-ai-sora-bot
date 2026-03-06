@@ -97,9 +97,6 @@ public class UserService {
         if (price <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
-        if (user.getDiscount() != 1f) {
-            price = Math.round(price * user.getDiscount());
-        }
         user.setBalance(user.getBalance() - price);
         user.setBalanceHold(user.getBalanceHold() + price);
 
@@ -118,9 +115,6 @@ public class UserService {
     @Transactional
     public User rechargeFromHold(UserSession session, int price, Map<String, Object> requestPayload) {
         User user = session.getUser();
-        if (user.getDiscount() != 1f) {
-            price = Math.round(price * user.getDiscount());
-        }
         user.setBalance(user.getBalance() + price);
         user.setBalanceHold(user.getBalanceHold() - price);
 
@@ -140,9 +134,6 @@ public class UserService {
     @Transactional
     public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload, List<String> resultUrls, GenerationModel model) {
         User user = session.getUser();
-        if (user.getDiscount() != 1f) {
-            price = Math.round(price * user.getDiscount());
-        }
         if (user.getBalanceHold() >= price) {
             user.setBalanceHold(user.getBalanceHold() - price);
         }
