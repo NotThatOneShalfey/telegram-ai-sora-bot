@@ -99,8 +99,8 @@ public class WebInterfaceController {
      */
     @GetMapping("/result")
     public ResponseEntity<?> getTaskResult(
-            @RequestParam String userId,
-            @RequestParam String taskId) {
+            @RequestParam("userId") String userId,
+            @RequestParam("taskId") String taskId) {
         try {
             Long parsedUserId = parseUserId(userId);
             Optional<Object> result = webInterfaceService.getTaskResult(parsedUserId, taskId);
@@ -116,7 +116,7 @@ public class WebInterfaceController {
      * История генераций видео (Sora, Kling). Список отсортирован по дате по убыванию.
      */
     @GetMapping("/history/video")
-    public ResponseEntity<?> getVideoHistory(@RequestParam String userId) {
+    public ResponseEntity<?> getVideoHistory(@RequestParam("userId") String userId) {
         return getHistoryByType(userId, GenerationType.VIDEO);
     }
 
@@ -124,7 +124,7 @@ public class WebInterfaceController {
      * История генераций музыки (Suno). Список отсортирован по дате по убыванию.
      */
     @GetMapping("/history/music")
-    public ResponseEntity<?> getMusicHistory(@RequestParam String userId) {
+    public ResponseEntity<?> getMusicHistory(@RequestParam("userId") String userId) {
         return getHistoryByType(userId, GenerationType.MUSIC);
     }
 
@@ -132,7 +132,7 @@ public class WebInterfaceController {
      * История генераций изображений (Nano Banana Pro). Список отсортирован по дате по убыванию.
      */
     @GetMapping("/history/image")
-    public ResponseEntity<?> getImageHistory(@RequestParam String userId) {
+    public ResponseEntity<?> getImageHistory(@RequestParam("userId") String userId) {
         return getHistoryByType(userId, GenerationType.IMAGE);
     }
 
