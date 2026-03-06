@@ -49,7 +49,7 @@ public class AmbassadorStatsService {
         return userRepository.countByLinkUsedIn(linkStrings);
     }
 
-    /** Прибыль (|balanceChange| − cost_rub) за текущий период для GENERATION_REQUEST по рефералам */
+    /** Прибыль за текущий период * коэффициент (для отображения) */
     public BigDecimal getReferralProfitForPeriod(User ambassador) {
         List<User> referred = getReferredUsers(ambassador);
         if (referred.isEmpty()) return BigDecimal.ZERO;
@@ -60,20 +60,19 @@ public class AmbassadorStatsService {
                 HistoryOperationType.GENERATION_REQUEST, referred, from, to);
         BigDecimal cost = operationsHistoryRepository.sumCostRubForGeneration(
                 HistoryOperationType.GENERATION_REQUEST, referred, from, to);
-        return BigDecimal.valueOf(revenue).subtract(cost != null ? cost : BigDecimal.ZERO)
+        BigDecimal profitRaw = BigDecimal.valueOf(revenue).subtract(cost != null ? cost : BigDecimal.ZERO)
                 .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal coeff = ambassador.getAmbassadorProfitCoefficient() != null
+                ? ambassador.getAmbassadorProfitCoefficient()
+                : BigDecimal.ONE;
+        return profitRaw.multiply(coeff).setScale(2, RoundingMode.HALF_UP);
     }
 
-    /** Прибыль за всё время */
+    /** Накопленная прибыль (из БД, закрытые периоды) */
     public BigDecimal getReferralProfitAllTime(User ambassador) {
-        List<User> referred = getReferredUsers(ambassador);
-        if (referred.isEmpty()) return BigDecimal.ZERO;
-        double revenue = operationsHistoryRepository.sumAbsBalanceChangeForGenerationAllTime(
-                HistoryOperationType.GENERATION_REQUEST, referred);
-        BigDecimal cost = operationsHistoryRepository.sumCostRubForGenerationAllTime(
-                HistoryOperationType.GENERATION_REQUEST, referred);
-        return BigDecimal.valueOf(revenue).subtract(cost != null ? cost : BigDecimal.ZERO)
-                .setScale(2, RoundingMode.HALF_UP);
+        User fresh = userRepository.findById(ambassador.getId()).orElse(ambassador);
+        BigDecimal total = fresh.getAmbassadorProfitTotal();
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     /** Число генераций по рефералам за текущий период */

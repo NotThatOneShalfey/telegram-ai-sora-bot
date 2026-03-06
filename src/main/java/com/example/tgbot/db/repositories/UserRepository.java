@@ -19,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByLinkUsedIn(Collection<String> links);
 
     long countByLinkUsedInAndCreatedAtBetween(Collection<String> links, Instant from, Instant to);
+
+    List<User> findByAmbassadorTrue();
 }

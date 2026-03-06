@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
 
 @Entity
@@ -47,6 +49,15 @@ public class User {
 
     @Column(name = "balance_hold")
     private Integer balanceHold;
+
+    @Column(name = "ambassador_profit_coefficient", precision = 5, scale = 4)
+    private BigDecimal ambassadorProfitCoefficient;
+
+    @Column(name = "ambassador_profit_total", precision = 14, scale = 2)
+    private BigDecimal ambassadorProfitTotal;
+
+    @Column(name = "last_accumulated_period_end")
+    private LocalDate lastAccumulatedPeriodEnd;
 
     @PrePersist
     protected void onCreate() {

@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-019-ambassador-profit-coefficient
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: ambassador_profit_coefficient
+                  type: decimal(5,4)
+                  defaultValueNumeric: 0
+                  remarks: Коэффициент для расчёта отображаемой прибыли амбассадора (<1)
+              - column:
+                  name: ambassador_profit_total
+                  type: decimal(14,2)
+                  defaultValueNumeric: 0
+                  remarks: Накопленная прибыль (закрытые периоды)
+              - column:
+                  name: last_accumulated_period_end
+                  type: date
+                  remarks: Последний день последнего закрытого периода
