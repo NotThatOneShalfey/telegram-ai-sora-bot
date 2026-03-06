@@ -120,7 +120,8 @@ public class CallbackHandler {
             sessionRegistry.removeWaitingSession(taskId);
             // Снимаем деньги (итоговая цена с учётом коэффициента амбассадора)
             int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
-            userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), urlResponses, requestOptions.getModel());
+            var costRub = priceRegistryService.getCostRub(requestOptions.getModel(), requestOptions);
+            userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), urlResponses, requestOptions.getModel(), costRub);
             // Вызываем панель для отправки файла
             panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
         } catch (IllegalStateException e) {

@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-017-add-cost-and-currency-rate
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: price_registry
+            columns:
+              - column:
+                  name: pr_cost_usd
+                  type: decimal(10,4)
+                  remarks: Себестоимость в USD (за единицу; для Kling — за секунду)
+        - createTable:
+            tableName: currency_rate
+            columns:
+              - column:
+                  name: cr_id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: cr_from_currency
+                  type: varchar(8)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cr_to_currency
+                  type: varchar(8)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cr_rate
+                  type: decimal(12,4)
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: currency_rate
+            columns:
+              - column: {name: cr_from_currency, value: USD}
+              - column: {name: cr_to_currency, value: RUB}
+              - column: {name: cr_rate, valueNumeric: 100}
+        - addColumn:
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_cost_rub
+                  type: decimal(12,2)
+                  remarks: Себестоимость в рублях на момент операции (для GENERATION_REQUEST)

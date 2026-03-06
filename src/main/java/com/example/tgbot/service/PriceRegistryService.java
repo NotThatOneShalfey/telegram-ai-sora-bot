@@ -1,8 +1,10 @@
 package com.example.tgbot.service;
 
 import com.example.tgbot.data.PriceCoefficient;
+import com.example.tgbot.db.CurrencyRate;
 import com.example.tgbot.db.PriceRegistry;
 import com.example.tgbot.db.User;
+import com.example.tgbot.db.repositories.CurrencyRateRepository;
 import com.example.tgbot.db.repositories.PriceRegistryRepository;
 import com.example.tgbot.models.configurations.IModelRequestOptions;
 import com.example.tgbot.models.configurations.KlingOptions;
@@ -24,7 +26,11 @@ import java.util.Optional;
 @Slf4j
 public class PriceRegistryService {
 
+    private static final String USD = "USD";
+    private static final String RUB = "RUB";
+
     private final PriceRegistryRepository priceRegistryRepository;
+    private final CurrencyRateRepository currencyRateRepository;
 
     /**
      * Рассчитывает итоговую цену (с учётом коэффициента по модели и статусу амбассадора) для отображения, холда и списания.
@@ -84,5 +90,50 @@ public class PriceRegistryService {
             return 20;
         }
         return reg.get().getBasePrice().setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    /**
+     * Возвращает себестоимость в USD. Для Kling — cost_usd * duration; для фиксированных — cost_usd из реестра.
+     */
+    public BigDecimal getCostUsd(GenerationModel model, IModelRequestOptions options) {
+        if (model == GenerationModel.KLING_3_0 && options instanceof KlingOptions kling) {
+            return getKlingCostUsd(kling);
+        }
+        return getFixedCostUsd(model);
+    }
+
+    private BigDecimal getKlingCostUsd(KlingOptions kling) {
+        String priceKey = buildKlingPriceKey(kling.getMode(), kling.isWithSound());
+        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKey(
+                GenerationModel.KLING_3_0.name(), priceKey);
+        if (reg.isEmpty() || reg.get().getCostUsd() == null) {
+            return BigDecimal.ZERO;
+        }
+        int duration = kling.getDuration() > 0 ? kling.getDuration() : 10;
+        return reg.get().getCostUsd().multiply(BigDecimal.valueOf(duration));
+    }
+
+    private BigDecimal getFixedCostUsd(GenerationModel model) {
+        GenerationModel lookupModel = model == GenerationModel.SORA_2_WITH_IMAGE ? GenerationModel.SORA_2 : model;
+        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKeyIsNull(lookupModel.name());
+        if (reg.isEmpty()) {
+            reg = priceRegistryRepository.findByModel(lookupModel.name()).stream().findFirst();
+        }
+        if (reg.isEmpty() || reg.get().getCostUsd() == null) {
+            return BigDecimal.ZERO;
+        }
+        return reg.get().getCostUsd();
+    }
+
+    /** Себестоимость в рублях: cost_usd * курс USD→RUB. */
+    public BigDecimal getCostRub(GenerationModel model, IModelRequestOptions options) {
+        BigDecimal costUsd = getCostUsd(model, options);
+        if (costUsd == null || costUsd.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return currencyRateRepository.findByFromCurrencyAndToCurrency(USD, RUB)
+                .map(CurrencyRate::getRate)
+                .map(rate -> costUsd.multiply(rate).setScale(2, RoundingMode.HALF_UP))
+                .orElse(BigDecimal.ZERO);
     }
 }

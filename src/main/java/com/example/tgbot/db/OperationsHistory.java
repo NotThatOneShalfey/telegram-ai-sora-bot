@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
@@ -50,6 +51,9 @@ public class OperationsHistory {
 
     @Column(name = "oh_balance_change")
     private Float balanceChange;
+
+    @Column(name = "oh_cost_rub", precision = 12, scale = 2)
+    private BigDecimal costRub;
 
     @Column(name = "oh_timestamp")
     private Timestamp operationTimestamp;

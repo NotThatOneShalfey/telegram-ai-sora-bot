@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -132,7 +133,8 @@ public class UserService {
     }
 
     @Transactional
-    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload, List<String> resultUrls, GenerationModel model) {
+    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload,
+                                     List<String> resultUrls, GenerationModel model, BigDecimal costRub) {
         User user = session.getUser();
         if (user.getBalanceHold() >= price) {
             user.setBalanceHold(user.getBalanceHold() - price);
@@ -149,6 +151,7 @@ public class UserService {
                     .operationType(HistoryOperationType.GENERATION_REQUEST)
                     .generationType(model != null ? model.getGenerationType() : null)
                     .model(model)
+                    .costRub(costRub != null ? costRub : BigDecimal.ZERO)
                     .build());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

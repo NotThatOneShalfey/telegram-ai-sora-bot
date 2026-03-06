@@ -29,4 +29,7 @@ public class PriceRegistry {
 
     @Column(name = "pr_base_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal basePrice;
+
+    @Column(name = "pr_cost_usd", precision = 10, scale = 4)
+    private BigDecimal costUsd;
 }
