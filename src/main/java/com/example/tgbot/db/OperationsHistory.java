@@ -23,7 +23,7 @@ public class OperationsHistory {
 
     @Id
     @Column(name = "oh_id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private UUID id;
 
     @JoinColumn(name = "oh_user_id")
