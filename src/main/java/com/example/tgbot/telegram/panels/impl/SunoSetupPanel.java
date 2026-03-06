@@ -48,9 +48,7 @@ public class SunoSetupPanel extends AbstractSimpleMessagePanel implements IChatP
         String text = """
                 Отлично, с жанром определились!
                 Напиши пару предложений о том, про кого или про что будет песня. Чем больше подробностей, тем круче получится!
-                
                 {parameters}
-                                
                 💸 СТОИМОСТЬ: {price} монет 💸
                                 
                 🪙1 монета = 1 рубль 🪙
