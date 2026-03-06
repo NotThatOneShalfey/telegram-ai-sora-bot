@@ -38,15 +38,10 @@ public class KlingOptions implements IModelRequestOptions {
     @Getter
     @Builder.Default
     private String mode = "std";
-    @Getter
-    @Builder.Default
-    private boolean multiShots = false;
     @Builder.Default
     private List<String> imageUrls = new ArrayList<>();
     @Getter
     private String prompt;
-    @Builder.Default
-    private List<MultiShotRequest> multiShotRequestArray = new ArrayList<>();
 
     @Override
     public int getPrice() {
@@ -74,13 +69,9 @@ public class KlingOptions implements IModelRequestOptions {
         input.put("image_urls", imageUrls);
         input.put("aspect_ratio", aspectRatio);
         input.put("sound", withSound);
-        if (multiShots) {
-            input.put("multi_prompt", multiShotRequestArray);
-        } else {
-            input.put("prompt", prompt);
-            input.put("duration", duration);
-        }
-        input.put("multi_shots", multiShots);
+        input.put("prompt", prompt);
+        input.put("duration", duration);
+        input.put("multi_shots", false);
         return input;
     }
 
@@ -94,7 +85,6 @@ public class KlingOptions implements IModelRequestOptions {
                 Длительность: {2}
                 Звук: {3}
                 Режим: {4}
-                Мультикадр: {5}
                 </pre>
                 """;
 
@@ -103,8 +93,7 @@ public class KlingOptions implements IModelRequestOptions {
                 AspectRatioEnum.getButtonTextByValue(aspectRatio),
                 duration + " секунд",
                 withSound ? "Включен" : "Выключен",
-                mode.equalsIgnoreCase("std") ? "Стандарт" : "Про",
-                multiShots ? "Включен" : "Выключен"
+                mode.equalsIgnoreCase("std") ? "Стандарт" : "Про"
                 );
     }
 
@@ -117,41 +106,14 @@ public class KlingOptions implements IModelRequestOptions {
         }
     }
 
-    @Builder
-    private static class MultiShotRequest {
-        String prompt;
-        int duration;
-    }
-
-    public void setImageUrls(List<String> imageUrls) {
-        if (this.imageUrls.size() <= 2) {
-            if (this.imageUrls.size() + imageUrls.size() <= 2) {
-                this.imageUrls.addAll(imageUrls);
-            } else {
-                for (String image : imageUrls) {
-                    this.imageUrls.add(image);
-                    if (this.imageUrls.size() == 2) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     public String convertToDTO() {
-        List<KlingOptionsDTO.MultiShotRequestDTO> msrDTOList = new ArrayList<>();
-        for (MultiShotRequest msr : this.multiShotRequestArray) {
-            msrDTOList.add(KlingOptionsDTO.MultiShotRequestDTO.builder().duration(msr.duration).prompt(msr.prompt).build());
-        }
         try {
             return mapper.writeValueAsString(KlingOptionsDTO.builder()
                     .aspectRatio(this.aspectRatio)
                     .prompt(this.prompt)
                     .duration(this.duration)
-                    .multiShotRequestArray(msrDTOList)
                     .mode(this.mode)
-                    .multiShots(this.multiShots)
                     .withSound(this.withSound)
                     .imageUrls(this.imageUrls)
                     .build());

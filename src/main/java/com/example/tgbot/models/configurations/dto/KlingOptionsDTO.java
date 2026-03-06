@@ -19,11 +19,4 @@ public class KlingOptionsDTO {
     private boolean multiShots;
     private List<String> imageUrls;
     private String prompt;
-    private List<MultiShotRequestDTO> multiShotRequestArray;
-
-    @Builder
-    public static class MultiShotRequestDTO {
-        String prompt;
-        int duration;
-    }
 }

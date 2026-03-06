@@ -60,7 +60,6 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
         KlingOptions options = (KlingOptions) session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
         boolean proMode = "pro".equalsIgnoreCase(options.getMode());
         boolean withSound = options.isWithSound();
-        boolean multiShots = options.isMultiShots();
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
@@ -68,8 +67,7 @@ public class KlingSetupPanel extends AbstractSimpleMessagePanel implements IChat
                 super.getButton(KLING_FORMAT_SELECTION).getKeyboardButton()));
         rows.add(List.of(super.getButton(KLING_DURATION_SELECTION).getKeyboardButton(),
                 super.getButton(KLING_SOUND_SELECTION).getKeyboardButton(withSound)));
-        rows.add(List.of(super.getButton(KLING_SET_PRO_MOD).getKeyboardButton(proMode),
-                super.getButton(KLING_MULTISET_SELECTION).getKeyboardButton(multiShots)));
+        rows.add(List.of(super.getButton(KLING_SET_PRO_MOD).getKeyboardButton(proMode)));
         rows.add(List.of(super.getButton(MAIN_MENU_CALL).getKeyboardButton()));
         markup.setKeyboard(rows);
         return markup;
