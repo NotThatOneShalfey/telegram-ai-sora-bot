@@ -44,8 +44,6 @@ public class AmbassadorStatsPanel extends AbstractSimpleMessagePanel implements 
         String text = """
                 📊 Статистика амбассадора
                 
-                👥 Рефералов: новых за период %d, всего %d
-                
                 Период %s:
                 👥 Приглашено: %d
                 💰 Прибыль: %s ₽
