@@ -38,13 +38,13 @@ public class MainFileReadyPanel extends AbstractSimpleMessagePanel implements IC
         String dynamic = "Файл";
 
         if (model.equals(GenerationModel.KLING_3_0) || model.equals(GenerationModel.SORA_2)) {
-            dynamic = "Видео";
+            dynamic = "Видео готово!";
             executeSendVideo(session, receivedFile.getFirstUrl());
         } else if (model.equals(GenerationModel.SUNO_V5)) {
-            dynamic = "Музыкальный трек";
+            dynamic = "Музыкальный трек готов!";
             executeSendMusic(session, receivedFile.getFileUrls());
         } else if (model.equals(GenerationModel.NANO_BANANA_PRO)) {
-            dynamic = "Изображение";
+            dynamic = "Изображение готово!";
             executeSendImage(session, receivedFile.getFirstUrl());
         }
         super.executeSendMessage(session, getText(prompt, dynamic), getKeyboard(), true);
@@ -57,7 +57,7 @@ public class MainFileReadyPanel extends AbstractSimpleMessagePanel implements IC
 
     private String getText(String prompt, String dynamicText) {
         String sourceText = """
-                ✅ {fileType} готово!
+                ✅ {fileType}
                 
                 💾 Промпт:
                 <blockquote>{prompt}</blockquote>
