@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-018-add-operations-history-indexes
+      author: Konstantin
+      changes:
+        - createIndex:
+            indexName: idx_oh_operation_type_timestamp
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_operation_type
+              - column:
+                  name: oh_operation_timestamp
+            remarks: Для агрегирующих запросов по типу операции и диапазону дат (AmbassadorStats)
+        - createIndex:
+            indexName: idx_oh_user_id_timestamp
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_user_id
+              - column:
+                  name: oh_operation_timestamp
+                  descending: true
+            remarks: Для выборки истории пользователя ORDER BY timestamp DESC
+  - changeSet:
+      id: changelog-018-add-users-referral-index
+      author: Konstantin
+      changes:
+        - createIndex:
+            indexName: idx_users_referral_link_created
+            tableName: users
+            columns:
+              - column:
+                  name: referral_link_used
+              - column:
+                  name: created_at
+            remarks: Для подсчёта рефералов (link_used + created_at для периода)

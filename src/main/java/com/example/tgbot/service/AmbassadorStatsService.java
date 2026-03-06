@@ -10,17 +10,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.TextStyle;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * Статистика для амбассадоров: затраты на генерацию пользователей по их реферальным ссылкам.
+ * Статистика для амбассадоров: рефералы, прибыль (выручка − себестоимость), число генераций.
  */
 @Service
 @RequiredArgsConstructor
@@ -31,52 +31,101 @@ public class AmbassadorStatsService {
     private final UserRepository userRepository;
     private final OperationsHistoryRepository operationsHistoryRepository;
 
-    /**
-     * Сумма изменений баланса на генерацию (GENERATION_REQUEST) для пользователей,
-     * пришедших по реферальным ссылкам данного амбассадора, за текущий период.
-     * Период: 1–14 число — с 1-го по текущий день; 15+ — с 15-го по текущий день.
-     */
-    public int getReferralGenerationTotal(User ambassador) {
-        List<ReferralLinks> links = referralLinksRepository.findByCreator(ambassador);
-        if (links.isEmpty()) return 0;
-
-        List<String> linkStrings = links.stream()
-                .map(ReferralLinks::getLink)
-                .collect(Collectors.toList());
-        List<User> referredUsers = userRepository.findByLinkUsedIn(linkStrings);
-        if (referredUsers.isEmpty()) return 0;
-
-        LocalDateTime from = computePeriodStart();
-        LocalDateTime to = LocalDateTime.now();
-        Timestamp fromTs = Timestamp.from(from.atZone(ZoneId.systemDefault()).toInstant());
-        Timestamp toTs = Timestamp.from(to.atZone(ZoneId.systemDefault()).toInstant());
-
-        double sum = operationsHistoryRepository.sumAbsBalanceChangeForGeneration(
-                HistoryOperationType.GENERATION_REQUEST,
-                referredUsers,
-                fromTs,
-                toTs);
-        return (int) Math.round(sum);
+    /** Новых рефералов за текущий период (по created_at) */
+    public long getReferralCountNewInPeriod(User ambassador) {
+        List<String> linkStrings = getLinkStrings(ambassador);
+        if (linkStrings.isEmpty()) return 0;
+        LocalDateTime[] range = getPeriodRange();
+        return userRepository.countByLinkUsedInAndCreatedAtBetween(
+                linkStrings,
+                range[0].atZone(ZoneId.systemDefault()).toInstant(),
+                range[1].atZone(ZoneId.systemDefault()).toInstant());
     }
 
-    /** Начало периода: 1-е число 00:00 или 15-е число 00:00 текущего месяца */
-    public LocalDateTime computePeriodStart() {
-        LocalDate today = LocalDate.now();
-        int day = today.getDayOfMonth();
-        if (day < 15) {
-            return today.withDayOfMonth(1).atStartOfDay();
-        }
-        return today.withDayOfMonth(15).atStartOfDay();
+    /** Всего рефералов с реферальной ссылкой */
+    public long getReferralCountTotal(User ambassador) {
+        List<String> linkStrings = getLinkStrings(ambassador);
+        if (linkStrings.isEmpty()) return 0;
+        return userRepository.countByLinkUsedIn(linkStrings);
     }
 
-    /** Описание периода для отображения */
+    /** Прибыль (|balanceChange| − cost_rub) за текущий период для GENERATION_REQUEST по рефералам */
+    public BigDecimal getReferralProfitForPeriod(User ambassador) {
+        List<User> referred = getReferredUsers(ambassador);
+        if (referred.isEmpty()) return BigDecimal.ZERO;
+        LocalDateTime[] range = getPeriodRange();
+        Timestamp from = Timestamp.from(range[0].atZone(ZoneId.systemDefault()).toInstant());
+        Timestamp to = Timestamp.from(range[1].atZone(ZoneId.systemDefault()).toInstant());
+        double revenue = operationsHistoryRepository.sumAbsBalanceChangeForGeneration(
+                HistoryOperationType.GENERATION_REQUEST, referred, from, to);
+        BigDecimal cost = operationsHistoryRepository.sumCostRubForGeneration(
+                HistoryOperationType.GENERATION_REQUEST, referred, from, to);
+        return BigDecimal.valueOf(revenue).subtract(cost != null ? cost : BigDecimal.ZERO)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** Прибыль за всё время */
+    public BigDecimal getReferralProfitAllTime(User ambassador) {
+        List<User> referred = getReferredUsers(ambassador);
+        if (referred.isEmpty()) return BigDecimal.ZERO;
+        double revenue = operationsHistoryRepository.sumAbsBalanceChangeForGenerationAllTime(
+                HistoryOperationType.GENERATION_REQUEST, referred);
+        BigDecimal cost = operationsHistoryRepository.sumCostRubForGenerationAllTime(
+                HistoryOperationType.GENERATION_REQUEST, referred);
+        return BigDecimal.valueOf(revenue).subtract(cost != null ? cost : BigDecimal.ZERO)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** Число генераций по рефералам за текущий период */
+    public long getReferralGenerationCountForPeriod(User ambassador) {
+        List<User> referred = getReferredUsers(ambassador);
+        if (referred.isEmpty()) return 0;
+        LocalDateTime[] range = getPeriodRange();
+        Timestamp from = Timestamp.from(range[0].atZone(ZoneId.systemDefault()).toInstant());
+        Timestamp to = Timestamp.from(range[1].atZone(ZoneId.systemDefault()).toInstant());
+        return operationsHistoryRepository.countGenerationsForUsers(
+                HistoryOperationType.GENERATION_REQUEST, referred, from, to);
+    }
+
+    /** Число генераций по рефералам за всё время */
+    public long getReferralGenerationCountAllTime(User ambassador) {
+        List<User> referred = getReferredUsers(ambassador);
+        if (referred.isEmpty()) return 0;
+        return operationsHistoryRepository.countGenerationsForUsersAllTime(
+                HistoryOperationType.GENERATION_REQUEST, referred);
+    }
+
+    /** Описание текущего периода: "01.mm - 14.mm" или "15.mm - dd.mm" (dd — последний день или сегодня) */
     public String getPeriodDescription() {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfMonth();
-        String month = today.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, new Locale("ru"));
+        String mm = "%02d".formatted(today.getMonthValue());
         if (day < 15) {
-            return "%s: с начала месяца по 15 число".formatted(month.toUpperCase());
+            return "01.%s - 14.%s".formatted(mm, mm);
         }
-        return "%s: с 15го числа по конец месяца".formatted(month.toUpperCase());
+        int lastDay = today.lengthOfMonth();
+        return "15.%s - %02d.%s".formatted(mm, lastDay, mm);
+    }
+
+    private List<String> getLinkStrings(User ambassador) {
+        List<ReferralLinks> links = referralLinksRepository.findByCreator(ambassador);
+        return links.stream().map(ReferralLinks::getLink).collect(Collectors.toList());
+    }
+
+    private List<User> getReferredUsers(User ambassador) {
+        List<String> linkStrings = getLinkStrings(ambassador);
+        if (linkStrings.isEmpty()) return List.of();
+        return userRepository.findByLinkUsedIn(linkStrings);
+    }
+
+    /** [from, to] — начало и конец текущего периода */
+    private LocalDateTime[] getPeriodRange() {
+        LocalDate today = LocalDate.now();
+        int day = today.getDayOfMonth();
+        LocalDateTime from = day < 15
+                ? today.withDayOfMonth(1).atStartOfDay()
+                : today.withDayOfMonth(15).atStartOfDay();
+        LocalDateTime to = LocalDateTime.now();
+        return new LocalDateTime[]{from, to};
     }
 }
