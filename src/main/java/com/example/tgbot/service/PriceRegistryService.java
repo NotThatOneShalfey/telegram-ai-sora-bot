@@ -53,9 +53,10 @@ public class PriceRegistryService {
                 : 1f;
     }
 
+    // Клинг высчитываем от себестоимости
     private int calculateBasePrice(GenerationModel model, IModelRequestOptions options) {
         if (model == GenerationModel.KLING_3_0 && options instanceof KlingOptions kling) {
-            return calculateKlingPrice(kling);
+            return getKlingCostUsd(kling).setScale(0, RoundingMode.HALF_UP).intValue();
         }
         return getFixedPrice(model);
     }
