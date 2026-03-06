@@ -35,7 +35,7 @@ databaseChangeLog:
               - column:
                   name: pr_price_key
                   value: '{"mode":"std","with_sound":false}'
-              - column: {name: pr_base_price, valueDecimal: 7.66}
+              - column: {name: pr_base_price, valueNumeric: 7.66}
         - insert:
             tableName: price_registry
             columns:
@@ -43,7 +43,7 @@ databaseChangeLog:
               - column:
                   name: pr_price_key
                   value: '{"mode":"std","with_sound":true}'
-              - column: {name: pr_base_price, valueDecimal: 11.49}
+              - column: {name: pr_base_price, valueNumeric: 11.49}
         - insert:
             tableName: price_registry
             columns:
@@ -51,7 +51,7 @@ databaseChangeLog:
               - column:
                   name: pr_price_key
                   value: '{"mode":"pro","with_sound":false}'
-              - column: {name: pr_base_price, valueDecimal: 9.96}
+              - column: {name: pr_base_price, valueNumeric: 9.96}
         - insert:
             tableName: price_registry
             columns:
@@ -59,24 +59,24 @@ databaseChangeLog:
               - column:
                   name: pr_price_key
                   value: '{"mode":"pro","with_sound":true}'
-              - column: {name: pr_base_price, valueDecimal: 15.33}
+              - column: {name: pr_base_price, valueNumeric: 15.33}
         - insert:
             tableName: price_registry
             columns:
               - column: {name: pr_model, value: SORA_2}
-              - column: {name: pr_base_price, valueDecimal: 80}
+              - column: {name: pr_base_price, valueNumeric: 80}
         - insert:
             tableName: price_registry
             columns:
               - column: {name: pr_model, value: SORA_2_WITH_IMAGE}
-              - column: {name: pr_base_price, valueDecimal: 80}
+              - column: {name: pr_base_price, valueNumeric: 80}
         - insert:
             tableName: price_registry
             columns:
               - column: {name: pr_model, value: SUNO_V5}
-              - column: {name: pr_base_price, valueDecimal: 100}
+              - column: {name: pr_base_price, valueNumeric: 100}
         - insert:
             tableName: price_registry
             columns:
               - column: {name: pr_model, value: NANO_BANANA_PRO}
-              - column: {name: pr_base_price, valueDecimal: 20}
+              - column: {name: pr_base_price, valueNumeric: 20}
