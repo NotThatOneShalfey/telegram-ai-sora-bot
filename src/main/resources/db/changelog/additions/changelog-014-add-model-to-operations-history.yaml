@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-014-add-model-to-operations-history
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_model
+                  type: varchar(64)

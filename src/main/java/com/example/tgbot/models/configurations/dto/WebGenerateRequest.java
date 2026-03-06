@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 /**
  * Request wrapper for web interface generation.
- * Contains userId (User.telegramId) and model-specific options DTO.
+ * Contains userId (User.telegramId) as string; mapping to Long is done in the backend.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class WebGenerateRequest<T> {
-    private Long userId;
+    private String userId;
     private T options;
 }

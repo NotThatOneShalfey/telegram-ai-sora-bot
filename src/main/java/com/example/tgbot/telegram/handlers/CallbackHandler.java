@@ -115,7 +115,7 @@ public class CallbackHandler {
             // И убираем сессию из списка ожидающих
             sessionRegistry.removeWaitingSession(taskId);
             // Снимаем деньги
-            userService.consumeOneGeneration(session, requestOptions.getPrice(), requestOptions.getRequestInput(), urlResponses);
+            userService.consumeOneGeneration(session, requestOptions.getPrice(), requestOptions.getRequestInput(), urlResponses, requestOptions.getModel());
             // Вызываем панель для отправки файла
             panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
         } catch (IllegalStateException e) {

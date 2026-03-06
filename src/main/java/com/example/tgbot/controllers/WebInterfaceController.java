@@ -1,5 +1,6 @@
 package com.example.tgbot.controllers;
 
+import com.example.tgbot.data.GenerationType;
 import com.example.tgbot.models.configurations.dto.*;
 import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.service.ImageUploadService;
@@ -98,33 +99,76 @@ public class WebInterfaceController {
      */
     @GetMapping("/result")
     public ResponseEntity<?> getTaskResult(
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam String taskId) {
-        Optional<Object> result = webInterfaceService.getTaskResult(userId, taskId);
-        return result
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Long parsedUserId = parseUserId(userId);
+            Optional<Object> result = webInterfaceService.getTaskResult(parsedUserId, taskId);
+            return result
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     /**
-     * Получение истории операций пользователя по userId (User.telegramId).
-     * Список отсортирован по дате по убыванию.
+     * История генераций видео (Sora, Kling). Список отсортирован по дате по убыванию.
      */
-    @GetMapping("/history")
-    public ResponseEntity<?> getHistory(@RequestParam Long userId) {
-        return ResponseEntity.ok(operationsHistoryService.getHistory(userId));
+    @GetMapping("/history/video")
+    public ResponseEntity<?> getVideoHistory(@RequestParam String userId) {
+        return getHistoryByType(userId, GenerationType.VIDEO);
+    }
+
+    /**
+     * История генераций музыки (Suno). Список отсортирован по дате по убыванию.
+     */
+    @GetMapping("/history/music")
+    public ResponseEntity<?> getMusicHistory(@RequestParam String userId) {
+        return getHistoryByType(userId, GenerationType.MUSIC);
+    }
+
+    /**
+     * История генераций изображений (Nano Banana Pro). Список отсортирован по дате по убыванию.
+     */
+    @GetMapping("/history/image")
+    public ResponseEntity<?> getImageHistory(@RequestParam String userId) {
+        return getHistoryByType(userId, GenerationType.IMAGE);
+    }
+
+    private ResponseEntity<?> getHistoryByType(String userId, GenerationType type) {
+        try {
+            Long parsedUserId = parseUserId(userId);
+            return ResponseEntity.ok(operationsHistoryService.getHistory(parsedUserId, type));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    private Long parseUserId(String userId) {
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("userId is required");
+        }
+        try {
+            return Long.parseLong(userId.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("userId must be a valid number");
+        }
     }
 
     private <T> ResponseEntity<?> processGenerate(String body, GenerationModel model, TypeReference<WebGenerateRequest<T>> typeRef) {
         try {
             WebGenerateRequest<T> request = mapper.readValue(body, typeRef);
+            Long userId = parseUserId(request.getUserId());
             String optionsBody = mapper.writeValueAsString(request.getOptions());
-            InterfaceDTORequest dtoRequest = new InterfaceDTORequest(model, request.getUserId(), optionsBody);
+            InterfaceDTORequest dtoRequest = new InterfaceDTORequest(model, userId, optionsBody);
             Optional<WebSubmitResult> result = webInterfaceService.submitAndGetTaskId(dtoRequest);
             return result
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.internalServerError().build());
         } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

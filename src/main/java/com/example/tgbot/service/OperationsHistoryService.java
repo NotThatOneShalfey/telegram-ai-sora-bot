@@ -1,8 +1,10 @@
 package com.example.tgbot.service;
 
+import com.example.tgbot.data.GenerationType;
 import com.example.tgbot.db.OperationsHistory;
 import com.example.tgbot.db.repositories.OperationsHistoryRepository;
 import com.example.tgbot.models.configurations.dto.HistoryItemDTO;
+import com.example.tgbot.models.configurations.dto.HistoryResponseDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,18 +29,22 @@ public class OperationsHistoryService {
             DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault());
 
     /**
-     * Возвращает историю операций пользователя по userId (User.telegramId),
-     * отсортированную по дате по убыванию.
+     * Возвращает историю операций пользователя по userId (User.telegramId) и типу генерации,
+     * с текущим балансом и списком записей, отсортированным по дате по убыванию.
      */
-    public List<HistoryItemDTO> getHistory(Long userId) {
+    public HistoryResponseDTO getHistory(Long userId, GenerationType generationType) {
         return userQueryService.findUser(userId)
                 .map(user -> {
-                    List<OperationsHistory> list = historyRepository.findByUserIdOrderByOperationTimestampDesc(user);
-                    return list.stream()
+                    List<OperationsHistory> list = generationType == null
+                            ? historyRepository.findByUserIdOrderByOperationTimestampDesc(user)
+                            : historyRepository.findByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
+                    List<HistoryItemDTO> items = list.stream()
                             .map(this::toHistoryItemDTO)
                             .toList();
+                    Integer balance = user.getBalance() != null ? user.getBalance() : 0;
+                    return new HistoryResponseDTO(balance, items);
                 })
-                .orElse(Collections.emptyList());
+                .orElse(new HistoryResponseDTO(null, Collections.emptyList()));
     }
 
     private HistoryItemDTO toHistoryItemDTO(OperationsHistory oh) {
@@ -47,7 +53,8 @@ public class OperationsHistoryService {
         String date = oh.getOperationTimestamp() != null
                 ? oh.getOperationTimestamp().toInstant().atZone(ZoneId.systemDefault()).format(ISO_FORMATTER)
                 : null;
-        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultUrls);
+        String model = oh.getModel() != null ? oh.getModel().name() : null;
+        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultUrls, model);
     }
 
     private Map<String, Object> parseOptions(String json) {

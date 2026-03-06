@@ -4,6 +4,8 @@
 
 Все методы возвращают JSON, кроме `GET /files/{fileId}` (возвращает бинарный файл).
 
+**Общее:** все входные параметры (в т.ч. `userId` в body и query) принимаются как **строки**; маппинг на типы выполняется в бэкенде. Для `userId` допустима строка вида `"123456789"`.
+
 При успешной постановке задачи на генерацию (`POST /kling`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
 
 ---
@@ -87,7 +89,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userId": 123456789,
+  "userId": "123456789",
   "options": {
     "aspectRatio": "9:16",
     "duration": 10,
@@ -105,7 +107,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userId | number | да | User.telegramId — идентификатор пользователя в Telegram |
+| userId | string | да | User.telegramId (строка, напр. `"123456789"`) |
 | options.aspectRatio | string | нет | Соотношение сторон: `"9:16"`, `"16:9"` и др. |
 | options.duration | number | нет | Длительность в секундах (по умолчанию 10) |
 | options.withSound | boolean | нет | Добавлять ли звук |
@@ -149,7 +151,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userId": 123456789,
+  "userId": "123456789",
   "options": {
     "prompt": "Текстовое описание сцены",
     "aspectRatio": "9:16",
@@ -161,7 +163,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userId | number | да | User.telegramId |
+| userId | string | да | User.telegramId (строка) |
 | options.prompt | string | да | Промпт для генерации |
 | options.aspectRatio | string | нет | `"9:16"`, `"16:9"` |
 | options.nFrames | string | нет | Количество кадров (по умолчанию "10") |
@@ -199,7 +201,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userId": 123456789,
+  "userId": "123456789",
   "options": {
     "customMode": false,
     "prompt": "Описание музыки",
@@ -212,7 +214,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userId | number | да | User.telegramId |
+| userId | string | да | User.telegramId (строка) |
 | options.customMode | boolean | нет | Режим кастомизации |
 | options.prompt | string | да | Описание желаемой музыки |
 | options.instrumental | boolean | нет | Инструментальная композиция |
@@ -251,7 +253,7 @@ const { urls } = await response.json();
 
 ```json
 {
-  "userId": 123456789,
+  "userId": "123456789",
   "options": {
     "prompt": "Описание изображения",
     "imageInput": ["https://..."],
@@ -264,7 +266,7 @@ const { urls } = await response.json();
 
 | Поле | Тип | Обязательно | Описание |
 |------|-----|-------------|----------|
-| userId | number | да | User.telegramId |
+| userId | string | да | User.telegramId (строка) |
 | options.prompt | string | да | Промпт для генерации |
 | options.imageInput | string[] | нет | URL изображений (результат `/upload`) |
 | options.aspectRatio | string | нет | Соотношение сторон |
@@ -299,7 +301,7 @@ const { urls } = await response.json();
 ### Request
 
 - **Query параметры:**
-  - `userId` (number) — User.telegramId
+  - `userId` (string) — User.telegramId
   - `taskId` (string) — ID задачи из ответа методов generate
 
 ### Response
@@ -356,44 +358,66 @@ const { urls } = await response.json();
 
 ## 8. История операций
 
-**`GET /v1/web/history`**
+История разделена по типу контента. Каждый эндпоинт возвращает текущий баланс пользователя и список операций, отсортированный по дате по убыванию.
 
-Возвращает историю операций пользователя. Список отсортирован по дате по убыванию.
+### 8.1. История видео (Sora, Kling)
+
+**`GET /v1/web/history/video`**
+
+### 8.2. История музыки (Suno)
+
+**`GET /v1/web/history/music`**
+
+### 8.3. История изображений (Nano Banana Pro)
+
+**`GET /v1/web/history/image`**
 
 ### Request
 
 - **Query параметры:**
-  - `userId` (number) — User.telegramId
+  - `userId` (string) — User.telegramId
 
 ### Response
 
 **200 OK**
 ```json
-[
-  {
-    "options": {
-      "prompt": "Описание сцены",
-      "mode": "pro",
-      "aspectRatio": "9:16",
-      ...
-    },
-    "balanceChange": -115,
-    "date": "2025-03-05T14:30:00+03:00",
-    "resultUrls": [
-      "https://cdn.example.com/result/video123.mp4"
-    ]
-  }
-]
+{
+  "balance": 850,
+  "items": [
+    {
+      "options": {
+        "prompt": "Описание сцены",
+        "mode": "pro",
+        "aspectRatio": "9:16",
+        ...
+      },
+      "balanceChange": -115,
+      "date": "2025-03-05T14:30:00+03:00",
+      "resultUrls": [
+        "https://cdn.example.com/result/video123.mp4"
+      ],
+      "model": "KLING_3_0"
+    }
+  ]
+}
 ```
+
+| Поле | Описание |
+|------|----------|
+| balance | Текущий баланс пользователя |
+| items | Список операций |
+
+Элемент в `items`:
 
 | Поле | Описание |
 |------|----------|
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании) |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | URL результатов после выполнения задания (пустой массив для операций без результата) |
+| resultUrls | URL результатов (пустой массив для операций без результата) |
+| model | Модель генерации (`KLING_3_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
 
-При отсутствии пользователя возвращается пустой массив `[]`.
+При отсутствии пользователя возвращается `{ "balance": null, "items": [] }`.
 
 ---
 
@@ -404,6 +428,7 @@ const { urls } = await response.json();
 3. **Получение `taskId` и `balance`** из ответа — обновите отображение баланса на фронте
 4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
 5. **Отображение/сохранение** ссылок из `response.links`
+6. **История** — по типу контента: `GET /history/video`, `/history/music`, `/history/image` с `userId`; в ответе — `balance` и `items`
 
 ---
 

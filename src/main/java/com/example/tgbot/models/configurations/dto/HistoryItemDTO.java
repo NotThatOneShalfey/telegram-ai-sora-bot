@@ -19,4 +19,6 @@ public class HistoryItemDTO {
     private String date;
     /** URL результатов после выполнения задания (пустой список, если не применимо). */
     private List<String> resultUrls;
+    /** Модель генерации (KLING_3_0, SORA_2, SUNO_V5, NANO_BANANA_PRO и т.д.), null для не-генераций. */
+    private String model;
 }

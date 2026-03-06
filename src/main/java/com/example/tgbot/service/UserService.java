@@ -1,12 +1,14 @@
 package com.example.tgbot.service;
 
 
+import com.example.tgbot.data.GenerationType;
 import com.example.tgbot.data.HistoryOperationType;
 import com.example.tgbot.db.OperationsHistory;
 import com.example.tgbot.db.ReferralLinks;
 import com.example.tgbot.db.User;
 import com.example.tgbot.db.repositories.OperationsHistoryRepository;
 import com.example.tgbot.db.repositories.ReferralLinksRepository;
+import com.example.tgbot.models.enums.GenerationModel;
 import com.example.tgbot.db.repositories.UserRepository;
 import com.example.tgbot.telegram.sessions.UserSession;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -136,7 +138,7 @@ public class UserService {
     }
 
     @Transactional
-    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload, List<String> resultUrls) {
+    public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload, List<String> resultUrls, GenerationModel model) {
         User user = session.getUser();
         if (user.getDiscount() != 1f) {
             price = Math.round(price * user.getDiscount());
@@ -154,6 +156,8 @@ public class UserService {
                     .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
                     .resultUrls(resultUrlsJson)
                     .operationType(HistoryOperationType.GENERATION_REQUEST)
+                    .generationType(model != null ? model.getGenerationType() : null)
+                    .model(model)
                     .build());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

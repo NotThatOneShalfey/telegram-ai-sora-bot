@@ -1,5 +1,6 @@
 package com.example.tgbot.models.enums;
 
+import com.example.tgbot.data.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -23,5 +24,14 @@ public enum GenerationModel {
             }
         }
         return null;
+    }
+
+    /** Маппинг модели на тип контента для фильтрации истории. */
+    public GenerationType getGenerationType() {
+        return switch (this) {
+            case KLING_3_0, SORA_2, SORA_2_WITH_IMAGE -> GenerationType.VIDEO;
+            case SUNO_V5 -> GenerationType.MUSIC;
+            case NANO_BANANA_PRO -> GenerationType.IMAGE;
+        };
     }
 }

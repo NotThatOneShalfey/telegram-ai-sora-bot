@@ -1,6 +1,8 @@
 package com.example.tgbot.db;
 
+import com.example.tgbot.data.GenerationType;
 import com.example.tgbot.data.HistoryOperationType;
+import com.example.tgbot.models.enums.GenerationModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +33,14 @@ public class OperationsHistory {
     @Enumerated(EnumType.STRING)
     @Column(name = "oh_operation_type")
     private HistoryOperationType operationType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oh_generation_type")
+    private GenerationType generationType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oh_model")
+    private GenerationModel model;
 
     @Column(name = "oh_gen_input")
     private String generationRequestInput;

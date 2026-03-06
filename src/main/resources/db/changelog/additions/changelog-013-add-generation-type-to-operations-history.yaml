@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-013-add-generation-type-to-operations-history
+      author: Konstantin
+      changes:
+        - addColumn:
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_generation_type
+                  type: varchar(32)

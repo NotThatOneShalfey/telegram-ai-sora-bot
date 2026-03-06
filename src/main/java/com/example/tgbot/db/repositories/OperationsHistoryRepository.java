@@ -1,5 +1,6 @@
 package com.example.tgbot.db.repositories;
 
+import com.example.tgbot.data.GenerationType;
 import com.example.tgbot.data.HistoryOperationType;
 import com.example.tgbot.db.OperationsHistory;
 import com.example.tgbot.db.User;
@@ -14,6 +15,8 @@ import java.util.UUID;
 public interface OperationsHistoryRepository extends JpaRepository<OperationsHistory, UUID> {
 
     List<OperationsHistory> findByUserIdOrderByOperationTimestampDesc(User user);
+
+    List<OperationsHistory> findByUserIdAndGenerationTypeOrderByOperationTimestampDesc(User user, GenerationType generationType);
 
     @Query("SELECT COALESCE(SUM(ABS(oh.balanceChange)), 0) FROM OperationsHistory oh " +
             "WHERE oh.operationType = :opType AND oh.userId IN :users " +
