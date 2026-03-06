@@ -10,7 +10,7 @@ databaseChangeLog:
               - column:
                   name: oh_operation_type
               - column:
-                  name: oh_operation_timestamp
+                  name: oh_timestamp
             remarks: Для агрегирующих запросов по типу операции и диапазону дат (AmbassadorStats)
         - createIndex:
             indexName: idx_oh_user_id_timestamp
@@ -19,7 +19,7 @@ databaseChangeLog:
               - column:
                   name: oh_user_id
               - column:
-                  name: oh_operation_timestamp
+                  name: oh_timestamp
                   descending: true
             remarks: Для выборки истории пользователя ORDER BY timestamp DESC
   - changeSet:
