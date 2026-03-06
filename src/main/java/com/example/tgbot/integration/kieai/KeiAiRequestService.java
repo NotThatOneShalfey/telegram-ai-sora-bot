@@ -43,24 +43,4 @@ public class KeiAiRequestService {
         }
     }
 
-    public String sendGetRequest(String endpoint, String jsonPayload) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + endpoint))
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + apiKey)  // если используется Bearer token
-                .GET()
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        int statusCode = response.statusCode();
-        String body = response.body();
-
-        if (statusCode >= 200 && statusCode < 300) {
-            return body; // успешный ответ, возвращаем тело
-        } else {
-            throw new RuntimeException("Failed: HTTP error code : " + statusCode + ", body: " + body);
-        }
-    }
-
 }

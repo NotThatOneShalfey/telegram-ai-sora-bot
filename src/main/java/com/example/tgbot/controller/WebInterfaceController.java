@@ -166,9 +166,7 @@ public class WebInterfaceController {
             return result
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.internalServerError().build());
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (JsonProcessingException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

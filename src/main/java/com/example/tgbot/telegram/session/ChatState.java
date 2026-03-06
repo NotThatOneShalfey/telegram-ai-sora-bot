@@ -6,5 +6,5 @@ import lombok.Getter;
 public enum ChatState {
     INITIAL,
     WAITING_FOR_IMAGE,
-    WAITING_FOR_TEXT;
+    WAITING_FOR_TEXT
 }

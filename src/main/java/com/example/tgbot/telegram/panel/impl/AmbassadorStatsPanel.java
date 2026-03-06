@@ -1,15 +1,14 @@
 package com.example.tgbot.telegram.panel.impl;
 
+import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.service.AmbassadorStatsService;
+import com.example.tgbot.telegram.TgBot;
+import com.example.tgbot.telegram.panel.IChatPanel;
 import com.example.tgbot.telegram.panel.PanelType;
 import com.example.tgbot.telegram.session.UserSession;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import com.example.tgbot.registry.ButtonRegistry;
-import com.example.tgbot.telegram.TgBot;
-import com.example.tgbot.telegram.panel.IChatPanel;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.List;
 

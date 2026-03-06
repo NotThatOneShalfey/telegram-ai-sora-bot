@@ -77,21 +77,6 @@ public class NanoBananaOptions implements IModelRequestOptions {
         }
     }
 
-    public void setImageInput(List<String> imageInput) {
-        if (this.imageInput.size() <= 8) {
-            if (this.imageInput.size() + imageInput.size() <= 8) {
-                this.imageInput.addAll(imageInput);
-            } else {
-                for (String image : imageInput) {
-                    this.imageInput.add(image);
-                    if (this.imageInput.size() == 8) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     public String convertToDTO() {
         try {
             return mapper.writeValueAsString(NanoBananaOptionsDTO.builder()

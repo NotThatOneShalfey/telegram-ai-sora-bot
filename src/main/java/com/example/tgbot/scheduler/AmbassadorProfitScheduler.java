@@ -1,6 +1,7 @@
 package com.example.tgbot.scheduler;
 
 import com.example.tgbot.domain.enums.HistoryOperationType;
+import com.example.tgbot.domain.model.ReferralLinks;
 import com.example.tgbot.domain.model.User;
 import com.example.tgbot.repository.OperationsHistoryRepository;
 import com.example.tgbot.repository.ReferralLinksRepository;
@@ -91,7 +92,7 @@ public class AmbassadorProfitScheduler {
 
     private BigDecimal calculateProfitForPeriod(User ambassador, LocalDateTime from, LocalDateTime to) {
         List<String> linkStrings = referralLinksRepository.findByCreator(ambassador).stream()
-                .map(rl -> rl.getLink())
+                .map(ReferralLinks::getLink)
                 .collect(Collectors.toList());
         if (linkStrings.isEmpty()) {
             return BigDecimal.ZERO;

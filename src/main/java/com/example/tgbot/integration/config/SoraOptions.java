@@ -83,21 +83,6 @@ public class SoraOptions implements IModelRequestOptions {
         return aspectRatio.equals("16:9") ? "landscape" : "portrait";
     }
 
-    public void setImageUrls(List<String> imageUrls) {
-        if (this.imageUrls.size() <= 2) {
-            if (this.imageUrls.size() + imageUrls.size() <= 2) {
-                this.imageUrls.addAll(imageUrls);
-            } else {
-                for (String image : imageUrls) {
-                    this.imageUrls.add(image);
-                    if (this.imageUrls.size() == 2) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     public String convertToDTO() {
         try {
             return mapper.writeValueAsString(SoraOptionsDTO.builder()

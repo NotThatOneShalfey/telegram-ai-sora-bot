@@ -13,9 +13,9 @@ public enum PaidPackageEnum {
     PACKAGE_1200("\"1200 монет\" - 1000 ₽", 1000, 1200),
     PACKAGE_6500("\"6500 монет\" - 5000 ₽", 5000, 6500);
 
-    private String buttonName;
-    private Integer packagePrice;
-    private Integer packageAmount;
+    private final String buttonName;
+    private final Integer packagePrice;
+    private final Integer packageAmount;
 
     PaidPackageEnum(String buttonName, Integer packagePrice, Integer packageAmount) {
         this.buttonName = buttonName;

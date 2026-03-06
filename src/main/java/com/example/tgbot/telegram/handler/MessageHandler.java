@@ -13,7 +13,6 @@ import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.button.enums.PaidPackageEnum;
 import com.example.tgbot.telegram.collector.TelegramMediaBatchCollector;
 import com.example.tgbot.telegram.executor.FileExecutor;
-import com.example.tgbot.telegram.panel.IChatPanel;
 import com.example.tgbot.telegram.panel.PanelType;
 import com.example.tgbot.telegram.session.UserSession;
 import com.example.tgbot.util.ErrorMessageHelper;
@@ -31,7 +30,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.example.tgbot.telegram.panel.PanelType.MAIN_MENU;
 

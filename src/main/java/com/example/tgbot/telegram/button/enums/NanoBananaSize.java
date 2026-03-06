@@ -15,8 +15,8 @@ public enum NanoBananaSize {
     SIZE_5_4("5:4", "5:4"),
     SIZE_4_5("4:5", "4:5"),
     SIZE_21_9("21:9", "21:9");
-    String value;
-    String buttonText;
+    final String value;
+    final String buttonText;
 
     NanoBananaSize(String value, String buttonText) {
         this.value = value;

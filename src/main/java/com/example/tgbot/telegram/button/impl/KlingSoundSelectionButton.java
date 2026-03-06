@@ -50,7 +50,7 @@ public class KlingSoundSelectionButton implements IButton {
 
     @Override
     public void executeOnCallback(UserSession session, String[] parameters) {
-        boolean currentWithSound = parameters.length >= 1 ? Boolean.parseBoolean(parameters[0]) : false;
+        boolean currentWithSound = parameters.length >= 1 && Boolean.parseBoolean(parameters[0]);
         boolean newWithSound = !currentWithSound; // toggle
         session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0).setParametersFromJson(getJsonForOptionsChange(newWithSound));
         panelRegistry.getChatPanel(PanelType.KLING_SETUP).execute(session);

@@ -148,15 +148,6 @@ public class TgBot extends TelegramWebhookBot {
         }
     }
 
-    public String processExampleRequest(String userName, GenerationModel model) {
-        log.trace("Call processExampleRequest with UserName={}", userName);
-        User user = userService.findUserByUserName(userName);
-        UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
-        userSession.touch();
-        IModelRequestOptions requestOptions = userSession.getCurrentRequestOptionsByModel(model);
-        return requestOptions.convertToDTO();
-    }
-
     /** Удаляет сессии, не активные более заданного времени. */
     public int cleanSessionsOlderThan(LocalDateTime cutoff) {
         int removed = 0;

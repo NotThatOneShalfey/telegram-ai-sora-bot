@@ -19,8 +19,4 @@ public class ReceivedFile {
     public String getFirstUrl() {
         return fileUrls.stream().findFirst().orElse(null);
     }
-
-    public void addResultingUrl(String url) {
-        fileUrls.add(url);
-    }
 }

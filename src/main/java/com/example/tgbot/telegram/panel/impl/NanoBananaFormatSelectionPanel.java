@@ -4,7 +4,6 @@ import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.registry.ButtonRegistry;
 import org.springframework.context.annotation.Lazy;
 import com.example.tgbot.telegram.TgBot;
-import com.example.tgbot.telegram.button.IButton;
 import com.example.tgbot.telegram.button.enums.AspectRatioEnum;
 import com.example.tgbot.telegram.button.ButtonType;
 import com.example.tgbot.telegram.panel.IChatPanel;

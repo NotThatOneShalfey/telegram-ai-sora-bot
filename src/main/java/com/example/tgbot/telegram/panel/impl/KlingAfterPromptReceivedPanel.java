@@ -7,7 +7,6 @@ import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.TgBot;
 import com.example.tgbot.telegram.panel.IChatPanel;
-import com.example.tgbot.telegram.panel.PanelHelper;
 import com.example.tgbot.telegram.panel.PanelType;
 import com.example.tgbot.telegram.session.UserSession;
 import org.springframework.stereotype.Component;

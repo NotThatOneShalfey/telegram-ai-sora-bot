@@ -176,7 +176,7 @@ public class CallbackHandler {
             JsonNode root = objectMapper.readTree(resultJsonStr);
 
             JsonNode urls = root.path("resultUrls");
-            if (urls.isArray() && urls.size() > 0) {
+            if (urls.isArray() && !urls.isEmpty()) {
                 String url = urls.get(0).asText(null);
                 if (url != null && !url.isBlank()) return url;
             }
