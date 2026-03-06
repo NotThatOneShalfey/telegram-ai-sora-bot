@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-020-set-ambassador-coefficient-default
+      author: Konstantin
+      changes:
+        - update:
+            tableName: users
+            columns:
+              - column:
+                  name: ambassador_profit_coefficient
+                  valueNumeric: 0.2
+            where: is_ambassador = true
