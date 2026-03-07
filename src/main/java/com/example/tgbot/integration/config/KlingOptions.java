@@ -3,6 +3,7 @@ package com.example.tgbot.integration.config;
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.dto.api.KlingOptionsDTO;
 import com.example.tgbot.telegram.button.enums.AspectRatioEnum;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -21,6 +22,7 @@ import java.util.Map;
 @Builder
 @Setter
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class KlingOptions implements IModelRequestOptions {
 
     private final ObjectMapper mapper = new JsonMapper();
