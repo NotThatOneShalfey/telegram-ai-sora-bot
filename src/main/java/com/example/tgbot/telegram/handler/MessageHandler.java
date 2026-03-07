@@ -99,14 +99,13 @@ public class MessageHandler {
         String text = message.getCaption() != null ? message.getCaption() : message.hasText() ? message.getText() : null;
         log.trace("Call -> handlePrompt -> hasImage={}, text={}, session={}", hasImage, text, session);
         if (text == null) {
-            session.setContextualMessage("Простите, не понял вашего сообщения.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E005));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         // Первичные проверки
         if (text.length() > 4999) {
-            session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\n" +
-                    "Попробуйте сократить текст до 5000 символов.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E005));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -155,7 +154,7 @@ public class MessageHandler {
         log.trace("Call -> handlePromptAndImage");
         String prompt = message.getCaption();
         if (prompt == null) {
-            session.setContextualMessage("Не удалось получить текст вместе с изображением. Пожалуйста, отправьте изображение вместе с текстом.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E005));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -166,7 +165,7 @@ public class MessageHandler {
             fileIds.add(message.getDocument().getFileId());
         }
         if (fileIds.isEmpty()) {
-            session.setContextualMessage("Не удалось получить файл изображения.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E006));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -183,17 +182,17 @@ public class MessageHandler {
      */
     public void handleMediaGroupBatch(String prompt, List<String> fileIds, UserSession session) {
         if (prompt == null || prompt.isBlank()) {
-            session.setContextualMessage("Не удалось получить текст вместе с изображениями. Пожалуйста, отправьте альбом с подписью.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E005));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         if (prompt.length() > 4999) {
-            session.setContextualMessage("\uD83D\uDCDD Ваш запрос слишком длинный.\nПопробуйте сократить текст до 5000 символов.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E005));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
         if (fileIds == null || fileIds.isEmpty()) {
-            session.setContextualMessage("Не удалось получить файлы изображений.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E006));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }
@@ -206,7 +205,7 @@ public class MessageHandler {
 
         GenerationModel model = session.getChatContext().getModel();
         if (model == null) {
-            session.setContextualMessage("Простите, не понял вашего сообщения.");
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E005));
             panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             return;
         }

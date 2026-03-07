@@ -5,6 +5,7 @@ import com.example.tgbot.domain.enums.GenerationType;
 import com.example.tgbot.dto.api.*;
 import com.example.tgbot.service.ImageUploadService;
 import com.example.tgbot.service.OperationsHistoryService;
+import com.example.tgbot.service.UserQueryService;
 import com.example.tgbot.service.WebInterfaceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -32,6 +33,7 @@ public class WebInterfaceController {
     private final WebInterfaceService webInterfaceService;
     private final ImageUploadService imageUploadService;
     private final OperationsHistoryService operationsHistoryService;
+    private final UserQueryService userQueryService;
     private final ObjectMapper mapper = new JsonMapper();
 
     @PostMapping("/kling")
@@ -134,6 +136,27 @@ public class WebInterfaceController {
     @GetMapping("/history/image")
     public ResponseEntity<?> getImageHistory(@RequestParam("userId") String userId) {
         return getHistoryByType(userId, GenerationType.IMAGE);
+    }
+
+    /**
+     * Информация о пользователе по userId (telegram ID): баланс и статус амбассадора.
+     * Ответ: {"balance": int, "ambassador": boolean}
+     */
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserInfo(@RequestParam("userId") String userId) {
+        try {
+            Long parsedUserId = parseUserId(userId);
+            return userQueryService.findUser(parsedUserId)
+                    .map(user -> {
+                        Map<String, Object> body = new HashMap<>();
+                        body.put("balance", user.getBalance() != null ? user.getBalance() : 0);
+                        body.put("ambassador", user.isAmbassador());
+                        return ResponseEntity.ok(body);
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     private ResponseEntity<?> getHistoryByType(String userId, GenerationType type) {
