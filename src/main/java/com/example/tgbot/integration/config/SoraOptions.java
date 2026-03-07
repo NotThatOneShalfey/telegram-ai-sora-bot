@@ -33,7 +33,7 @@ public class SoraOptions implements IModelRequestOptions {
     @Builder.Default
     private String aspectRatio = "9:16";
     @Builder.Default
-    private final String nFrames = "10";
+    private String nFrames = "10";
     @Builder.Default
     private List<String> imageUrls = new ArrayList<>();
 

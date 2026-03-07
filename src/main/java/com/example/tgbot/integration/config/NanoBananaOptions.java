@@ -35,10 +35,10 @@ public class NanoBananaOptions implements IModelRequestOptions {
     private String aspectRatio = AspectRatioEnum.FORMAT_9_16.getValue();
 
     @Builder.Default
-    private final String resolution = "2K";
+    private String resolution = "2K";
 
     @Builder.Default
-    private final String outputFormat = "png";
+    private String outputFormat = "png";
 
 
     @Override
