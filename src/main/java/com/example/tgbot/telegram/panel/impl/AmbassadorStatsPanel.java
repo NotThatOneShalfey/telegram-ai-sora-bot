@@ -48,7 +48,7 @@ public class AmbassadorStatsPanel extends AbstractSimpleMessagePanel implements 
                 💰 Прибыль: %s ₽
                 📈 Генераций: %d
                 
-                За всё время:
+                За предыдущие периоды:
                 👥 Приглашено: %d
                 💰 Прибыль: %s ₽
                 📈 Генераций: %d
