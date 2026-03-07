@@ -47,7 +47,12 @@ public class WebInterfaceService {
         if (record != null && record.getUserId().equals(userId)) {
             try {
                 Object options = parseOptions(record.getModel(), record.getOptionsJson());
-                WebGenerateResponse<Object> response = new WebGenerateResponse<>(record.getLinks(), options);
+                WebGenerateResponse<Object> response = new WebGenerateResponse<>(
+                        record.getLinks(),
+                        record.getModel(),
+                        record.getBalanceChange(),
+                        options
+                );
                 taskResultRegistry.remove(taskId);
                 return Optional.of(response);
             } catch (JsonProcessingException e) {

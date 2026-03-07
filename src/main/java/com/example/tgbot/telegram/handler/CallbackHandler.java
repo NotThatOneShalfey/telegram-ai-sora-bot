@@ -100,11 +100,13 @@ public class CallbackHandler {
             IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
             Long userId = session.getUser().getTelegramId();
             if (userId != null) {
+                int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
                 taskResultRegistry.put(taskId, new TaskResultRegistry.TaskResultRecord(
                         userId,
                         model,
                         requestOptions.convertToDTO(),
-                        urlResponses
+                        urlResponses,
+                        price
                 ));
             }
             if (source == TaskSource.CHAT) {

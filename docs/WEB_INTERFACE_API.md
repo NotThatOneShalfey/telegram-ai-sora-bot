@@ -309,9 +309,11 @@ const { urls } = await response.json();
 **200 OK**
 ```json
 {
-  "links": [
+  "resultUrls": [
     "https://cdn.example.com/result/video123.mp4"
   ],
+  "model": "KLING_3_0",
+  "balanceChange": -115,
   "options": {
     "aspectRatio": "9:16",
     "duration": 10,
@@ -323,7 +325,9 @@ const { urls } = await response.json();
 
 | Поле | Описание |
 |------|----------|
-| links | Массив URL на результат (видео/аудио/изображения) |
+| resultUrls | Массив URL на результат (видео/аудио/изображения) |
+| model | Модель генерации (`KLING_3_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
+| balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
 
 **200 OK** (при ошибке задачи) — если задача завершилась с ошибкой:

@@ -35,5 +35,7 @@ public class TaskResultRegistry {
         private final GenerationModel model;
         private final String optionsJson;
         private final List<String> links;
+        /** Цена генерации (balanceChange при списании) */
+        private final int balanceChange;
     }
 }
