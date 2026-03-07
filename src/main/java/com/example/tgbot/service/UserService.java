@@ -47,10 +47,6 @@ public class UserService {
         return userQueryService.findOrCreateUser(chatId);
     }
 
-    public User findUserByUserName(String userName) {
-        return userQueryService.findUserByUserName(userName);
-    }
-
     @Transactional
     public void updateUserCredentials(User user, String userName, String referralLink) {
         Optional<User> existing = userQueryService.findById(user.getId());
@@ -76,23 +72,24 @@ public class UserService {
 
     @Transactional
     public User addBalance(User user, int amount) {
+        User existing = userQueryService.findById(user.getId()).orElse(null);
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
-        user.setBalance(user.getBalance() + amount);
+        existing.setBalance(existing.getBalance() + amount);
 
         historyRepository.save(OperationsHistory.builder()
                 .balanceChange((float) amount)
-                .userId(user)
+                .userId(existing)
                 .generationRequestInput(null)
                 .operationType(HistoryOperationType.BALANCE_CHANGE)
                 .build());
-        return userRepository.save(user);
+        return userRepository.save(existing);
     }
 
     @Transactional
     public User putOnHold(UserSession session, int price, Map<String, Object> requestPayload) {
-        User user = session.getUser();
+        User user = userQueryService.findById(session.getUser().getId()).orElse(null);
         if (price <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
@@ -113,7 +110,7 @@ public class UserService {
     }
     @Transactional
     public User rechargeFromHold(UserSession session, int price, Map<String, Object> requestPayload) {
-        User user = session.getUser();
+        User user = userQueryService.findById(session.getUser().getId()).orElse(null);
         user.setBalance(user.getBalance() + price);
         user.setBalanceHold(user.getBalanceHold() - price);
 
@@ -133,7 +130,7 @@ public class UserService {
     @Transactional
     public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload,
                                      List<?> resultItems, GenerationModel model, BigDecimal costRub) {
-        User user = session.getUser();
+        User user = userQueryService.findById(session.getUser().getId()).orElse(null);
         if (user.getBalanceHold() >= price) {
             user.setBalanceHold(user.getBalanceHold() - price);
         }
@@ -159,15 +156,16 @@ public class UserService {
 
     @Transactional
     public User addGift(User user) {
-        user.setBalance(user.getBalance() + 100);
-        user.setBonusReceived(true);
+        User existing = userQueryService.findById(user.getId()).orElse(null);
+        existing.setBalance(user.getBalance() + 100);
+        existing.setBonusReceived(true);
         historyRepository.save(OperationsHistory.builder()
                 .balanceChange(100F)
-                .userId(user)
+                .userId(existing)
                 .generationRequestInput(null)
                 .operationType(HistoryOperationType.GIFT)
                 .build());
-        return userRepository.save(user);
+        return userRepository.save(existing);
     }
 
     public boolean checkReferral(String referralLink) {
@@ -185,7 +183,7 @@ public class UserService {
     }
 
     public boolean checkBalanceBeforeGeneration(UserSession session, int price) {
-        User user = session.getUser();
+        User user = userQueryService.findById(session.getUser().getId()).orElse(null);
         int current = user.getBalance();
         return current >= price;
     }
