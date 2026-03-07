@@ -56,23 +56,27 @@ public class PriceRegistryService {
     // Клинг высчитываем от себестоимости
     private int calculateBasePrice(GenerationModel model, IModelRequestOptions options) {
         if (model == GenerationModel.KLING_3_0 && options instanceof KlingOptions kling) {
-            return getKlingCostUsd(kling).setScale(0, RoundingMode.HALF_UP).intValue();
+            return calculateKlingPrice(kling);
         }
         return getFixedPrice(model);
     }
 
+//    private int calculateKlingPrice(KlingOptions kling) {
+//        String priceKey = buildKlingPriceKey(kling.getMode(), kling.isWithSound());
+//        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKey(
+//                GenerationModel.KLING_3_0.name(), priceKey);
+//        if (reg.isEmpty()) {
+//            log.warn("No price for Kling key={}, using fallback", priceKey);
+//            return 77; // fallback ≈ base 7.66 * duration 10
+//        }
+//        PriceRegistry r = reg.get();
+//        BigDecimal base = r.getBasePrice();
+//        int duration = kling.getDuration() > 0 ? kling.getDuration() : 10;
+//        return base.multiply(BigDecimal.valueOf(duration)).setScale(0, RoundingMode.HALF_UP).intValue();
+//    }
+
     private int calculateKlingPrice(KlingOptions kling) {
-        String priceKey = buildKlingPriceKey(kling.getMode(), kling.isWithSound());
-        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKey(
-                GenerationModel.KLING_3_0.name(), priceKey);
-        if (reg.isEmpty()) {
-            log.warn("No price for Kling key={}, using fallback", priceKey);
-            return 77; // fallback ≈ base 7.66 * duration 10
-        }
-        PriceRegistry r = reg.get();
-        BigDecimal base = r.getBasePrice();
-        int duration = kling.getDuration() > 0 ? kling.getDuration() : 10;
-        return base.multiply(BigDecimal.valueOf(duration)).setScale(0, RoundingMode.HALF_UP).intValue();
+        return getCostRub(GenerationModel.KLING_3_0, kling).intValue();
     }
 
     private static String buildKlingPriceKey(String mode, boolean withSound) {
