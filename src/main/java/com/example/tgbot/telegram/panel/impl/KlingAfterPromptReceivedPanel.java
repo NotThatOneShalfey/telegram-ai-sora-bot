@@ -33,7 +33,7 @@ public class KlingAfterPromptReceivedPanel extends AbstractSimpleMessagePanel im
     @Override
     public void execute(UserSession session) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
-        userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.KLING_3_0, requestOptions, session.getUser()), requestOptions.getRequestInput());
+        session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.KLING_3_0, requestOptions, session.getUser()), requestOptions.getRequestInput()));
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 

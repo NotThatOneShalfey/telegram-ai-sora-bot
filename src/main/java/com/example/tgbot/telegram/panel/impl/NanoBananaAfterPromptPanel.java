@@ -33,7 +33,7 @@ public class NanoBananaAfterPromptPanel extends AbstractSimpleMessagePanel imple
     @Override
     public void execute(UserSession session) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.NANO_BANANA_PRO);
-        userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.NANO_BANANA_PRO, requestOptions, session.getUser()), requestOptions.getRequestInput());
+        session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.NANO_BANANA_PRO, requestOptions, session.getUser()), requestOptions.getRequestInput()));
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 

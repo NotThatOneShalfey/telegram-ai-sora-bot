@@ -134,7 +134,7 @@ public class CallbackHandler {
             sessionRegistry.removeWaitingSession(taskId);
             int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
             var costRub = priceRegistryService.getCostRub(requestOptions.getModel(), requestOptions);
-            userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), resultItems, requestOptions.getModel(), costRub);
+            session.setUser(userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), resultItems, requestOptions.getModel(), costRub));
             if (source == TaskSource.CHAT) {
                 panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
             }
@@ -145,7 +145,7 @@ public class CallbackHandler {
                 if (session != null) {
                     IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
                     int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
-                    userService.rechargeFromHold(session, price, requestOptions.getRequestInput());
+                    session.setUser(userService.rechargeFromHold(session, price, requestOptions.getRequestInput()));
                     Long userId = session.getUser().getTelegramId();
                     if (userId != null) taskErrorRegistry.put(taskId, userId, ErrorCode.E007);
                     if (source == TaskSource.CHAT) {
@@ -170,7 +170,7 @@ public class CallbackHandler {
         session.touch();
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
         int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
-        userService.rechargeFromHold(session, price, requestOptions.getRequestInput());
+        session.setUser(userService.rechargeFromHold(session, price, requestOptions.getRequestInput()));
 
         ErrorCode errorCode = ErrorCode.E011;
         Long userId = session.getUser().getTelegramId();
@@ -203,7 +203,7 @@ public class CallbackHandler {
 
 
             JsonNode wm = root.path("resultWaterMarkUrls");
-            if (wm.isArray() && wm.size() > 0) {
+            if (wm.isArray() && !wm.isEmpty()) {
                 String url = wm.get(0).asText(null);
                 if (url != null && !url.isBlank()) return url;
             }

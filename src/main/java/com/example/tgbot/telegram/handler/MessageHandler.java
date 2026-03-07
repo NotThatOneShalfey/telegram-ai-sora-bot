@@ -77,7 +77,7 @@ public class MessageHandler {
         }
         // Если завершение оплаты
         if (message.getSuccessfulPayment() != null) {
-            userService.addBalance(user, PaidPackageEnum.getPackagePriceByName(message.getSuccessfulPayment().getInvoicePayload()));
+            session.setUser(userService.addBalance(user, PaidPackageEnum.getPackagePriceByName(message.getSuccessfulPayment().getInvoicePayload())));
             session.setContextualMessage("Оплата успешно зафиксирована!");
             panelRegistry.getChatPanel(MAIN_MENU).execute(session);
             return;

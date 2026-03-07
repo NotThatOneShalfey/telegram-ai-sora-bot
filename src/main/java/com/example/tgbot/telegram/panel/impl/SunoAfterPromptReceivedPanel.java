@@ -33,7 +33,7 @@ public class SunoAfterPromptReceivedPanel extends AbstractSimpleMessagePanel imp
     @Override
     public void execute(UserSession session) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.SUNO_V5);
-        userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.SUNO_V5, requestOptions, session.getUser()), requestOptions.getRequestInput());
+        session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.SUNO_V5, requestOptions, session.getUser()), requestOptions.getRequestInput()));
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 

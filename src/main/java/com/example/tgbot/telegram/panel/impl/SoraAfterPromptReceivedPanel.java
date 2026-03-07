@@ -33,7 +33,7 @@ public class SoraAfterPromptReceivedPanel extends AbstractSimpleMessagePanel imp
     @Override
     public void execute(UserSession session) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.SORA_2);
-        userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.SORA_2, requestOptions, session.getUser()), requestOptions.getRequestInput());
+        session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.SORA_2, requestOptions, session.getUser()), requestOptions.getRequestInput()));
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 

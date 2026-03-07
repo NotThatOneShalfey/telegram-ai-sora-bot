@@ -16,8 +16,8 @@ import java.util.*;
 @Getter
 @ToString
 public class UserSession {
-
-    private final User user;
+    @Setter
+    private User user;
     private final String chatId;
     @Setter
     private LocalDateTime lastActionDateTime;

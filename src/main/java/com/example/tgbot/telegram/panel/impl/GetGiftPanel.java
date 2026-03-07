@@ -29,7 +29,7 @@ public class GetGiftPanel extends AbstractSimpleMessagePanel implements IChatPan
 
     @Override
     public void execute(UserSession session) {
-        userService.addGift(session.getUser());
+        session.setUser(userService.addGift(session.getUser()));
         super.executeSendMessage(session, getText(), getKeyboard(), true);
     }
 
