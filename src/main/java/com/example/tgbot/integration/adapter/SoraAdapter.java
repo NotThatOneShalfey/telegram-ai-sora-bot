@@ -1,6 +1,7 @@
 package com.example.tgbot.integration.adapter;
 
 import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.integration.kieai.CreateTaskResponse;
 import com.example.tgbot.integration.kieai.KeiAiRequestService;
@@ -55,8 +56,11 @@ public class SoraAdapter implements IRequestAdapter {
             CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
             String taskId = taskResponse.getData().getTaskId();
             session.setTaskIdForCurrentModelConfiguration(taskId, model);
-            sessionRegistry.putWaitingSession(taskId, session);
-            panelRegistry.getChatPanel(PanelType.SORA_2_AFTER_PROMPT_RECEIVED).execute(session);
+            TaskSource source = session.getRequestSource();
+            sessionRegistry.putWaitingSession(taskId, session, source);
+            if (source == TaskSource.CHAT) {
+                panelRegistry.getChatPanel(PanelType.SORA_2_AFTER_PROMPT_RECEIVED).execute(session);
+            }
             return Optional.of(taskId);
         } catch (Exception e) {
             log.error("Error sending Sora request", e);

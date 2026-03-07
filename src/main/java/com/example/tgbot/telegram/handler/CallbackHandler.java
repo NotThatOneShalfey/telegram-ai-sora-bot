@@ -3,6 +3,7 @@ package com.example.tgbot.telegram.handler;
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.value.ErrorCode;
 import com.example.tgbot.domain.value.Operation;
+import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.integration.kieai.ReceivedFile;
 import com.example.tgbot.integration.kieai.RecordInfoResponse;
@@ -92,13 +93,11 @@ public class CallbackHandler {
     }
 
     private void processUrlResponses(String taskId, List<String> urlResponses, GenerationModel model) {
+        TaskSource source = sessionRegistry.getTaskSource(taskId);
         try {
-            // Получаем сессию из ожидающих ответа
             UserSession session = sessionRegistry.getWaitingSession(taskId);
             if (session != null) session.touch();
-            // Получаем с какими опциями мы делали
             IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
-            // Сохраняем результат для web-интерфейса (запрос по userId + taskId)
             Long userId = session.getUser().getTelegramId();
             if (userId != null) {
                 taskResultRegistry.put(taskId, new TaskResultRegistry.TaskResultRecord(
@@ -108,22 +107,21 @@ public class CallbackHandler {
                         urlResponses
                 ));
             }
-            // Складываем в инфу о текущем отправляемом файле
-            session.setReceivedFile(ReceivedFile.builder()
-                    .fileUrls(urlResponses)
-                    .model(model)
-                    .requestOptions(requestOptions)
-                    .build());
-            // Убираем настройки с заданием
+            if (source == TaskSource.CHAT) {
+                session.setReceivedFile(ReceivedFile.builder()
+                        .fileUrls(urlResponses)
+                        .model(model)
+                        .requestOptions(requestOptions)
+                        .build());
+            }
             session.removeRequestConfigurationAfterTaskCompletion(taskId);
-            // И убираем сессию из списка ожидающих
             sessionRegistry.removeWaitingSession(taskId);
-            // Снимаем деньги (итоговая цена с учётом коэффициента амбассадора)
             int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
             var costRub = priceRegistryService.getCostRub(requestOptions.getModel(), requestOptions);
             userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), urlResponses, requestOptions.getModel(), costRub);
-            // Вызываем панель для отправки файла
-            panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
+            if (source == TaskSource.CHAT) {
+                panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
+            }
         } catch (IllegalStateException e) {
             log.error(e.getMessage());
             try {
@@ -134,9 +132,11 @@ public class CallbackHandler {
                     userService.rechargeFromHold(session, price, requestOptions.getRequestInput());
                     Long userId = session.getUser().getTelegramId();
                     if (userId != null) taskErrorRegistry.put(taskId, userId, ErrorCode.E007);
-                    session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(requestOptions.getModel()), ErrorCode.E007));
+                    if (source == TaskSource.CHAT) {
+                        session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(requestOptions.getModel()), ErrorCode.E007));
+                        panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+                    }
                     sessionRegistry.removeWaitingSession(taskId);
-                    panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
                 }
             } catch (Exception ex) {
                 log.error("Error handling parse failure", ex);
@@ -150,19 +150,23 @@ public class CallbackHandler {
             log.error("No session for failed taskId={}", taskId);
             return;
         }
+        TaskSource source = sessionRegistry.getTaskSource(taskId);
         session.touch();
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
         int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
         userService.rechargeFromHold(session, price, requestOptions.getRequestInput());
 
-        Operation operation = Operation.fromModel(requestOptions.getModel());
         ErrorCode errorCode = ErrorCode.E011;
         Long userId = session.getUser().getTelegramId();
         if (userId != null) {
             taskErrorRegistry.put(taskId, userId, errorCode);
         }
-        session.setContextualMessage(ErrorMessageHelper.forTelegram(operation, errorCode));
-        panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+        sessionRegistry.removeWaitingSession(taskId);
+        if (source == TaskSource.CHAT) {
+            Operation operation = Operation.fromModel(requestOptions.getModel());
+            session.setContextualMessage(ErrorMessageHelper.forTelegram(operation, errorCode));
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+        }
     }
 
     private String extractUrlFromRecordInfo(RecordInfoResponse resp) {

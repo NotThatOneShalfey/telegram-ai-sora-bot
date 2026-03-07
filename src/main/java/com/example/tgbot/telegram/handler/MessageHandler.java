@@ -3,6 +3,7 @@ package com.example.tgbot.telegram.handler;
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.model.User;
 import com.example.tgbot.domain.value.ErrorCode;
+import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.domain.value.Operation;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.registry.AdapterRegistry;
@@ -139,6 +140,7 @@ public class MessageHandler {
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
                 return;
             }
+            session.setRequestSource(TaskSource.CHAT);
             adapterRegistry.getAdapter(model).makeRequest(session);
         }
     }
@@ -219,6 +221,7 @@ public class MessageHandler {
 
         try {
             handlePromptWithFileIds(prompt, fileIds, session, model);
+            session.setRequestSource(TaskSource.CHAT);
             adapterRegistry.getAdapter(model).makeRequest(session);
         } catch (JsonProcessingException e) {
             log.error("Couldn't process media batch. Error -> {}", e.getMessage());

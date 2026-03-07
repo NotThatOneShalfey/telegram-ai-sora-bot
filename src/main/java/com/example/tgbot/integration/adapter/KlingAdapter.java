@@ -1,6 +1,7 @@
 package com.example.tgbot.integration.adapter;
 
 import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.integration.kieai.CreateTaskResponse;
 import com.example.tgbot.integration.kieai.KeiAiRequestService;
@@ -53,8 +54,11 @@ public class KlingAdapter implements IRequestAdapter {
             CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
             String taskId = taskResponse.getData().getTaskId();
             session.setTaskIdForCurrentModelConfiguration(taskId, GenerationModel.KLING_3_0);
-            sessionRegistry.putWaitingSession(taskId, session);
-            panelRegistry.getChatPanel(PanelType.KLING_AFTER_PROMPT_RECEIVED).execute(session);
+            TaskSource source = session.getRequestSource();
+            sessionRegistry.putWaitingSession(taskId, session, source);
+            if (source == TaskSource.CHAT) {
+                panelRegistry.getChatPanel(PanelType.KLING_AFTER_PROMPT_RECEIVED).execute(session);
+            }
             return Optional.of(taskId);
         } catch (JsonProcessingException | RuntimeException e) {
             log.error("Error during mapping response onto CreateTaskResponse Object -> {}", e.getMessage());

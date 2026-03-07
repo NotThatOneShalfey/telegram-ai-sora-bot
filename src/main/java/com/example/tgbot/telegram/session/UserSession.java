@@ -1,6 +1,7 @@
 package com.example.tgbot.telegram.session;
 
 import com.example.tgbot.domain.model.User;
+import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.*;
 import com.example.tgbot.integration.kieai.ReceivedFile;
 import com.example.tgbot.domain.enums.GenerationModel;
@@ -26,6 +27,9 @@ public class UserSession {
     private ChatContext chatContext;
     @Setter
     private ReceivedFile receivedFile;
+    /** Источник запроса (WEB/CHAT) — задаётся перед вызовом makeRequest, используется для изоляции чата и веба */
+    @Setter
+    private TaskSource requestSource;
     private final List<TelegramRequestConfiguration> requestConfigurationList = new ArrayList<>();
 
     public UserSession(User user) {
@@ -100,6 +104,11 @@ public class UserSession {
     /** Обновляет lastActionDateTime текущим временем. Вызывать при любой операции с сессией. */
     public void touch() {
         this.lastActionDateTime = LocalDateTime.now();
+    }
+
+    /** Источник запроса; по умолчанию CHAT (если не задан). */
+    public TaskSource getRequestSource() {
+        return requestSource != null ? requestSource : TaskSource.CHAT;
     }
 
 }
