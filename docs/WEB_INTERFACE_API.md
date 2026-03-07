@@ -323,9 +323,25 @@ const { urls } = await response.json();
 }
 ```
 
+**200 OK** (SUNO_V5 — расширенная структура):
+```json
+{
+  "resultUrls": [
+    {
+      "audioUrl": "https://cdn.example.com/audio/track1.mp3",
+      "imageUrl": "https://cdn.example.com/cover/track1.jpg",
+      "title": "My Song Title"
+    }
+  ],
+  "model": "SUNO_V5",
+  "balanceChange": -50,
+  "options": { "prompt": "...", ... }
+}
+```
+
 | Поле | Описание |
 |------|----------|
-| resultUrls | Массив URL на результат (видео/аудио/изображения) |
+| resultUrls | Массив URL или объектов. Для Kling/Sora/NanoBanana — строки URL. Для SUNO_V5 — объекты `{audioUrl, imageUrl, title}`. |
 | model | Модель генерации (`KLING_3_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
 | balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
@@ -452,7 +468,7 @@ const { urls } = await response.json();
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании) |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | URL результатов (пустой массив для операций без результата) |
+| resultUrls | URL или элементы результатов. Для SUNO_V5 — объекты `{audioUrl, imageUrl, title}`; для остальных — строки URL. Пустой массив, если не применимо. |
 | model | Модель генерации (`KLING_3_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
 
 При отсутствии пользователя возвращается `{ "balance": null, "items": [] }`.

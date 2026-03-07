@@ -29,7 +29,10 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -75,9 +78,9 @@ public class CallbackHandler {
             log.error("Response from model {} failed - {}", model, response);
             processFailedResponse(response.getData().getTaskId());
         } else if (Objects.equals(response.getData().getState(), "complete") || Objects.equals(response.getData().getState(), "success")) {
-            List<String> urlResponses = new ArrayList<>();
-            urlResponses.add(extractUrlFromRecordInfo(response));
-            processUrlResponses(response.getData().getTaskId(), urlResponses, model);
+            String url = extractUrlFromRecordInfo(response);
+            List<Object> resultItems = Collections.singletonList(Map.<String, Object>of("url", url));
+            processResultResponses(response.getData().getTaskId(), resultItems, List.of(url), model);
         }
     }
 
@@ -86,13 +89,24 @@ public class CallbackHandler {
             log.error("Response from model {} failed - {}", model, response);
             processFailedResponse(response.getData().getTaskId());
         } else if (Objects.equals(response.getData().getCallbackType(), "complete") || Objects.equals(response.getData().getCallbackType(), "success")) {
-            List<String> urlResponses = new ArrayList<>();
-            response.getData().getData().forEach(dataBlock -> urlResponses.add(dataBlock.getAudioUrl()));
-            processUrlResponses(response.getData().getTaskId(), urlResponses, model);
+            List<Object> sunoItems = new ArrayList<>();
+            List<String> audioUrls = new ArrayList<>();
+            for (SunoInfoResponse.DataBlock db : response.getData().getData()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("audioUrl", db.getAudioUrl() != null ? db.getAudioUrl() : "");
+                item.put("imageUrl", db.getImageUrl() != null ? db.getImageUrl() : "");
+                item.put("title", db.getTitle() != null ? db.getTitle() : "");
+                item.put("text", db.getPrompt() != null ? db.getPrompt() : "");
+                sunoItems.add(item);
+                if (db.getAudioUrl() != null && !db.getAudioUrl().isBlank()) {
+                    audioUrls.add(db.getAudioUrl());
+                }
+            }
+            processResultResponses(response.getData().getTaskId(), sunoItems, audioUrls, model);
         }
     }
 
-    private void processUrlResponses(String taskId, List<String> urlResponses, GenerationModel model) {
+    private void processResultResponses(String taskId, List<Object> resultItems, List<String> fileUrls, GenerationModel model) {
         TaskSource source = sessionRegistry.getTaskSource(taskId);
         try {
             UserSession session = sessionRegistry.getWaitingSession(taskId);
@@ -105,13 +119,13 @@ public class CallbackHandler {
                         userId,
                         model,
                         requestOptions.convertToDTO(),
-                        urlResponses,
+                        resultItems,
                         price
                 ));
             }
             if (source == TaskSource.CHAT) {
                 session.setReceivedFile(ReceivedFile.builder()
-                        .fileUrls(urlResponses)
+                        .fileUrls(fileUrls)
                         .model(model)
                         .requestOptions(requestOptions)
                         .build());
@@ -120,7 +134,7 @@ public class CallbackHandler {
             sessionRegistry.removeWaitingSession(taskId);
             int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
             var costRub = priceRegistryService.getCostRub(requestOptions.getModel(), requestOptions);
-            userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), urlResponses, requestOptions.getModel(), costRub);
+            userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), resultItems, requestOptions.getModel(), costRub);
             if (source == TaskSource.CHAT) {
                 panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
             }

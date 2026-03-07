@@ -34,7 +34,8 @@ public class TaskResultRegistry {
         private final Long userId;
         private final GenerationModel model;
         private final String optionsJson;
-        private final List<String> links;
+        /** Элементы результата: List<Map> для Suno (audioUrl, imageUrl, title), List<Map> для других (url) */
+        private final List<Object> resultItems;
         /** Цена генерации (balanceChange при списании) */
         private final int balanceChange;
     }

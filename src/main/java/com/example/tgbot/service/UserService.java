@@ -132,14 +132,14 @@ public class UserService {
 
     @Transactional
     public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload,
-                                     List<String> resultUrls, GenerationModel model, BigDecimal costRub) {
+                                     List<?> resultItems, GenerationModel model, BigDecimal costRub) {
         User user = session.getUser();
         if (user.getBalanceHold() >= price) {
             user.setBalanceHold(user.getBalanceHold() - price);
         }
         try {
-            String resultUrlsJson = resultUrls != null && !resultUrls.isEmpty()
-                    ? objectMapper.writeValueAsString(resultUrls)
+            String resultUrlsJson = resultItems != null && !resultItems.isEmpty()
+                    ? objectMapper.writeValueAsString(resultItems)
                     : null;
             historyRepository.save(OperationsHistory.builder()
                     .balanceChange((float) (price * -1))

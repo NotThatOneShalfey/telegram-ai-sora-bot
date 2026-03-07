@@ -6,6 +6,7 @@ import com.example.tgbot.dto.api.HistoryItemDTO;
 import com.example.tgbot.dto.api.HistoryResponseDTO;
 import com.example.tgbot.repository.OperationsHistoryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,12 +50,12 @@ public class OperationsHistoryService {
 
     private HistoryItemDTO toHistoryItemDTO(OperationsHistory oh) {
         Map<String, Object> options = parseOptions(oh.getGenerationRequestInput());
-        List<String> resultUrls = parseResultUrls(oh.getResultUrls());
+        List<?> resultItems = parseResultItems(oh.getResultUrls());
         String date = oh.getOperationTimestamp() != null
                 ? oh.getOperationTimestamp().toInstant().atZone(ZoneId.systemDefault()).format(ISO_FORMATTER)
                 : null;
         String model = oh.getModel() != null ? oh.getModel().name() : null;
-        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultUrls, model);
+        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultItems, model);
     }
 
     private Map<String, Object> parseOptions(String json) {
@@ -69,15 +70,18 @@ public class OperationsHistoryService {
         }
     }
 
-    private List<String> parseResultUrls(String json) {
+    private List<?> parseResultItems(String json) {
         if (json == null || json.isBlank()) {
             return List.of();
         }
         try {
-            List<String> urls = objectMapper.readValue(json, new TypeReference<List<String>>() {});
-            return urls != null ? urls : List.of();
+            JsonNode node = objectMapper.readTree(json);
+            if (!node.isArray()) {
+                return List.of();
+            }
+            return objectMapper.convertValue(node, new TypeReference<List<Object>>() {});
         } catch (Exception e) {
-            log.warn("Failed to parse resultUrls: {}", e.getMessage());
+            log.warn("Failed to parse resultItems: {}", e.getMessage());
             return List.of();
         }
     }

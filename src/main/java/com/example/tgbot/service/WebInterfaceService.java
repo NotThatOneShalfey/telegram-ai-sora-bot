@@ -48,7 +48,7 @@ public class WebInterfaceService {
             try {
                 Object options = parseOptions(record.getModel(), record.getOptionsJson());
                 WebGenerateResponse<Object> response = new WebGenerateResponse<>(
-                        record.getLinks(),
+                        record.getResultItems(),
                         record.getModel(),
                         record.getBalanceChange(),
                         options
