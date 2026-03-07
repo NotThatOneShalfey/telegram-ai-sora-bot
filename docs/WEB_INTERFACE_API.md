@@ -95,12 +95,8 @@ const { urls } = await response.json();
     "duration": 10,
     "withSound": false,
     "mode": "std",
-    "multiShots": false,
     "imageUrls": ["https://..."],
-    "prompt": "Текстовое описание сцены",
-    "multiShotRequestArray": [
-      { "prompt": "Описание кадра", "duration": 5 }
-    ]
+    "prompt": "Текстовое описание сцены"
   }
 }
 ```
@@ -112,10 +108,8 @@ const { urls } = await response.json();
 | options.duration | number | нет | Длительность в секундах (по умолчанию 10) |
 | options.withSound | boolean | нет | Добавлять ли звук |
 | options.mode | string | нет | Режим: `"std"`, `"pro"` |
-| options.multiShots | boolean | нет | Мультикадровый режим |
 | options.imageUrls | string[] | нет | URL изображений (результат `/upload`) |
 | options.prompt | string | да | Промпт для генерации |
-| options.multiShotRequestArray | array | нет | Массив `{prompt, duration}` для multiShots |
 
 ### Response
 
@@ -330,7 +324,8 @@ const { urls } = await response.json();
     {
       "audioUrl": "https://cdn.example.com/audio/track1.mp3",
       "imageUrl": "https://cdn.example.com/cover/track1.jpg",
-      "title": "My Song Title"
+      "title": "My Song Title",
+      "text": "Текст промпта, использованного для генерации"
     }
   ],
   "model": "SUNO_V5",
@@ -341,7 +336,7 @@ const { urls } = await response.json();
 
 | Поле | Описание |
 |------|----------|
-| resultUrls | Массив URL или объектов. Для Kling/Sora/NanoBanana — строки URL. Для SUNO_V5 — объекты `{audioUrl, imageUrl, title}`. |
+| resultUrls | Массив URL или объектов. Для Kling/Sora/NanoBanana — строки URL. Для SUNO_V5 — объекты `{audioUrl, imageUrl, title, text}`. |
 | model | Модель генерации (`KLING_3_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
 | balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
@@ -468,7 +463,7 @@ const { urls } = await response.json();
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании) |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | URL или элементы результатов. Для SUNO_V5 — объекты `{audioUrl, imageUrl, title}`; для остальных — строки URL. Пустой массив, если не применимо. |
+| resultUrls | URL или элементы результатов. Для SUNO_V5 — объекты `{audioUrl, imageUrl, title, text}`; для остальных — строки URL. Пустой массив, если не применимо. |
 | model | Модель генерации (`KLING_3_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
 
 При отсутствии пользователя возвращается `{ "balance": null, "items": [] }`.
@@ -481,7 +476,7 @@ const { urls } = await response.json();
 2. **Запуск генерации**: `POST /kling` (или `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput` из шага 1)
 3. **Получение `taskId` и `balance`** из ответа — обновите отображение баланса на фронте
 4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
-5. **Отображение/сохранение** ссылок из `response.links`
+5. **Отображение/сохранение** ссылок из `response.resultUrls`
 6. **История** — по типу контента: `GET /history/video`, `/history/music`, `/history/image` с `userId`; в ответе — `balance` и `items`
 
 ---
