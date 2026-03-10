@@ -36,7 +36,7 @@ public class AmbassadorStatsService {
         List<String> linkStrings = getLinkStrings(ambassador);
         if (linkStrings.isEmpty()) return 0;
         LocalDateTime[] range = getPeriodRange();
-        return userRepository.countByLinkUsedInAndCreatedAtBetween(
+        return userRepository.countByLinkUsedInAndCreatedAtBetweenAndAmbassadorFalse(
                 linkStrings,
                 range[0].atZone(ZoneId.systemDefault()).toInstant(),
                 range[1].atZone(ZoneId.systemDefault()).toInstant());
@@ -46,7 +46,7 @@ public class AmbassadorStatsService {
     public long getReferralCountTotal(User ambassador) {
         List<String> linkStrings = getLinkStrings(ambassador);
         if (linkStrings.isEmpty()) return 0;
-        return userRepository.countByLinkUsedIn(linkStrings);
+        return userRepository.countByLinkUsedInAndAmbassadorFalse(linkStrings);
     }
 
     /** Прибыль за текущий период * коэффициент (для отображения) */
@@ -114,7 +114,7 @@ public class AmbassadorStatsService {
     private List<User> getReferredUsers(User ambassador) {
         List<String> linkStrings = getLinkStrings(ambassador);
         if (linkStrings.isEmpty()) return List.of();
-        return userRepository.findByLinkUsedIn(linkStrings);
+        return userRepository.findByLinkUsedInAndAmbassadorFalse(linkStrings);
     }
 
     /** [from, to] — начало и конец текущего периода */
