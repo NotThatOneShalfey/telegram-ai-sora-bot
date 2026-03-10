@@ -71,7 +71,7 @@ public class ImageUploadService {
             Path targetPath = uploadPath.resolve(fileId);
             file.transferTo(targetPath.toFile());
             String url = baseUrl.replaceAll("/$", "") + endpointVersion
-                    + "/v1/web/files/" + fileId + "." + StringUtils.getFilenameExtension(file.getOriginalFilename());
+                    + "/v1/web/files/" + fileId;
             urls.add(url);
             log.trace("Saved uploaded file: {} -> {}", fileId, url);
         }
