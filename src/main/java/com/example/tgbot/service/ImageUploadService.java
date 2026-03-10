@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
@@ -42,6 +43,9 @@ public class ImageUploadService {
     @Value("${web.uploaded-files-base-url:http://localhost:8080}")
     private String baseUrl;
 
+    @Value("${telegram.bot.version-endpoint:}")
+    private String endpointVersion;
+
     private Path uploadPath;
 
     @PostConstruct
@@ -66,7 +70,8 @@ public class ImageUploadService {
             String fileId = UUID.randomUUID().toString();
             Path targetPath = uploadPath.resolve(fileId);
             file.transferTo(targetPath.toFile());
-            String url = baseUrl.replaceAll("/$", "") + "/v1/web/files/" + fileId;
+            String url = baseUrl.replaceAll("/$", "") + endpointVersion
+                    + "/v1/web/files/" + fileId + "." + StringUtils.getFilenameExtension(file.getOriginalFilename());
             urls.add(url);
             log.trace("Saved uploaded file: {} -> {}", fileId, url);
         }
@@ -78,7 +83,7 @@ public class ImageUploadService {
      */
     public boolean isOurUrl(String url) {
         if (url == null || url.isBlank()) return false;
-        String prefix = baseUrl.replaceAll("/$", "") + "/v1/web/files/";
+        String prefix = baseUrl.replaceAll("/$", "") + endpointVersion + "/v1/web/files/";
         return url.startsWith(prefix);
     }
 
@@ -87,7 +92,7 @@ public class ImageUploadService {
      */
     public String extractFileId(String url) {
         if (!isOurUrl(url)) return null;
-        String prefix = baseUrl.replaceAll("/$", "") + "/v1/web/files/";
+        String prefix = baseUrl.replaceAll("/$", "") + endpointVersion + "/v1/web/files/";
         return url.substring(prefix.length()).split("[?#]")[0].trim();
     }
 
