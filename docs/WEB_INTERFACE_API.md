@@ -38,6 +38,10 @@
 }
 ```
 
+URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{fileId}`, где:
+- `baseUrl` — `web.uploaded-files-base-url` (по умолчанию из `telegram.bot.webhook-base-url`)
+- `endpointVersion` — `telegram.bot.version-endpoint`: `dev-webhook` для версии разработки, `release-webhook` для релиза (может быть пустым)
+
 **400 Bad Request** — текст ошибки (неверный формат, слишком большой файл и т.п.)
 
 **500 Internal Server Error** — ошибка сервера
@@ -62,7 +66,7 @@ const { urls } = await response.json();
 
 **`GET /v1/web/files/{fileId}`**
 
-Отдаёт содержимое файла по его ID. URL формируется как `{baseUrl}/v1/web/files/{fileId}`.
+Отдаёт содержимое файла по его ID. Полный URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{fileId}` (`endpointVersion`: `dev-webhook` или `release-webhook`, см. раздел «Загрузка изображений»).
 
 ### Request
 
