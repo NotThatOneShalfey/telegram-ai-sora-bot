@@ -2,6 +2,7 @@ package com.example.tgbot.controller;
 
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.enums.GenerationType;
+import com.example.tgbot.domain.value.ErrorCode;
 import com.example.tgbot.dto.api.*;
 import com.example.tgbot.service.ImageUploadService;
 import com.example.tgbot.service.OperationsHistoryService;
@@ -79,7 +80,7 @@ public class WebInterfaceController {
      * Раздача загруженных файлов по fileId. URL формируется как base-url/v1/web/files/{fileId}.
      */
     @GetMapping("/files/{fileId}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileId) {
+    public ResponseEntity<Resource> getFile(@PathVariable(name = "fileId") String fileId) {
         try {
             Resource resource = imageUploadService.getFileAsResource(fileId);
             if (resource == null || !resource.exists()) {
@@ -185,12 +186,26 @@ public class WebInterfaceController {
             Long userId = parseUserId(request.getUserId());
             String optionsBody = mapper.writeValueAsString(request.getOptions());
             InterfaceDTORequest dtoRequest = new InterfaceDTORequest(model, userId, optionsBody);
-            Optional<WebSubmitResult> result = webInterfaceService.submitAndGetTaskId(dtoRequest);
-            return result
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.internalServerError().build());
+            SubmitOutcome outcome = webInterfaceService.submitAndGetTaskId(dtoRequest);
+            if (outcome.isSuccess()) {
+                return ResponseEntity.ok(outcome.getSuccess());
+            }
+            return toErrorResponse(outcome.getError());
         } catch (JsonProcessingException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /** Маппинг ErrorCode на HTTP-статус и JSON-тело {code, description}. */
+    private ResponseEntity<?> toErrorResponse(ErrorCode errorCode) {
+        ErrorResponseDTO dto = ErrorResponseDTO.from(errorCode);
+        return switch (errorCode) {
+            case E004 -> ResponseEntity.status(402).body(dto);  // Payment Required
+            case E005, E006 -> ResponseEntity.badRequest().body(dto);
+            case E009 -> ResponseEntity.status(429).body(dto);   // Too Many Requests
+            case E007, E001, E002, E003, E010, E011 -> ResponseEntity.status(502).body(dto);  // Bad Gateway
+            case E008 -> ResponseEntity.status(500).body(dto);   // Internal Server Error
+            default -> ResponseEntity.status(500).body(dto);
+        };
     }
 }

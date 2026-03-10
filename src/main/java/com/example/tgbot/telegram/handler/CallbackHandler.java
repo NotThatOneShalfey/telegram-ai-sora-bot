@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Component
 @Slf4j
@@ -74,24 +73,47 @@ public class CallbackHandler {
     }
 
     public void handleApiCallback(RecordInfoResponse response, GenerationModel model) {
-        if (Objects.equals(response.getData().getState(), "failed")) {
+        RecordInfoResponse.DataBlock data = response.getData();
+        ErrorCode errorCode = errorCodeForModel(model);
+        if (data == null || isErrorCode(response.getCode())) {
+            log.error("Response from model {} failed (code={}) - {}", model, response.getCode(), response);
+            processFailedResponse(data != null ? data.getTaskId() : null, errorCode);
+            return;
+        }
+        String state = data.getState();
+        if ("failed".equals(state) || "fail".equals(state)) {
             log.error("Response from model {} failed - {}", model, response);
-            processFailedResponse(response.getData().getTaskId());
-        } else if (Objects.equals(response.getData().getState(), "complete") || Objects.equals(response.getData().getState(), "success")) {
+            processFailedResponse(data.getTaskId(), errorCode);
+        } else if ("complete".equals(state) || "success".equals(state)) {
             String url = extractUrlFromRecordInfo(response);
             List<Object> resultItems = Collections.singletonList(Map.<String, Object>of("url", url));
-            processResultResponses(response.getData().getTaskId(), resultItems, List.of(url), model);
+            processResultResponses(data.getTaskId(), resultItems, List.of(url), model);
         }
     }
 
     public void handleApiCallback(SunoInfoResponse response, GenerationModel model) {
-        if (Objects.equals(response.getData().getCallbackType(), "failed")) {
+        SunoInfoResponse.SunoData data = response.getData();
+        if (data == null || isErrorCode(response.getCode())) {
+            log.error("Response from model {} failed (code={}, msg={}) - {}", model, response.getCode(), response.getMessage(), response);
+            processFailedResponse(data != null ? data.getTaskId() : null, ErrorCode.E002);
+            return;
+        }
+        String callbackType = data.getCallbackType();
+        if ("failed".equals(callbackType) || "error".equals(callbackType)) {
             log.error("Response from model {} failed - {}", model, response);
-            processFailedResponse(response.getData().getTaskId());
-        } else if (Objects.equals(response.getData().getCallbackType(), "complete") || Objects.equals(response.getData().getCallbackType(), "success")) {
+            processFailedResponse(data.getTaskId(), ErrorCode.E002);
+            return;
+        }
+        if ("complete".equals(callbackType) || "success".equals(callbackType)) {
+            var dataBlocks = data.getData();
+            if (dataBlocks == null || dataBlocks.isEmpty()) {
+                log.error("Response from model {} failed: callbackType=complete but data is empty (code={}) - {}", model, response.getCode(), response);
+                processFailedResponse(data.getTaskId(), ErrorCode.E002);
+                return;
+            }
             List<Object> sunoItems = new ArrayList<>();
             List<String> audioUrls = new ArrayList<>();
-            for (SunoInfoResponse.DataBlock db : response.getData().getData()) {
+            for (SunoInfoResponse.DataBlock db : dataBlocks) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("audioUrl", db.getAudioUrl() != null ? db.getAudioUrl() : "");
                 item.put("imageUrl", db.getImageUrl() != null ? db.getImageUrl() : "");
@@ -102,8 +124,21 @@ public class CallbackHandler {
                     audioUrls.add(db.getAudioUrl());
                 }
             }
-            processResultResponses(response.getData().getTaskId(), sunoItems, audioUrls, model);
+            processResultResponses(data.getTaskId(), sunoItems, audioUrls, model);
         }
+    }
+
+    private static boolean isErrorCode(int code) {
+        return code != 200;
+    }
+
+    private static ErrorCode errorCodeForModel(GenerationModel model) {
+        return switch (model != null ? model.getGenerationType() : null) {
+            case VIDEO -> ErrorCode.E001;
+            case IMAGE -> ErrorCode.E003;
+            case MUSIC -> ErrorCode.E002;
+            default -> ErrorCode.E011;
+        };
     }
 
     private void processResultResponses(String taskId, List<Object> resultItems, List<String> fileUrls, GenerationModel model) {
@@ -160,7 +195,11 @@ public class CallbackHandler {
         }
     }
 
-    private void processFailedResponse(String taskId) {
+    private void processFailedResponse(String taskId, ErrorCode errorCode) {
+        if (taskId == null) {
+            log.warn("processFailedResponse: taskId is null, cannot process");
+            return;
+        }
         UserSession session = sessionRegistry.getWaitingSession(taskId);
         if (session == null) {
             log.error("No session for failed taskId={}", taskId);
@@ -172,7 +211,6 @@ public class CallbackHandler {
         int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
         session.setUser(userService.rechargeFromHold(session, price, requestOptions.getRequestInput()));
 
-        ErrorCode errorCode = ErrorCode.E011;
         Long userId = session.getUser().getTelegramId();
         if (userId != null) {
             taskErrorRegistry.put(taskId, userId, errorCode);

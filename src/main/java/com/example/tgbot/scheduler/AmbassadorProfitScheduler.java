@@ -97,7 +97,7 @@ public class AmbassadorProfitScheduler {
         if (linkStrings.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        var referred = userRepository.findByLinkUsedIn(linkStrings);
+        var referred = userRepository.findByLinkUsedInAndAmbassadorFalse(linkStrings);
         if (referred.isEmpty()) {
             return BigDecimal.ZERO;
         }

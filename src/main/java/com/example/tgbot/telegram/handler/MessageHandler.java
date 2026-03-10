@@ -141,7 +141,10 @@ public class MessageHandler {
                 return;
             }
             session.setRequestSource(TaskSource.CHAT);
-            adapterRegistry.getAdapter(model).makeRequest(session);
+            if (adapterRegistry.getAdapter(model).makeRequest(session).isEmpty()) {
+                session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E007));
+                panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            }
         }
     }
 
@@ -222,7 +225,10 @@ public class MessageHandler {
         try {
             handlePromptWithFileIds(prompt, fileIds, session, model);
             session.setRequestSource(TaskSource.CHAT);
-            adapterRegistry.getAdapter(model).makeRequest(session);
+            if (adapterRegistry.getAdapter(model).makeRequest(session).isEmpty()) {
+                session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E007));
+                panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+            }
         } catch (JsonProcessingException e) {
             log.error("Couldn't process media batch. Error -> {}", e.getMessage());
             session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E005));

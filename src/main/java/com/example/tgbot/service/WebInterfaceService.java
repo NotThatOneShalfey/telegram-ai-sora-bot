@@ -31,8 +31,8 @@ public class WebInterfaceService {
         tgBot.onWebInterfaceRequest(request);
     }
 
-    /** Синхронно отправляет задачу и возвращает taskId и баланс при успехе. */
-    public Optional<WebSubmitResult> submitAndGetTaskId(InterfaceDTORequest request) {
+    /** Синхронно отправляет задачу. При успехе — SubmitOutcome.ok, при ошибке — SubmitOutcome.fail с ErrorCode. */
+    public SubmitOutcome submitAndGetTaskId(InterfaceDTORequest request) {
         log.trace("WebInterfaceService: submitting request for model={}, userId={}", request.getModel(), request.getUserId());
         return tgBot.processWebInterfaceRequestSync(request);
     }

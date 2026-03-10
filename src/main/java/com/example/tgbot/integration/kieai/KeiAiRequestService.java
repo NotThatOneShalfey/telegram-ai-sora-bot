@@ -1,8 +1,10 @@
 package com.example.tgbot.integration.kieai;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,16 +12,24 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 @Service
+@Slf4j
 public class KeiAiRequestService {
-    private final HttpClient httpClient;
+    private static final int DEFAULT_MAX_RETRIES = 3;
+    private static final long DEFAULT_RETRY_DELAY_MS = 2000;
 
-    @Value("${kieai.api-key}")
+    private final HttpClient httpClient;
     private final String apiKey;
     private final String baseUrl;
+    private final int maxRetries;
+    private final long retryDelayMs;
 
-    public KeiAiRequestService(@Value("${kieai.api-key}") String apiKey) {
+    public KeiAiRequestService(@Value("${kieai.api-key}") String apiKey,
+                               @Value("${kieai.http.max-retries:" + DEFAULT_MAX_RETRIES + "}") int maxRetries,
+                               @Value("${kieai.http.retry-delay-ms:" + DEFAULT_RETRY_DELAY_MS + "}") long retryDelayMs) {
         this.apiKey = apiKey;
         this.baseUrl = "https://api.kie.ai/api/v1";
+        this.maxRetries = maxRetries;
+        this.retryDelayMs = retryDelayMs;
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(10000)).build();
     }
 
@@ -27,20 +37,40 @@ public class KeiAiRequestService {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + endpoint))
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + apiKey)  // если используется Bearer token
+                .header("Authorization", "Bearer " + apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int lastAttempt = maxRetries + 1;
 
-        int statusCode = response.statusCode();
-        String body = response.body();
+        for (int attempt = 1; attempt <= lastAttempt; attempt++) {
+            try {
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+                String body = response.body();
 
-        if (statusCode >= 200 && statusCode < 300) {
-            return body; // успешный ответ, возвращаем тело
-        } else {
-            throw new RuntimeException("Failed: HTTP error code : " + statusCode + ", body: " + body);
+                if (statusCode >= 200 && statusCode < 300) {
+                    return body;
+                }
+                throw new RuntimeException("Failed: HTTP error code : " + statusCode + ", body: " + body);
+            } catch (IOException e) {
+                if (attempt < lastAttempt) {
+                    log.warn("Kei AI HTTP request failed (attempt {}/{}): {} — retrying in {} ms", attempt, lastAttempt, e.getMessage(), retryDelayMs);
+                    try {
+                        Thread.sleep(retryDelayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Request interrupted during retry delay", ie);
+                    }
+                } else {
+                    log.error("Kei AI HTTP request failed after {} attempts", lastAttempt, e);
+                    throw e;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Request interrupted", e);
+            }
         }
+        throw new IllegalStateException("Unreachable");
     }
-
 }
