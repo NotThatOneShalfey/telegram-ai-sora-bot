@@ -1,7 +1,9 @@
 package com.example.tgbot.telegram.handler;
 
 import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.domain.value.ErrorCode;
 import com.example.tgbot.domain.value.TaskSource;
+import com.example.tgbot.dto.api.SubmitOutcome;
 import com.example.tgbot.dto.api.WebSubmitResult;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.registry.AdapterRegistry;
@@ -10,8 +12,6 @@ import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.session.UserSession;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 public class InterfaceCallHandler {
@@ -26,13 +26,13 @@ public class InterfaceCallHandler {
         this.priceRegistryService = priceRegistryService;
     }
 
-    public Optional<WebSubmitResult> handleRequest(UserSession session, String dtoBody, GenerationModel model) {
+    public SubmitOutcome handleRequest(UserSession session, String dtoBody, GenerationModel model) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(model);
         requestOptions.setParametersFromJson(dtoBody);
 
         int price = priceRegistryService.calculatePrice(model, requestOptions, session.getUser());
         if (!userService.checkBalanceBeforeGeneration(session, price)) {
-            return Optional.empty();
+            return SubmitOutcome.fail(ErrorCode.E004);
         }
 
         session.setRequestSource(TaskSource.WEB);
@@ -40,8 +40,9 @@ public class InterfaceCallHandler {
             return adapterRegistry.getAdapter(model).makeRequest(session)
                     .map(taskId -> {
                         int balance = session.getUser().getBalance();
-                        return new WebSubmitResult(taskId, balance);
-                    });
+                        return SubmitOutcome.ok(new WebSubmitResult(taskId, balance));
+                    })
+                    .orElse(SubmitOutcome.fail(ErrorCode.E007));
         } finally {
             session.setRequestSource(null);
         }

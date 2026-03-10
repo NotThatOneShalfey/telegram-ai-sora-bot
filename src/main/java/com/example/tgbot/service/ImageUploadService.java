@@ -3,6 +3,7 @@ package com.example.tgbot.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.util.unit.DataSize;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -35,7 +36,8 @@ public class ImageUploadService {
             "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
 
-    private static final long MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 10 MB
+    @Value("${spring.servlet.multipart.max-file-size:10MB}")
+    private DataSize maxFileSize;
 
     @Value("${web.uploaded-files-dir:./uploaded-files}")
     private String uploadDir;
@@ -167,8 +169,9 @@ public class ImageUploadService {
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
             throw new IllegalArgumentException("Invalid content type: " + contentType + ". Allowed: jpeg, png, webp");
         }
-        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-            throw new IllegalArgumentException("File too large. Max size: 10 MB");
+        long maxBytes = maxFileSize.toBytes();
+        if (file.getSize() > maxBytes) {
+            throw new IllegalArgumentException("File too large. Max size: " + maxFileSize);
         }
     }
 }

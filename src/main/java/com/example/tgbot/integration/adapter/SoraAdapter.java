@@ -54,7 +54,15 @@ public class SoraAdapter implements IRequestAdapter {
             String response = requestService.sendPostRequest("/jobs/createTask", mapper.writeValueAsString(payload));
             log.trace("Response: {}", response);
             CreateTaskResponse taskResponse = mapper.readValue(response, CreateTaskResponse.class);
+            if (taskResponse.getCode() != 200 || taskResponse.getData() == null) {
+                log.error("Kei AI createTask failed: code={}, msg={}", taskResponse.getCode(), taskResponse.getMessage());
+                return Optional.empty();
+            }
             String taskId = taskResponse.getData().getTaskId();
+            if (taskId == null || taskId.isBlank()) {
+                log.error("Kei AI createTask: taskId is empty");
+                return Optional.empty();
+            }
             session.setTaskIdForCurrentModelConfiguration(taskId, model);
             TaskSource source = session.getRequestSource();
             sessionRegistry.putWaitingSession(taskId, session, source);
