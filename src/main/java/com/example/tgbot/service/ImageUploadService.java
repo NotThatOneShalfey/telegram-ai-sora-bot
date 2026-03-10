@@ -34,7 +34,7 @@ public class ImageUploadService {
             "image/jpeg", "image/jpg", "image/png", "image/webp"
     );
 
-    private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    private static final long MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 10 MB
 
     @Value("${web.uploaded-files-dir:./uploaded-files}")
     private String uploadDir;
