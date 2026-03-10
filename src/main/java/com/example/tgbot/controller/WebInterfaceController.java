@@ -79,7 +79,7 @@ public class WebInterfaceController {
      * Раздача загруженных файлов по fileId. URL формируется как base-url/v1/web/files/{fileId}.
      */
     @GetMapping("/files/{fileId}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileId) {
+    public ResponseEntity<Resource> getFile(@PathVariable(name = "fileId") String fileId) {
         try {
             Resource resource = imageUploadService.getFileAsResource(fileId);
             if (resource == null || !resource.exists()) {
