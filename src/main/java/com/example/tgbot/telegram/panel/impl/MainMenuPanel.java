@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.tgbot.telegram.button.ButtonType.AMBASSADOR_STATS_CALL;
-import static com.example.tgbot.telegram.button.ButtonType.GET_GIFT_CALL;
 import static com.example.tgbot.telegram.button.ButtonType.MAIN_CREATE_IMAGE_CALL;
 import static com.example.tgbot.telegram.button.ButtonType.MAIN_CREATE_MUSIC_CALL;
 import static com.example.tgbot.telegram.button.ButtonType.MAIN_CREATE_VIDEO_CALL;
@@ -86,11 +85,6 @@ public class MainMenuPanel extends AbstractSimpleMessagePanel implements IChatPa
         rows.add(List.of(super.getButton(MAIN_CREATE_IMAGE_CALL).getKeyboardButton()));
         rows.add(List.of(super.getButton(MAIN_CREATE_VIDEO_CALL).getKeyboardButton()));
         rows.add(List.of(super.getButton(MAIN_CREATE_MUSIC_CALL).getKeyboardButton()));
-        // Проверяем, нужно ли создавать подарок
-        boolean addGift = us.getUser().getLinkUsed() == null && !us.getUser().isBonusReceived();
-        if (addGift) {
-            rows.add(List.of(super.getButton(GET_GIFT_CALL).getKeyboardButton()));
-        }
         if (us.getUser().isAmbassador()) {
             rows.add(List.of(super.getButton(AMBASSADOR_STATS_CALL).getKeyboardButton()));
         }
