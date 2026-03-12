@@ -140,8 +140,12 @@ public class MessageHandler {
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
                 return;
             }
+
+            var historyRecord = userService.createGenerationHistoryRequested(session.getUser(), model, options.getRequestInput());
+            session.setOperationsHistoryIdForCurrentModel(model, historyRecord.getId());
             session.setRequestSource(TaskSource.CHAT);
             if (adapterRegistry.getAdapter(model).makeRequest(session).isEmpty()) {
+                userService.updateGenerationHistoryToFailed(historyRecord.getId());
                 session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E007));
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             }
@@ -224,8 +228,12 @@ public class MessageHandler {
 
         try {
             handlePromptWithFileIds(prompt, fileIds, session, model);
+
+            var historyRecord = userService.createGenerationHistoryRequested(session.getUser(), model, opts.getRequestInput());
+            session.setOperationsHistoryIdForCurrentModel(model, historyRecord.getId());
             session.setRequestSource(TaskSource.CHAT);
             if (adapterRegistry.getAdapter(model).makeRequest(session).isEmpty()) {
+                userService.updateGenerationHistoryToFailed(historyRecord.getId());
                 session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E007));
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             }

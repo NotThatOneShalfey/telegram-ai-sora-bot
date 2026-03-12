@@ -2,6 +2,7 @@ package com.example.tgbot.integration.adapter;
 
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.value.TaskSource;
+import com.example.tgbot.service.UserService;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.integration.kieai.CreateTaskResponse;
 import com.example.tgbot.integration.kieai.KeiAiRequestService;
@@ -37,6 +38,7 @@ public class KlingAdapter implements IRequestAdapter {
     @Lazy
     private final PanelRegistry panelRegistry;
     private final SessionRegistry sessionRegistry;
+    private final UserService userService;
 
     private final ObjectMapper mapper = new JsonMapper();
 
@@ -62,6 +64,10 @@ public class KlingAdapter implements IRequestAdapter {
                 return Optional.empty();
             }
             session.setTaskIdForCurrentModelConfiguration(taskId, GenerationModel.KLING_3_0);
+            var historyId = session.getOperationsHistoryIdByTaskId(taskId);
+            if (historyId != null) {
+                userService.updateGenerationHistoryToProcessing(historyId, taskId);
+            }
             TaskSource source = session.getRequestSource();
             sessionRegistry.putWaitingSession(taskId, session, source);
             if (source == TaskSource.CHAT) {

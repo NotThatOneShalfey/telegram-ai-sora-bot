@@ -169,7 +169,7 @@ public class CallbackHandler {
             sessionRegistry.removeWaitingSession(taskId);
             int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
             var costRub = priceRegistryService.getCostRub(requestOptions.getModel(), requestOptions);
-            session.setUser(userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), resultItems, requestOptions.getModel(), costRub));
+            session.setUser(userService.consumeOneGeneration(session, price, requestOptions.getRequestInput(), resultItems, requestOptions.getModel(), costRub, taskId));
             if (source == TaskSource.CHAT) {
                 panelRegistry.getChatPanel(PanelType.MAIN_SEND_READY_FILE).execute(session);
             }
@@ -180,6 +180,7 @@ public class CallbackHandler {
                 if (session != null) {
                     IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
                     int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
+                    userService.updateGenerationHistoryToFailed(taskId);
                     session.setUser(userService.rechargeFromHold(session, price, requestOptions.getRequestInput()));
                     Long userId = session.getUser().getTelegramId();
                     if (userId != null) taskErrorRegistry.put(taskId, userId, ErrorCode.E007);
@@ -209,6 +210,7 @@ public class CallbackHandler {
         session.touch();
         IModelRequestOptions requestOptions = session.getRequestOptionsByTaskIdAndModel(taskId);
         int price = priceRegistryService.calculatePrice(requestOptions.getModel(), requestOptions, session.getUser());
+        userService.updateGenerationHistoryToFailed(taskId);
         session.setUser(userService.rechargeFromHold(session, price, requestOptions.getRequestInput()));
 
         Long userId = session.getUser().getTelegramId();

@@ -38,7 +38,7 @@ public class OperationsHistoryService {
                 .map(user -> {
                     List<OperationsHistory> list = generationType == null
                             ? historyRepository.findByUserIdOrderByOperationTimestampDesc(user)
-                            : historyRepository.findByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
+                            : historyRepository.findSuccessfulOrProcessingByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
                     List<HistoryItemDTO> items = list.stream()
                             .map(this::toHistoryItemDTO)
                             .toList();
@@ -55,7 +55,8 @@ public class OperationsHistoryService {
                 ? oh.getOperationTimestamp().toInstant().atZone(ZoneId.systemDefault()).format(ISO_FORMATTER)
                 : null;
         String model = oh.getModel() != null ? oh.getModel().name() : null;
-        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultItems, model);
+        String status = oh.getStatus() != null ? oh.getStatus().name() : null;
+        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultItems, model, status, oh.getTaskId());
     }
 
     private Map<String, Object> parseOptions(String json) {

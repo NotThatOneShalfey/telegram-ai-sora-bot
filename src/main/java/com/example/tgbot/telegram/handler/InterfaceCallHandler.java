@@ -35,6 +35,8 @@ public class InterfaceCallHandler {
             return SubmitOutcome.fail(ErrorCode.E004);
         }
 
+        var historyRecord = userService.createGenerationHistoryRequested(session.getUser(), model, requestOptions.getRequestInput());
+        session.setOperationsHistoryIdForCurrentModel(model, historyRecord.getId());
         session.setRequestSource(TaskSource.WEB);
         try {
             return adapterRegistry.getAdapter(model).makeRequest(session)
@@ -42,7 +44,10 @@ public class InterfaceCallHandler {
                         int balance = session.getUser().getBalance();
                         return SubmitOutcome.ok(new WebSubmitResult(taskId, balance));
                     })
-                    .orElse(SubmitOutcome.fail(ErrorCode.E007));
+                    .orElseGet(() -> {
+                        userService.updateGenerationHistoryToFailed(historyRecord.getId());
+                        return SubmitOutcome.fail(ErrorCode.E007);
+                    });
         } finally {
             session.setRequestSource(null);
         }

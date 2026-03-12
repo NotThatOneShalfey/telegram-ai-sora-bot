@@ -63,6 +63,44 @@ public class UserSession {
         return null;
     }
 
+    public void setOperationsHistoryIdForCurrentModel(GenerationModel model, UUID operationsHistoryId) {
+        for (TelegramRequestConfiguration configuration : requestConfigurationList) {
+            if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {
+                configuration.setOperationsHistoryId(operationsHistoryId);
+                break;
+            }
+        }
+    }
+
+    public UUID getOperationsHistoryIdByTaskId(String taskId) {
+        for (TelegramRequestConfiguration configuration : requestConfigurationList) {
+            if (Objects.equals(configuration.getTaskId(), taskId)) {
+                return configuration.getOperationsHistoryId();
+            }
+        }
+        return null;
+    }
+
+    /** Возвращает operationsHistoryId для текущей конфигурации модели (до вызова адаптера) */
+    public UUID getOperationsHistoryIdForCurrentModel(GenerationModel model) {
+        for (TelegramRequestConfiguration configuration : requestConfigurationList) {
+            if (configuration.getModel().equals(model) && configuration.getTaskId() == null) {
+                return configuration.getOperationsHistoryId();
+            }
+        }
+        return null;
+    }
+
+    /** Возвращает taskId для конфигурации модели (после успешного вызова адаптера) */
+    public String getTaskIdForModel(GenerationModel model) {
+        for (TelegramRequestConfiguration configuration : requestConfigurationList) {
+            if (configuration.getModel().equals(model) && configuration.getTaskId() != null) {
+                return configuration.getTaskId();
+            }
+        }
+        return null;
+    }
+
     public void setTaskIdForCurrentModelConfiguration(String taskId, GenerationModel model) {
         IModelRequestOptions options = null;
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {

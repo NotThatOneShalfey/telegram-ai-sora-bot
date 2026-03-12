@@ -1,5 +1,6 @@
 package com.example.tgbot.service;
 
+import com.example.tgbot.domain.enums.GenerationStatus;
 import com.example.tgbot.domain.enums.HistoryOperationType;
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.model.OperationsHistory;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -129,26 +131,18 @@ public class UserService {
 
     @Transactional
     public User consumeOneGeneration(UserSession session, int price, Map<String, Object> requestPayload,
-                                     List<?> resultItems, GenerationModel model, BigDecimal costRub) {
+                                     List<?> resultItems, GenerationModel model, BigDecimal costRub, String taskId) {
         User user = userQueryService.findById(session.getUser().getId()).orElse(null);
-        if (user.getBalanceHold() >= price) {
+        if (user.getBalanceHold() != null && user.getBalanceHold() >= price) {
             user.setBalanceHold(user.getBalanceHold() - price);
         }
         try {
             String resultUrlsJson = resultItems != null && !resultItems.isEmpty()
                     ? objectMapper.writeValueAsString(resultItems)
                     : null;
-            historyRepository.save(OperationsHistory.builder()
-                    .balanceChange((float) (price * -1))
-                    .userId(user)
-                    .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
-                    .resultUrls(resultUrlsJson)
-                    .operationType(HistoryOperationType.GENERATION_REQUEST)
-                    .generationType(model != null ? model.getGenerationType() : null)
-                    .model(model)
-                    .costRub(costRub != null ? costRub : BigDecimal.ZERO)
-                    .build());
-        } catch (JsonProcessingException e) {
+            updateGenerationHistoryToSuccess(taskId, resultUrlsJson, (float) (price * -1), costRub);
+        } catch (Exception e) {
+            log.error("Failed to update generation history to success", e);
             throw new RuntimeException(e);
         }
         return userRepository.save(user);
@@ -186,5 +180,64 @@ public class UserService {
         User user = userQueryService.findById(session.getUser().getId()).orElse(null);
         int current = user.getBalance();
         return current >= price;
+    }
+
+    /** Создаёт запись истории генерации со статусом REQUESTED (перед вызовом API). */
+    @Transactional
+    public OperationsHistory createGenerationHistoryRequested(User user, GenerationModel model, Map<String, Object> requestPayload) {
+        try {
+            OperationsHistory oh = OperationsHistory.builder()
+                    .userId(user)
+                    .operationType(HistoryOperationType.GENERATION_REQUEST)
+                    .generationType(model != null ? model.getGenerationType() : null)
+                    .model(model)
+                    .generationRequestInput(objectMapper.writeValueAsString(requestPayload))
+                    .status(GenerationStatus.REQUESTED)
+                    .costRub(BigDecimal.ZERO)
+                    .build();
+            return historyRepository.save(oh);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Обновляет запись до PROCESSING и сохраняет task_id. */
+    @Transactional
+    public void updateGenerationHistoryToProcessing(UUID historyId, String taskId) {
+        historyRepository.findById(historyId).ifPresent(oh -> {
+            oh.setTaskId(taskId);
+            oh.setStatus(GenerationStatus.PROCESSING);
+            historyRepository.save(oh);
+        });
+    }
+
+    /** Обновляет запись до SUCCESS (по taskId). */
+    @Transactional
+    public void updateGenerationHistoryToSuccess(String taskId, String resultUrls, float balanceChange, BigDecimal costRub) {
+        historyRepository.findByTaskId(taskId).ifPresent(oh -> {
+            oh.setResultUrls(resultUrls);
+            oh.setBalanceChange(balanceChange);
+            oh.setCostRub(costRub != null ? costRub : BigDecimal.ZERO);
+            oh.setStatus(GenerationStatus.SUCCESS);
+            historyRepository.save(oh);
+        });
+    }
+
+    /** Устанавливает статус FAILED по historyId (ошибка на этапе запроса). */
+    @Transactional
+    public void updateGenerationHistoryToFailed(UUID historyId) {
+        historyRepository.findById(historyId).ifPresent(oh -> {
+            oh.setStatus(GenerationStatus.FAILED);
+            historyRepository.save(oh);
+        });
+    }
+
+    /** Устанавливает статус FAILED по taskId (ошибка на этапе получения результата). */
+    @Transactional
+    public void updateGenerationHistoryToFailed(String taskId) {
+        historyRepository.findByTaskId(taskId).ifPresent(oh -> {
+            oh.setStatus(GenerationStatus.FAILED);
+            historyRepository.save(oh);
+        });
     }
 }
