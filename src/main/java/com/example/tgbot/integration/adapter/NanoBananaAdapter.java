@@ -2,6 +2,7 @@ package com.example.tgbot.integration.adapter;
 
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.value.TaskSource;
+import com.example.tgbot.service.PriceRegistryService;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.integration.kieai.CreateTaskResponse;
@@ -39,6 +40,7 @@ public class NanoBananaAdapter implements IRequestAdapter {
     private final PanelRegistry panelRegistry;
     private final SessionRegistry sessionRegistry;
     private final UserService userService;
+    private final PriceRegistryService priceRegistryService;
 
     ObjectMapper mapper = new JsonMapper();
 
@@ -70,6 +72,9 @@ public class NanoBananaAdapter implements IRequestAdapter {
             }
             TaskSource source = session.getRequestSource();
             sessionRegistry.putWaitingSession(taskId, session, source);
+            // Обновляем баланс
+            session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.KLING_3_0, options, session.getUser()), options.getRequestInput()));
+            // Вызываем форму, если работаем с чатом
             if (source == TaskSource.CHAT) {
                 panelRegistry.getChatPanel(PanelType.NANO_BANANA_AFTER_PROMPT_RECEIVED).execute(session);
             }

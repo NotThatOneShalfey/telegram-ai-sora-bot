@@ -20,20 +20,13 @@ import static com.example.tgbot.telegram.button.ButtonType.*;
 
 @Component
 public class KlingAfterPromptReceivedPanel extends AbstractSimpleMessagePanel implements IChatPanel {
-    private final UserService userService;
-    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
 
-    public KlingAfterPromptReceivedPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService,
-                                         com.example.tgbot.service.PriceRegistryService priceRegistryService) {
+    public KlingAfterPromptReceivedPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
-        this.userService = userService;
-        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
     public void execute(UserSession session) {
-        IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.KLING_3_0);
-        session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.KLING_3_0, requestOptions, session.getUser()), requestOptions.getRequestInput()));
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 
