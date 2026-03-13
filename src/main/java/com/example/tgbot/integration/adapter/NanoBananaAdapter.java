@@ -73,7 +73,7 @@ public class NanoBananaAdapter implements IRequestAdapter {
             TaskSource source = session.getRequestSource();
             sessionRegistry.putWaitingSession(taskId, session, source);
             // Обновляем баланс
-            session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.KLING_3_0, options, session.getUser()), options.getRequestInput()));
+            session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(model, options, session.getUser()), options.getRequestInput()));
             // Вызываем форму, если работаем с чатом
             if (source == TaskSource.CHAT) {
                 panelRegistry.getChatPanel(PanelType.NANO_BANANA_AFTER_PROMPT_RECEIVED).execute(session);
