@@ -138,9 +138,9 @@ public class TgBot extends TelegramWebhookBot {
                 log.trace("update has Message");
                 User user = userService.findOrCreateUser(update.getMessage().getChatId());
                 // Проверка на дев билд
-                if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
-                    return;
-                }
+//                if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
+//                    return;
+//                }
                 UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
                 userSession.touch();
                 messageHandler.handleMessage(update.getMessage(), userSession);
