@@ -65,7 +65,9 @@ public class TgBot extends TelegramWebhookBot {
         this.taskExecutor = taskExecutor;
         this.userService = userService;
         this.interfaceCallHandler = interfaceCallHandler;
-        allowedUserIdsList = Arrays.stream(allowedUserIdsOnDev).map(Long::valueOf).collect(Collectors.toList());
+        allowedUserIdsList = allowedUserIdsOnDev != null
+                ? Arrays.stream(allowedUserIdsOnDev).map(Long::valueOf).collect(Collectors.toList())
+                : new ArrayList<>();
     }
 
     @Override
