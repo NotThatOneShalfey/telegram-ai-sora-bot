@@ -37,7 +37,6 @@ public class UserQueryService {
                     User newUser = User.builder()
                             .telegramId(chatId)
                             .balance(0)
-                            .bonusReceived(false)
                             .balanceHold(0)
                             .ambassador(false)
                             .ambassadorProfitTotal(BigDecimal.ZERO)

@@ -33,6 +33,7 @@ kieai:
 
 common:
   dev-build: ${COMMON_DEV_BUILD}
+  allowed-dev-user-ids: ${COMMON_ALLOWED_DEV_USER_IDS}
 
 web:
   uploaded-files-dir: ${WEB_UPLOADED_FILES_DIR:./uploaded-files}

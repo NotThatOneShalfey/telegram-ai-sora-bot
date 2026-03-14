@@ -148,20 +148,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @Transactional
-    public User addGift(User user) {
-        User existing = userQueryService.findById(user.getId()).orElse(null);
-        existing.setBalance(user.getBalance() + 100);
-        existing.setBonusReceived(true);
-        historyRepository.save(OperationsHistory.builder()
-                .balanceChange(100F)
-                .userId(existing)
-                .generationRequestInput(null)
-                .operationType(HistoryOperationType.GIFT)
-                .build());
-        return userRepository.save(existing);
-    }
-
     public boolean checkReferral(String referralLink) {
         ReferralLinks link = referralLinksRepository.findByLink(referralLink).orElse(null);
         return link != null;

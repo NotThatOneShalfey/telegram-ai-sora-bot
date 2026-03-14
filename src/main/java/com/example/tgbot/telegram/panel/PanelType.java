@@ -3,7 +3,6 @@ package com.example.tgbot.telegram.panel;
 public enum PanelType {
     MAIN_MENU,
     MAIN_GENERATE_VIDEO,
-    MAIN_GET_GIFT,
     MAIN_AFTER_PAID_PACKAGE_SELECTED,
     MAIN_RECHARGE_BALANCE,
     MAIN_SIMPLE_MESSAGE,
