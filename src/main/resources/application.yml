@@ -31,6 +31,9 @@ telegram:
 kieai:
   api-key: ${KIEAI_API_KEY}
 
+seedance:
+  api-key: ${SEEDANCE_API_KEY}
+
 common:
   dev-build: ${COMMON_DEV_BUILD:false}
   allowed-dev-user-ids: ${COMMON_ALLOWED_DEV_USER_IDS:}

@@ -63,6 +63,12 @@ public class WebInterfaceController {
         return processGenerate(body, GenerationModel.KLING_3_MOTION_CONTROL, new TypeReference<WebGenerateRequest<KlingMotionControlOptionsDTO>>() {});
     }
 
+    /** Seedance 2.0 (text-to-video и image-to-video) — только для web-интерфейса. */
+    @PostMapping("/seedance")
+    public ResponseEntity<?> generateSeedance(@RequestBody String body) {
+        return processGenerate(body, GenerationModel.SEEDANCE_2_0, new TypeReference<WebGenerateRequest<SeedanceImageToVideoOptionsDTO>>() {});
+    }
+
     /**
      * Загрузка файлов (изображения и видео). Принимает multipart/form-data с частью "files".
      * Возвращает {"urls": ["https://...", ...]} — эти URL передавать в imageUrls/imageInput/inputUrls/videoUrls при генерации.

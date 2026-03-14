@@ -6,7 +6,7 @@
 
 **Общее:** все входные параметры (в т.ч. `userId` в body и query) принимаются как **строки**; маппинг на типы выполняется в бэкенде. Для `userId` допустима строка вида `"123456789"`.
 
-При успешной постановке задачи на генерацию (`POST /kling`, `/kling-motion-control`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
+При успешной постановке задачи на генерацию (`POST /kling`, `/kling-motion-control`, `/seedance`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
 
 ---
 
@@ -14,7 +14,7 @@
 
 **`POST /v1/web/upload`**
 
-Загружает файлы (изображения и видео) и возвращает их публичные URL. Эти URL используются в полях `imageUrls` (Kling, Sora), `imageInput` (NanoBanana), а также `inputUrls` и `videoUrls` (Kling Motion Control) при запросах на генерацию.
+Загружает файлы (изображения и видео) и возвращает их публичные URL. Эти URL используются в полях `imageUrls` (Kling, Sora), `imageInput` (NanoBanana), `inputUrls` и `videoUrls` (Kling Motion Control), а также `urls` (Seedance image-to-video) при запросах на генерацию.
 
 ### Request
 
@@ -197,6 +197,64 @@ const { urls } = await response.json();
 
 ---
 
+## 3.2. Генерация Seedance 2.0
+
+**`POST /v1/web/seedance`**
+
+Запускает генерацию видео через Seedance 2.0 (text-to-video и image-to-video). Доступно только из web-интерфейса. Результат получается по polling (см. раздел «Получение результата»).
+
+### Request
+
+- **Content-Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "userId": "123456789",
+  "options": {
+    "prompt": "Текстовое описание сцены",
+    "duration": 5,
+    "resolution": "720x1280",
+    "aspectRatio": "9:16",
+    "urls": ["https://..."]
+  }
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|------|-----|-------------|----------|
+| userId | string | да | User.telegramId (строка) |
+| options.prompt | string | да | Описание сцены (max 5000 символов). Для image-to-video — опционально |
+| options.duration | number | нет | Длительность в секундах: **4**, **5**, **8**, **10** или **15**. По умолчанию 5. Стоимость зависит от длительности (см. таблицу ниже) |
+| options.resolution | string | нет | `1280x720`, `720x1280`, `720x720`, `960x720`, `720x960`, `1280x540` |
+| options.aspectRatio | string | нет | `16:9`, `9:16`, `1:1`, `3:4`, `4:3`, `21:9` |
+| options.urls | string[] | нет | URL изображений для image-to-video (1–2 изображения, результат `/upload`). При отсутствии — text-to-video |
+
+**Стоимость (себестоимость в USD, итоговая цена в рублях с учётом курса и коэффициентов):**
+
+| Длительность | 4 сек | 5 сек | 8 сек | 10 сек | 15 сек |
+|--------------|-------|-------|-------|--------|--------|
+| USD          | $0.80 | $1.00 | $1.60 | $2.00  | $3.00  |
+
+### Response
+
+**200 OK**
+```json
+{
+  "taskId": "task_xxxxxxxxxxxxx",
+  "balance": 850
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| taskId | string | ID задачи для опроса результата (GET /result) |
+| balance | number | Текущий баланс пользователя (после списания) |
+
+**400 / 500** — см. Kling
+
+---
+
 ## 4. Генерация Sora 2
 
 **`POST /v1/web/sora2`**
@@ -365,7 +423,7 @@ const { urls } = await response.json();
 
 ### Response
 
-**200 OK** (Kling, Kling Motion Control, Sora, NanoBanana — объекты с полем `url`):
+**200 OK** (Kling, Kling Motion Control, Seedance, Sora, NanoBanana — объекты с полем `url`):
 ```json
 {
   "resultUrls": [
@@ -401,8 +459,8 @@ const { urls } = await response.json();
 
 | Поле | Описание |
 |------|----------|
-| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
-| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
 | balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
 
@@ -487,7 +545,7 @@ const { urls } = await response.json();
 
 ---
 
-### POST /kling, /kling-motion-control, /sora2, /suno, /nanobanana — постановка задачи на генерацию
+### POST /kling, /kling-motion-control, /seedance, /sora2, /suno, /nanobanana — постановка задачи на генерацию
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
@@ -581,7 +639,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 История разделена по типу контента. Каждый эндпоинт возвращает текущий баланс пользователя и список операций (успешных и в процессе), отсортированный по дате по убыванию. В список попадают записи со статусом **SUCCESS** и **PROCESSING** (генерации в процессе).
 
-### 8.1. История видео (Sora, Kling, Kling Motion Control)
+### 8.1. История видео (Sora, Kling, Kling Motion Control, Seedance)
 
 **`GET /v1/web/history/video`**
 
@@ -646,8 +704,8 @@ E005, E006, E009 при постановке задачи из веб-интер
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании). null для записей со статусом PROCESSING |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
-| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
 | status | Статус генерации: `SUCCESS`, `PROCESSING`. `null` для старых записей |
 | taskId | ID задачи для опроса результата. `null` для старых записей |
 
@@ -666,7 +724,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 ## Типовой сценарий
 
 1. **Загрузка файлов** (если нужны): `POST /upload` с полем `files` → получить `urls`
-2. **Запуск генерации**: `POST /kling` (или `/kling-motion-control`, `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput`/`inputUrls`+`videoUrls` из шага 1)
+2. **Запуск генерации**: `POST /kling` (или `/kling-motion-control`, `/seedance`, `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput`/`inputUrls`+`videoUrls`/`urls` из шага 1)
 3. **Получение `taskId` и `balance`** из ответа — обновите отображение баланса на фронте
 4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
 5. **Отображение/сохранение** ссылок из `response.resultUrls`
