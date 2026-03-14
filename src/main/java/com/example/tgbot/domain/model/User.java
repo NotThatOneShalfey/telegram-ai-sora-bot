@@ -35,9 +35,6 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @Column(name = "bonus_received", nullable = false)
-    private boolean bonusReceived;
-
     @Column(name = "user_name")
     private String userName;
 

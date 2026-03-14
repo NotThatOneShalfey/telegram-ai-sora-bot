@@ -1,12 +1,9 @@
 package com.example.tgbot.telegram;
 
-import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.model.User;
 import com.example.tgbot.domain.value.ErrorCode;
 import com.example.tgbot.dto.api.InterfaceDTORequest;
 import com.example.tgbot.dto.api.SubmitOutcome;
-import com.example.tgbot.dto.api.WebSubmitResult;
-import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.handler.CallbackHandler;
 import com.example.tgbot.telegram.handler.InterfaceCallHandler;
@@ -23,10 +20,9 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.time.LocalDateTime;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -48,6 +44,12 @@ public class TgBot extends TelegramWebhookBot {
     @Value("${common.dev-build:}")
     private Boolean devBuild;
 
+    @Getter
+    @Value("${common.allowed-dev-user-ids}")
+    private String[] allowedUserIdsOnDev;
+
+    private final List<Long> allowedUserIdsList;
+
     // Инициализация бота с дефолт параметрами, botToken из .env
     public TgBot(@Value("${telegram.bot.token}") String botToken,
                  CallbackHandler callbackHandler,
@@ -63,6 +65,9 @@ public class TgBot extends TelegramWebhookBot {
         this.taskExecutor = taskExecutor;
         this.userService = userService;
         this.interfaceCallHandler = interfaceCallHandler;
+        allowedUserIdsList = allowedUserIdsOnDev != null && allowedUserIdsOnDev.length != 0
+                ? Arrays.stream(allowedUserIdsOnDev).map(Long::valueOf).collect(Collectors.toList())
+                : new ArrayList<>();
     }
 
     @Override
@@ -119,7 +124,7 @@ public class TgBot extends TelegramWebhookBot {
                 log.trace("update has CallbackQuery");
                 User user = userService.findOrCreateUser(update.getCallbackQuery().getMessage().getChatId());
                 // Проверка на дев билд
-                if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
+                if (devBuild && allowedUserIdsList.contains(user.getId())) {
                     return;
                 }
                 UserSession userSession = sessions.computeIfAbsent(update.getCallbackQuery().getMessage().getChatId().toString(), k -> new UserSession(user));
@@ -138,7 +143,7 @@ public class TgBot extends TelegramWebhookBot {
                 log.trace("update has Message");
                 User user = userService.findOrCreateUser(update.getMessage().getChatId());
                 // Проверка на дев билд
-                if (devBuild && (user.getId() != 1 && user.getId() != 2 && user.getId() != 4)) {
+                if (devBuild && allowedUserIdsList.contains(user.getId())) {
                     return;
                 }
                 UserSession userSession = sessions.computeIfAbsent(update.getMessage().getChatId().toString(), k -> new UserSession(user));
@@ -171,6 +176,9 @@ public class TgBot extends TelegramWebhookBot {
     private SubmitOutcome processWebInterfaceReq(InterfaceDTORequest request) {
         log.trace("Call processWebInterfaceReq with request={}", request);
         User user = userService.findOrCreateUser(request.getUserId());
+        if (devBuild && allowedUserIdsList.contains(user.getId())) {
+            return null;
+        }
         UserSession userSession = sessions.computeIfAbsent(String.valueOf(user.getTelegramId()), k -> new UserSession(user));
         userSession.touch();
         return interfaceCallHandler.handleRequest(userSession, request.getOptionsBody(), request.getModel());

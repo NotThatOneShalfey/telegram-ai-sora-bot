@@ -20,20 +20,13 @@ import static com.example.tgbot.telegram.button.ButtonType.*;
 
 @Component
 public class SunoAfterPromptReceivedPanel extends AbstractSimpleMessagePanel implements IChatPanel {
-    private final UserService userService;
-    private final com.example.tgbot.service.PriceRegistryService priceRegistryService;
 
-    public SunoAfterPromptReceivedPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot, UserService userService,
-                                        com.example.tgbot.service.PriceRegistryService priceRegistryService) {
+    public SunoAfterPromptReceivedPanel(@Lazy ButtonRegistry buttonRegistry, TgBot tgBot) {
         super(buttonRegistry, tgBot);
-        this.userService = userService;
-        this.priceRegistryService = priceRegistryService;
     }
 
     @Override
     public void execute(UserSession session) {
-        IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(GenerationModel.SUNO_V5);
-        session.setUser(userService.putOnHold(session, priceRegistryService.calculatePrice(GenerationModel.SUNO_V5, requestOptions, session.getUser()), requestOptions.getRequestInput()));
         super.executeSendMessage(session, getText(), getKeyboard(), false);
     }
 

@@ -12,14 +12,14 @@ public final class ErrorMessageHelper {
 
     private ErrorMessageHelper() {}
 
-    /** Сообщение для Telegram: операция не выполнена + код ошибки */
+    /** Сообщение для Telegram: операция не выполнена + понятное описание */
     public static String forTelegram(Operation operation, ErrorCode errorCode) {
-        return "⚠ Не удалось выполнить %s. Код ошибки: %s. %s".formatted(
-                operation.getDisplayName(), errorCode.getCode(), SUPPORT);
+        return "⚠ Не удалось выполнить %s. %s".formatted(
+                operation.getDisplayName(), errorCode.getDescription());
     }
 
     /** Сообщение без указания операции (универсальное) */
     public static String forTelegram(ErrorCode errorCode) {
-        return "⚠ Операция не выполнена. Код ошибки: %s. %s".formatted(errorCode.getCode(), SUPPORT);
+        return "⚠ %s".formatted(errorCode.getDescription());
     }
 }

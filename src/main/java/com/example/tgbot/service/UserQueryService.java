@@ -37,10 +37,10 @@ public class UserQueryService {
                     User newUser = User.builder()
                             .telegramId(chatId)
                             .balance(0)
-                            .ambassador(false)
-                            .ambassadorProfitCoefficient(BigDecimal.ZERO)
-                            .ambassadorProfitTotal(BigDecimal.ZERO)
                             .balanceHold(0)
+                            .ambassador(false)
+                            .ambassadorProfitTotal(BigDecimal.ZERO)
+                            .ambassadorProfitTotal(BigDecimal.ZERO)
                             .build();
                     return userRepository.save(newUser);
                 });

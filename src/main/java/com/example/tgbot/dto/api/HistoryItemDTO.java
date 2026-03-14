@@ -23,4 +23,9 @@ public class HistoryItemDTO {
     private List<?> resultItems;
     /** Модель генерации (KLING_3_0, SORA_2, SUNO_V5, NANO_BANANA_PRO и т.д.), null для не-генераций. */
     private String model;
+    /** Статус генерации: REQUESTED, PROCESSING, SUCCESS, FAILED. null для не-генераций или старых записей. */
+    private String status;
+    /** ID задачи от внешнего API. null, если task_id ещё не получен. */
+    @JsonProperty("taskId")
+    private String taskId;
 }

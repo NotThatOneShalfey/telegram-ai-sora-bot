@@ -1,6 +1,7 @@
 package com.example.tgbot.domain.model;
 
 import com.example.tgbot.domain.enums.GenerationModel;
+import com.example.tgbot.domain.enums.GenerationStatus;
 import com.example.tgbot.domain.enums.GenerationType;
 import com.example.tgbot.domain.enums.HistoryOperationType;
 import jakarta.persistence.*;
@@ -48,6 +49,13 @@ public class OperationsHistory {
 
     @Column(name = "oh_result_urls")
     private String resultUrls;
+
+    @Column(name = "oh_task_id", length = 128)
+    private String taskId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oh_status", length = 32)
+    private GenerationStatus status;
 
     @Column(name = "oh_balance_change")
     private Float balanceChange;
