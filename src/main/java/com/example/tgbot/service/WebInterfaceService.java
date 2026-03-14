@@ -72,6 +72,7 @@ public class WebInterfaceService {
             case KLING_3_0 -> objectMapper.readValue(optionsJson, KlingOptionsDTO.class);
             case KLING_3_MOTION_CONTROL -> objectMapper.readValue(optionsJson, KlingMotionControlOptionsDTO.class);
             case SEEDANCE_2_0 -> objectMapper.readValue(optionsJson, SeedanceImageToVideoOptionsDTO.class);
+            case ELEVENLABS_V3 -> objectMapper.readValue(optionsJson, ElevenLabsOptionsDTO.class);
             case SORA_2, SORA_2_WITH_IMAGE -> objectMapper.readValue(optionsJson, SoraOptionsDTO.class);
             case SUNO_V5 -> objectMapper.readValue(optionsJson, SunoOptionsDTO.class);
             case NANO_BANANA_PRO -> objectMapper.readValue(optionsJson, NanoBananaOptionsDTO.class);

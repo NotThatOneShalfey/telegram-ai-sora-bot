@@ -151,7 +151,7 @@ public class CallbackHandler {
         return switch (model != null ? model.getGenerationType() : null) {
             case VIDEO -> ErrorCode.E001;
             case IMAGE -> ErrorCode.E003;
-            case MUSIC -> ErrorCode.E002;
+            case AUDIO -> ErrorCode.E002;
             default -> ErrorCode.E011;
         };
     }

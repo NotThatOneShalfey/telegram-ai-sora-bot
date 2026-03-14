@@ -71,6 +71,18 @@ public class ServicesCallbackController {
         }
     }
 
+    @PostMapping("/elevenlabs-v3")
+    public void handleElevenLabsCallback(@RequestBody String body) {
+        log.debug("handleElevenLabsCallback method called!");
+        try {
+            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            log.trace("Resp object: {}", resp.toString());
+            callbackHandler.handleApiCallback(resp, GenerationModel.ELEVENLABS_V3);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @PostMapping("/nano-banana-pro")
     public void handleNanoBananaCallback(@RequestBody String body) {
         log.debug("handleNanoBananaCallback method called!");

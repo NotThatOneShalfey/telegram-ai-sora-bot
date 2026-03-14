@@ -6,6 +6,7 @@ import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.dto.api.SubmitOutcome;
 import com.example.tgbot.dto.api.WebSubmitResult;
 import com.example.tgbot.integration.config.IModelRequestOptions;
+import com.example.tgbot.integration.config.ElevenLabsOptions;
 import com.example.tgbot.integration.config.KlingMotionControlOptions;
 import com.example.tgbot.registry.AdapterRegistry;
 import com.example.tgbot.service.PriceRegistryService;
@@ -44,6 +45,17 @@ public class InterfaceCallHandler {
                         uploadService.validateVideoDurationForMotionControl(url, orientation);
                     }
                 }
+            }
+        }
+        if (model == GenerationModel.ELEVENLABS_V3 && requestOptions instanceof ElevenLabsOptions el) {
+            int totalChars = el.getTotalChars();
+            if (totalChars > ElevenLabsOptions.MAX_TOTAL_CHARS) {
+                throw new IllegalArgumentException(
+                        "Сумма символов во всех репликах диалога не должна превышать 5000. У вас — %d символов."
+                                .formatted(totalChars));
+            }
+            if (el.getDialogue() == null || el.getDialogue().isEmpty()) {
+                throw new IllegalArgumentException("Диалог не может быть пустым. Добавьте хотя бы одну реплику.");
             }
         }
 

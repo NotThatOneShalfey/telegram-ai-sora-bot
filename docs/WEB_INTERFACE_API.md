@@ -6,7 +6,7 @@
 
 **Общее:** все входные параметры (в т.ч. `userId` в body и query) принимаются как **строки**; маппинг на типы выполняется в бэкенде. Для `userId` допустима строка вида `"123456789"`.
 
-При успешной постановке задачи на генерацию (`POST /kling`, `/kling-motion-control`, `/seedance`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
+При успешной постановке задачи на генерацию (`POST /kling`, `/kling-motion-control`, `/seedance`, `/elevenlabs`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
 
 ---
 
@@ -255,6 +255,63 @@ const { urls } = await response.json();
 
 ---
 
+## 3.3. Генерация ElevenLabs V3 (Text-to-Dialogue)
+
+**`POST /v1/web/elevenlabs`**
+
+Запускает генерацию аудиодиалога через ElevenLabs Text-to-Dialogue V3 (kie.ai). Доступно только из web-интерфейса.
+
+### Request
+
+- **Content-Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "userId": "123456789",
+  "options": {
+    "dialogue": [
+      { "text": "Текст первой реплики", "voice": "Adam" },
+      { "text": "Текст второй реплики", "voice": "Brian" }
+    ],
+    "stability": 0.5,
+    "languageCode": "auto"
+  }
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|------|-----|-------------|----------|
+| userId | string | да | User.telegramId (строка) |
+| options.dialogue | array | да | Массив реплик. Каждый элемент: `{ text, voice }`. Сумма символов во всех `text` не должна превышать 5000 |
+| options.dialogue[].text | string | да | Текст реплики |
+| options.dialogue[].voice | string | да | Код голоса (с фронтенда). См. [документацию kie.ai](https://docs.kie.ai/market/elevenlabs/text-to-dialogue-v3) |
+| options.stability | number | нет | Стабильность голоса. По умолчанию 0.5 |
+| options.languageCode | string | нет | Код языка. По умолчанию `"auto"` |
+
+### Response
+
+**200 OK**
+```json
+{
+  "taskId": "task_xxxxxxxxxxxxx",
+  "balance": 850
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| taskId | string | ID задачи для опроса результата (GET /result) |
+| balance | number | Текущий баланс пользователя (после списания) |
+
+**400 Bad Request** — при превышении лимита символов:
+- `"Сумма символов во всех репликах диалога не должна превышать 5000. У вас — X символов."`
+- `"Диалог не может быть пустым. Добавьте хотя бы одну реплику."`
+
+**400 / 500** — см. Kling
+
+---
+
 ## 4. Генерация Sora 2
 
 **`POST /v1/web/sora2`**
@@ -423,7 +480,7 @@ const { urls } = await response.json();
 
 ### Response
 
-**200 OK** (Kling, Kling Motion Control, Seedance, Sora, NanoBanana — объекты с полем `url`):
+**200 OK** (Kling, Kling Motion Control, Seedance, ElevenLabs, Sora, NanoBanana — объекты с полем `url`):
 ```json
 {
   "resultUrls": [
@@ -459,8 +516,8 @@ const { urls } = await response.json();
 
 | Поле | Описание |
 |------|----------|
-| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
-| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/ElevenLabs/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `ELEVENLABS_V3`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
 | balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
 
@@ -545,7 +602,7 @@ const { urls } = await response.json();
 
 ---
 
-### POST /kling, /kling-motion-control, /seedance, /sora2, /suno, /nanobanana — постановка задачи на генерацию
+### POST /kling, /kling-motion-control, /seedance, /elevenlabs, /sora2, /suno, /nanobanana — постановка задачи на генерацию
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
@@ -569,7 +626,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 | Задача не найдена / ещё в работе / другой userId | `Optional.empty()` | **404** — пустое тело |
 | `userId` невалиден | `IllegalArgumentException` | **400** — текст: `"userId is required"` или `"userId must be a valid number"` |
 
-Коды в `getTaskResult`: E001 (видео), E002 (музыка), E003 (изображения), E007 (parse failure), E011 (callback failed) — см. CallbackHandler.
+Коды в `getTaskResult`: E001 (видео), E002 (аудио), E003 (изображения), E007 (parse failure), E011 (callback failed) — см. CallbackHandler.
 
 ---
 
@@ -583,7 +640,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 ---
 
-### GET /history/video, /history/music, /history/image — история операций
+### GET /history/video, /history/audio, /history/image — история операций
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
@@ -622,7 +679,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 | Код | Описание |
 |-----|----------|
 | E001 | Не удалось сгенерировать видео. Пожалуйста, обратитесь в поддержку. |
-| E002 | Не удалось сгенерировать музыку. Пожалуйста, обратитесь в поддержку. |
+| E002 | Не удалось сгенерировать аудио. Пожалуйста, обратитесь в поддержку. |
 | E003 | Не удалось сгенерировать изображение. Пожалуйста, обратитесь в поддержку. |
 | E004 | Недостаточно средств на балансе. Пожалуйста, пополните баланс. |
 | E005 | Проверьте введённые данные и попробуйте снова. |
@@ -643,9 +700,9 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 **`GET /v1/web/history/video`**
 
-### 8.2. История музыки (Suno)
+### 8.2. История аудио (Suno, ElevenLabs)
 
-**`GET /v1/web/history/music`**
+**`GET /v1/web/history/audio`**
 
 ### 8.3. История изображений (Nano Banana Pro)
 
@@ -704,8 +761,8 @@ E005, E006, E009 при постановке задачи из веб-интер
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании). null для записей со статусом PROCESSING |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
-| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/ElevenLabs/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `ELEVENLABS_V3`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
 | status | Статус генерации: `SUCCESS`, `PROCESSING`. `null` для старых записей |
 | taskId | ID задачи для опроса результата. `null` для старых записей |
 
@@ -724,11 +781,11 @@ E005, E006, E009 при постановке задачи из веб-интер
 ## Типовой сценарий
 
 1. **Загрузка файлов** (если нужны): `POST /upload` с полем `files` → получить `urls`
-2. **Запуск генерации**: `POST /kling` (или `/kling-motion-control`, `/seedance`, `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput`/`inputUrls`+`videoUrls`/`urls` из шага 1)
+2. **Запуск генерации**: `POST /kling` (или `/kling-motion-control`, `/seedance`, `/elevenlabs`, `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput`/`inputUrls`+`videoUrls`/`urls`/`dialogue` из шага 1)
 3. **Получение `taskId` и `balance`** из ответа — обновите отображение баланса на фронте
 4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
 5. **Отображение/сохранение** ссылок из `response.resultUrls`
-6. **История** — по типу контента: `GET /history/video`, `/history/music`, `/history/image` с `userId`; в ответе — `balance` и `items` (с полями `status`, `taskId` для отображения завершённых и текущих генераций)
+6. **История** — по типу контента: `GET /history/video`, `/history/audio`, `/history/image` с `userId`; в ответе — `balance` и `items` (с полями `status`, `taskId` для отображения завершённых и текущих генераций)
 
 ---
 

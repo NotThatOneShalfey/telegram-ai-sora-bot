@@ -12,7 +12,8 @@ public enum GenerationModel {
     NANO_BANANA_PRO("nano-banana-pro", "Nano Banana Pro"),
     SORA_2("sora-2-text-to-video-stable", "Sora 2"),
     SORA_2_WITH_IMAGE("sora-2-image-to-video-stable", "Sora 2"),
-    SUNO_V5("V5", "Suno V5");
+    SUNO_V5("V5", "Suno V5"),
+    ELEVENLABS_V3("elevenlabs/text-to-dialogue-v3", "ElevenLabs V3");
 
     private final String requestModelName;
     private final String localizedModelName;
@@ -21,7 +22,7 @@ public enum GenerationModel {
     public GenerationType getGenerationType() {
         return switch (this) {
             case KLING_3_0, KLING_3_MOTION_CONTROL, SEEDANCE_2_0, SORA_2, SORA_2_WITH_IMAGE -> GenerationType.VIDEO;
-            case SUNO_V5 -> GenerationType.MUSIC;
+            case SUNO_V5, ELEVENLABS_V3 -> GenerationType.AUDIO;
             case NANO_BANANA_PRO -> GenerationType.IMAGE;
         };
     }

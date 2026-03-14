@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-027-elevenlabs-price
+      author: Konstantin
+      changes:
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: ELEVENLABS_V3}
+              - column: {name: pr_base_price, valueNumeric: 0}
+              - column: {name: pr_cost_usd, valueNumeric: 0.07}

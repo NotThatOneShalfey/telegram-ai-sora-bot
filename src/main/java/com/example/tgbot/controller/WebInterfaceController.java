@@ -69,6 +69,12 @@ public class WebInterfaceController {
         return processGenerate(body, GenerationModel.SEEDANCE_2_0, new TypeReference<WebGenerateRequest<SeedanceImageToVideoOptionsDTO>>() {});
     }
 
+    /** ElevenLabs V3 (text-to-dialogue) — только для web-интерфейса. */
+    @PostMapping("/elevenlabs")
+    public ResponseEntity<?> generateElevenLabs(@RequestBody String body) {
+        return processGenerate(body, GenerationModel.ELEVENLABS_V3, new TypeReference<WebGenerateRequest<ElevenLabsOptionsDTO>>() {});
+    }
+
     /**
      * Загрузка файлов (изображения и видео). Принимает multipart/form-data с частью "files".
      * Возвращает {"urls": ["https://...", ...]} — эти URL передавать в imageUrls/imageInput/inputUrls/videoUrls при генерации.
@@ -136,11 +142,11 @@ public class WebInterfaceController {
     }
 
     /**
-     * История генераций музыки (Suno). Список отсортирован по дате по убыванию.
+     * История генераций аудио (Suno, ElevenLabs). Список отсортирован по дате по убыванию.
      */
-    @GetMapping("/history/music")
-    public ResponseEntity<?> getMusicHistory(@RequestParam("userId") String userId) {
-        return getHistoryByType(userId, GenerationType.MUSIC);
+    @GetMapping("/history/audio")
+    public ResponseEntity<?> getAudioHistory(@RequestParam("userId") String userId) {
+        return getHistoryByType(userId, GenerationType.AUDIO);
     }
 
     /**

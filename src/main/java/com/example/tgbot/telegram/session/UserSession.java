@@ -3,6 +3,7 @@ package com.example.tgbot.telegram.session;
 import com.example.tgbot.domain.model.User;
 import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.KlingMotionControlOptions;
+import com.example.tgbot.integration.config.ElevenLabsOptions;
 import com.example.tgbot.integration.config.SeedanceImageToVideoOptions;
 import com.example.tgbot.integration.config.*;
 import com.example.tgbot.integration.kieai.ReceivedFile;
@@ -44,6 +45,7 @@ public class UserSession {
         createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.KLING_3_MOTION_CONTROL, KlingMotionControlOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.SEEDANCE_2_0, SeedanceImageToVideoOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.ELEVENLABS_V3, ElevenLabsOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());
