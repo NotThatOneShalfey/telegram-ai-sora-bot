@@ -6,8 +6,10 @@ import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.dto.api.SubmitOutcome;
 import com.example.tgbot.dto.api.WebSubmitResult;
 import com.example.tgbot.integration.config.IModelRequestOptions;
+import com.example.tgbot.integration.config.KlingMotionControlOptions;
 import com.example.tgbot.registry.AdapterRegistry;
 import com.example.tgbot.service.PriceRegistryService;
+import com.example.tgbot.service.UploadService;
 import com.example.tgbot.service.UserService;
 import com.example.tgbot.telegram.session.UserSession;
 import org.springframework.context.annotation.Lazy;
@@ -19,16 +21,31 @@ public class InterfaceCallHandler {
     private final UserService userService;
     private final PriceRegistryService priceRegistryService;
 
+    private final UploadService uploadService;
+
     public InterfaceCallHandler(@Lazy AdapterRegistry adapterRegistry, UserService userService,
-                                PriceRegistryService priceRegistryService) {
+                                PriceRegistryService priceRegistryService, UploadService uploadService) {
         this.adapterRegistry = adapterRegistry;
         this.userService = userService;
         this.priceRegistryService = priceRegistryService;
+        this.uploadService = uploadService;
     }
 
     public SubmitOutcome handleRequest(UserSession session, String dtoBody, GenerationModel model) {
         IModelRequestOptions requestOptions = session.getCurrentRequestOptionsByModel(model);
         requestOptions.setParametersFromJson(dtoBody);
+
+        if (model == GenerationModel.KLING_3_MOTION_CONTROL && requestOptions instanceof KlingMotionControlOptions mc) {
+            String orientation = mc.getCharacterOrientation() != null ? mc.getCharacterOrientation() : "video";
+            var videoUrls = mc.getVideoUrls();
+            if (videoUrls != null) {
+                for (String url : videoUrls) {
+                    if (uploadService.isOurUrl(url)) {
+                        uploadService.validateVideoDurationForMotionControl(url, orientation);
+                    }
+                }
+            }
+        }
 
         int price = priceRegistryService.calculatePrice(model, requestOptions, session.getUser());
         if (!userService.checkBalanceBeforeGeneration(session, price)) {

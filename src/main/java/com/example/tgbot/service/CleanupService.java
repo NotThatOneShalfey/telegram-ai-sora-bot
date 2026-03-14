@@ -22,7 +22,7 @@ public class CleanupService {
 
     private final TgBot tgBot;
     private final SessionRegistry sessionRegistry;
-    private final ImageUploadService imageUploadService;
+    private final UploadService uploadService;
 
     /** Удаление неактивных UserSession (старше 14 дней). Запуск раз в сутки. */
     @Scheduled(cron = "0 0 3 * * *") // 03:00 каждый день
@@ -40,6 +40,6 @@ public class CleanupService {
     @Scheduled(cron = "0 0 4 * * *") // 04:00 каждый день
     public void cleanOldUploadedFiles() {
         log.trace("Running old uploaded files cleanup");
-        imageUploadService.deleteFilesOlderThanDays(FILE_STALE_DAYS);
+        uploadService.deleteFilesOlderThanDays(FILE_STALE_DAYS);
     }
 }

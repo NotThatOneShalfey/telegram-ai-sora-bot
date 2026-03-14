@@ -2,6 +2,7 @@ package com.example.tgbot.telegram.session;
 
 import com.example.tgbot.domain.model.User;
 import com.example.tgbot.domain.value.TaskSource;
+import com.example.tgbot.integration.config.KlingMotionControlOptions;
 import com.example.tgbot.integration.config.*;
 import com.example.tgbot.integration.kieai.ReceivedFile;
 import com.example.tgbot.domain.enums.GenerationModel;
@@ -40,6 +41,7 @@ public class UserSession {
 
         // Инициализация дефолтных пресетов опций
         createNewModelRequestConfiguration(GenerationModel.KLING_3_0, KlingOptions.builder().build());
+        createNewModelRequestConfiguration(GenerationModel.KLING_3_MOTION_CONTROL, KlingMotionControlOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.SORA_2, SoraOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.SUNO_V5, SunoOptions.builder().build());
         createNewModelRequestConfiguration(GenerationModel.NANO_BANANA_PRO, NanoBananaOptions.builder().build());

@@ -6,25 +6,26 @@
 
 **Общее:** все входные параметры (в т.ч. `userId` в body и query) принимаются как **строки**; маппинг на типы выполняется в бэкенде. Для `userId` допустима строка вида `"123456789"`.
 
-При успешной постановке задачи на генерацию (`POST /kling`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
+При успешной постановке задачи на генерацию (`POST /kling`, `/kling-motion-control`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
 
 ---
 
-## 1. Загрузка изображений
+## 1. Загрузка файлов
 
 **`POST /v1/web/upload`**
 
-Загружает изображения и возвращает их публичные URL. Эти URL используются в полях `imageUrls` (Kling, Sora) или `imageInput` (NanoBanana) при запросах на генерацию.
+Загружает файлы (изображения и видео) и возвращает их публичные URL. Эти URL используются в полях `imageUrls` (Kling, Sora), `imageInput` (NanoBanana), а также `inputUrls` и `videoUrls` (Kling Motion Control) при запросах на генерацию.
 
 ### Request
 
 - **Content-Type:** `multipart/form-data`
-- **Поле:** `images` (массив файлов)
+- **Поле:** `files` (массив файлов)
 
 ### Ограничения
 
-- Форматы: JPEG, PNG, WebP
-- Максимальный размер файла: задаётся в `spring.servlet.multipart.max-file-size` (по умолчанию 10MB)
+- Форматы: JPEG, PNG, WebP (изображения); MP4, MOV (видео — для Kling Motion Control)
+- Максимальный размер: изображения — 10 МБ, видео — 100 МБ
+- Длительность видео: 3–30 секунд
 
 ### Response
 
@@ -50,8 +51,8 @@ URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{file
 
 ```javascript
 const formData = new FormData();
-formData.append('images', file1);
-formData.append('images', file2);
+formData.append('files', file1);
+formData.append('files', file2);
 
 const response = await fetch('/v1/web/upload', {
   method: 'POST',
@@ -66,7 +67,7 @@ const { urls } = await response.json();
 
 **`GET /v1/web/files/{fileId}`**
 
-Отдаёт содержимое файла по его ID. Полный URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{fileId}` (`endpointVersion`: `dev-webhook` или `release-webhook`, см. раздел «Загрузка изображений»).
+Отдаёт содержимое файла по его ID. Полный URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{fileId}` (`endpointVersion`: `dev-webhook` или `release-webhook`, см. раздел «Загрузка файлов»).
 
 ### Request
 
@@ -130,7 +131,7 @@ const { urls } = await response.json();
 | taskId | string | ID задачи для опроса результата |
 | balance | number | Текущий баланс пользователя (после списания стоимости генерации) |
 
-**400 Bad Request** — текст ошибки парсинга JSON
+**400 Bad Request** — текст ошибки (парсинг JSON, валидация `userId`, валидация длительности видео для Motion Control и т.п.)
 
 При ошибке постановки задачи возвращается JSON `{code, description}` и соответствующий HTTP-статус:
 
@@ -141,6 +142,58 @@ const { urls } = await response.json();
 | 429 | E009 | Слишком много запросов |
 | 502 | E001, E002, E003, E007, E010, E011 | Ошибка генерации или сервис временно недоступен |
 | 500 | E008 | Внутренняя ошибка сервера |
+
+---
+
+## 3.1. Генерация Kling 3.0 Motion Control
+
+**`POST /v1/web/kling-motion-control`**
+
+Запускает генерацию видео через Kling 3.0 Motion Control (kie.ai) — перенос движения из референсного видео на изображение персонажа. Доступно только из web-интерфейса.
+
+### Request
+
+- **Content-Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "userId": "123456789",
+  "options": {
+    "inputUrls": ["https://..."],
+    "videoUrls": ["https://..."],
+    "prompt": "Описание желаемого результата",
+    "characterOrientation": "video",
+    "mode": "720p"
+  }
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|------|-----|-------------|----------|
+| userId | string | да | User.telegramId (строка) |
+| options.inputUrls | string[] | да | URL референсного изображения персонажа (результат `/upload`, JPEG/PNG/JPG) |
+| options.videoUrls | string[] | да | URL референсного видео с движением (результат `/upload`, MP4/MOV, 3–30 сек) |
+| options.prompt | string | нет | Текстовое описание (0–2500 символов) |
+| options.characterOrientation | string | нет | `"image"` — ориентация по изображению (видео 3–10 сек); `"video"` — по видео (3–30 сек). По умолчанию `"video"` |
+| options.mode | string | нет | Разрешение: `"720p"` (std) или `"1080p"` (pro). По умолчанию `"720p"` |
+
+### Response
+
+**200 OK**
+```json
+{
+  "taskId": "abc123-xyz-456",
+  "balance": 850
+}
+```
+
+**400 Bad Request** — при неверной длительности видео:
+- orientation «image» и видео > 10 сек: `"При orientation «image» видео должно быть 3–10 секунд. Ваше видео — X сек."`
+- orientation «video» и видео не в диапазоне 3–30 сек: `"Видео должно быть 3–30 секунд. Ваше видео — X сек."`
+- не удалось прочитать длительность: `"Не удалось определить длительность видео. Проверьте формат файла (MP4, MOV)."`
+
+**400 / 500** — см. Kling
 
 ---
 
@@ -312,7 +365,7 @@ const { urls } = await response.json();
 
 ### Response
 
-**200 OK** (Kling, Sora, NanoBanana — объекты с полем `url`):
+**200 OK** (Kling, Kling Motion Control, Sora, NanoBanana — объекты с полем `url`):
 ```json
 {
   "resultUrls": [
@@ -348,8 +401,8 @@ const { urls } = await response.json();
 
 | Поле | Описание |
 |------|----------|
-| resultUrls | Массив объектов. Для Kling/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
-| model | Модель генерации (`KLING_3_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
 | balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
 
@@ -411,13 +464,16 @@ const { urls } = await response.json();
 
 ---
 
-### POST /upload — загрузка изображений
+### POST /upload — загрузка файлов
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
-| Недопустимый Content-Type (не jpeg/png/webp) | `IllegalArgumentException` | **400** — текст: `"Invalid content type: ... Allowed: jpeg, png, webp"` |
-| Файл превышает лимит (`spring.servlet.multipart.max-file-size`) | `IllegalArgumentException` | **400** — текст: `"File too large. Max size: 15MB"` |
-| Spring multipart отклоняет (размер до валидации) | `MaxUploadSizeExceededException` | **500** — пустое тело |
+| Недопустимый формат файла | `IllegalArgumentException` | **400** — текст: `"Недопустимый формат файла. Разрешены: изображения (JPEG, PNG, WebP), видео (MP4, MOV)."` |
+| Изображение превышает 10 МБ | `IllegalArgumentException` | **400** — текст: `"Изображение слишком большое. Максимальный размер — 10 МБ. Ваш файл — X МБ."` |
+| Видео превышает 100 МБ | `IllegalArgumentException` | **400** — текст: `"Видео слишком большое. Максимальный размер — 100 МБ. Ваш файл — X МБ."` |
+| Видео не 3–30 сек | `IllegalArgumentException` | **400** — текст: `"Видео должно быть длительностью 3–30 секунд. Ваше видео — X сек."` |
+| Не удалось прочитать длительность видео | `IllegalArgumentException` | **400** — текст: `"Не удалось определить длительность видео. Проверьте формат файла (MP4, MOV)."` |
+| Spring multipart отклоняет (файл > 100 МБ) | `MaxUploadSizeExceededException` | **400** — текст: `"Файл слишком большой. Изображения — до 10 МБ, видео — до 100 МБ."` |
 | Любое другое исключение (IO, security) | `Exception` | **500** — пустое тело |
 
 ---
@@ -431,12 +487,13 @@ const { urls } = await response.json();
 
 ---
 
-### POST /kling, /sora2, /suno, /nanobanana — постановка задачи на генерацию
+### POST /kling, /kling-motion-control, /sora2, /suno, /nanobanana — постановка задачи на генерацию
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
 | Невалидный JSON в body | `JsonProcessingException` | **400** — текст из `e.getMessage()` |
 | `userId` отсутствует или не число | `IllegalArgumentException` | **400** — текст: `"userId is required"` или `"userId must be a valid number"` |
+| Валидация (длительность видео для Motion Control и т.п.) | `IllegalArgumentException` | **400** — текст сообщения об ошибке |
 | Недостаточно баланса | `SubmitOutcome.fail(E004)` | **402** — `{ "code": "E004", "description": "Недостаточно средств на балансе" }` |
 | Сервис генерации недоступен или ошибка при создании задачи | `SubmitOutcome.fail(E007)` | **502** — `{ "code": "E007", "description": "Сервис генерации временно недоступен. Пожалуйста, обратитесь в поддержку." }` |
 | Необработанное исключение в цепочке | `SubmitOutcome.fail(E008)` | **500** — `{ "code": "E008", "description": "Произошла внутренняя ошибка. Пожалуйста, обратитесь в поддержку." }` |
@@ -497,7 +554,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 1. Проверять HTTP-статус; при 4xx/5xx — читать тело.
 2. При 400/402/429/500/502 с JSON — парсить `code` и `description` для пользовательских сообщений.
-3. При 400 с текстом (upload, parse) — показывать `e.getMessage()` как есть.
+3. При 400 с текстом (upload, parse, валидация) — показывать тело ответа как есть.
 4. При 404 — отображать «ресурс не найден»; тело обычно пустое.
 
 ---
@@ -524,7 +581,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 История разделена по типу контента. Каждый эндпоинт возвращает текущий баланс пользователя и список операций (успешных и в процессе), отсортированный по дате по убыванию. В список попадают записи со статусом **SUCCESS** и **PROCESSING** (генерации в процессе).
 
-### 8.1. История видео (Sora, Kling)
+### 8.1. История видео (Sora, Kling, Kling Motion Control)
 
 **`GET /v1/web/history/video`**
 
@@ -589,8 +646,8 @@ E005, E006, E009 при постановке задачи из веб-интер
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании). null для записей со статусом PROCESSING |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | Массив объектов. Для Kling/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
-| model | Модель генерации (`KLING_3_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
 | status | Статус генерации: `SUCCESS`, `PROCESSING`. `null` для старых записей |
 | taskId | ID задачи для опроса результата. `null` для старых записей |
 
@@ -608,8 +665,8 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 ## Типовой сценарий
 
-1. **Загрузка изображений** (если нужны): `POST /upload` → получить `urls`
-2. **Запуск генерации**: `POST /kling` (или `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput` из шага 1)
+1. **Загрузка файлов** (если нужны): `POST /upload` с полем `files` → получить `urls`
+2. **Запуск генерации**: `POST /kling` (или `/kling-motion-control`, `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput`/`inputUrls`+`videoUrls` из шага 1)
 3. **Получение `taskId` и `balance`** из ответа — обновите отображение баланса на фронте
 4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
 5. **Отображение/сохранение** ссылок из `response.resultUrls`

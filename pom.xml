@@ -81,6 +81,13 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
+        <!-- MP4/MOV metadata (duration) for video validation -->
+        <dependency>
+            <groupId>org.mp4parser</groupId>
+            <artifactId>isoparser</artifactId>
+            <version>1.9.56</version>
+        </dependency>
     </dependencies>
 
     <build>

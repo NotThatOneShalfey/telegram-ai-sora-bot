@@ -59,6 +59,18 @@ public class ServicesCallbackController {
         }
     }
 
+    @PostMapping("/kling-3-motion-control")
+    public void handleKlingMotionControlCallback(@RequestBody String body) {
+        log.debug("handleKlingMotionControlCallback method called!");
+        try {
+            RecordInfoResponse resp = jsonMapper.readValue(body, RecordInfoResponse.class);
+            log.trace("Resp object: {}", resp.toString());
+            callbackHandler.handleApiCallback(resp, GenerationModel.KLING_3_MOTION_CONTROL);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @PostMapping("/nano-banana-pro")
     public void handleNanoBananaCallback(@RequestBody String body) {
         log.debug("handleNanoBananaCallback method called!");

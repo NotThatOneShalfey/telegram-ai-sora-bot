@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-023-add-kling-motion-control-price
+      author: Konstantin
+      changes:
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_MOTION_CONTROL}
+              - column: {name: pr_base_price, valueNumeric: 150}
+              - column: {name: pr_cost_usd, valueNumeric: 0.5}

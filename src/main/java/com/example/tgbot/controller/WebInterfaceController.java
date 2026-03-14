@@ -4,7 +4,7 @@ import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.domain.enums.GenerationType;
 import com.example.tgbot.domain.value.ErrorCode;
 import com.example.tgbot.dto.api.*;
-import com.example.tgbot.service.ImageUploadService;
+import com.example.tgbot.service.UploadService;
 import com.example.tgbot.service.OperationsHistoryService;
 import com.example.tgbot.service.UserQueryService;
 import com.example.tgbot.service.WebInterfaceService;
@@ -32,7 +32,7 @@ import java.util.Optional;
 @Slf4j
 public class WebInterfaceController {
     private final WebInterfaceService webInterfaceService;
-    private final ImageUploadService imageUploadService;
+    private final UploadService uploadService;
     private final OperationsHistoryService operationsHistoryService;
     private final UserQueryService userQueryService;
     private final ObjectMapper mapper = new JsonMapper();
@@ -57,21 +57,27 @@ public class WebInterfaceController {
         return processGenerate(body, GenerationModel.NANO_BANANA_PRO, new TypeReference<WebGenerateRequest<NanoBananaOptionsDTO>>() {});
     }
 
+    /** Kling 3.0 Motion Control — только для web-интерфейса. */
+    @PostMapping("/kling-motion-control")
+    public ResponseEntity<?> generateKlingMotionControl(@RequestBody String body) {
+        return processGenerate(body, GenerationModel.KLING_3_MOTION_CONTROL, new TypeReference<WebGenerateRequest<KlingMotionControlOptionsDTO>>() {});
+    }
+
     /**
-     * Загрузка изображений. Принимает multipart/form-data с частью "images".
-     * Возвращает {"urls": ["https://...", ...]} — эти URL передавать в imageUrls/imageInput при генерации.
+     * Загрузка файлов (изображения и видео). Принимает multipart/form-data с частью "files".
+     * Возвращает {"urls": ["https://...", ...]} — эти URL передавать в imageUrls/imageInput/inputUrls/videoUrls при генерации.
      */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadImages(@RequestParam("images") MultipartFile[] images) {
+    public ResponseEntity<?> uploadFiles(@RequestParam("files") MultipartFile[] files) {
         try {
-            List<String> urls = imageUploadService.saveFiles(images);
+            List<String> urls = uploadService.saveFiles(files);
             Map<String, List<String>> response = new HashMap<>();
             response.put("urls", urls);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            log.error("Failed to upload images", e);
+            log.error("Failed to upload files", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -82,7 +88,7 @@ public class WebInterfaceController {
     @GetMapping("/files/{fileId}")
     public ResponseEntity<Resource> getFile(@PathVariable(name = "fileId") String fileId) {
         try {
-            Resource resource = imageUploadService.getFileAsResource(fileId);
+            Resource resource = uploadService.getFileAsResource(fileId);
             if (resource == null || !resource.exists()) {
                 return ResponseEntity.notFound().build();
             }

@@ -96,6 +96,8 @@ public class TgBot extends TelegramWebhookBot {
     public SubmitOutcome processWebInterfaceRequestSync(InterfaceDTORequest request) {
         try {
             return processWebInterfaceReq(request);
+        } catch (IllegalArgumentException e) {
+            throw e; // Валидация — передаём наверх для 400 с сообщением
         } catch (Exception e) {
             log.error("Error processing web interface request", e);
             return SubmitOutcome.fail(ErrorCode.E008);

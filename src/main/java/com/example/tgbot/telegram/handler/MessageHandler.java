@@ -16,6 +16,7 @@ import com.example.tgbot.telegram.collector.TelegramMediaBatchCollector;
 import com.example.tgbot.telegram.executor.FileExecutor;
 import com.example.tgbot.telegram.panel.PanelType;
 import com.example.tgbot.telegram.session.UserSession;
+import com.example.tgbot.exception.FileTooLargeException;
 import com.example.tgbot.util.ErrorMessageHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.unit.DataSize;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.File;
@@ -60,6 +62,9 @@ public class MessageHandler {
 
     @Value("${telegram.bot.token}")
     private String botToken;
+
+    @Value("${telegram.max-image-size:10MB}")
+    private DataSize maxImageSize;
 
 
     public void handleMessage(Message message, UserSession session) {
@@ -134,6 +139,10 @@ public class MessageHandler {
                 } else {
                     handlePlainPrompt(text, session, model);
                 }
+            } catch (FileTooLargeException e) {
+                session.setContextualMessage("⚠ " + e.getUserMessage());
+                panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
+                return;
             } catch (JsonProcessingException e) {
                 log.error("Couldn't process prompt. Error -> {}", e.getMessage());
                 session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E005));
@@ -169,9 +178,13 @@ public class MessageHandler {
         }
         List<String> fileIds = new ArrayList<>();
         if (message.hasPhoto()) {
-            fileIds = getBestPhotos(message.getPhoto()).stream().map(PhotoSize::getFileId).toList();
+            List<PhotoSize> bestPhotos = getBestPhotos(message.getPhoto());
+            validateImageSizes(bestPhotos, p -> p.getFileSize() != null ? (long) p.getFileSize() : null);
+            fileIds = bestPhotos.stream().map(PhotoSize::getFileId).toList();
         } else if (message.hasDocument()) {
-            fileIds.add(message.getDocument().getFileId());
+            var doc = message.getDocument();
+            validateImageSize(doc.getFileSize() != null ? (long) doc.getFileSize() : null);
+            fileIds.add(doc.getFileId());
         }
         if (fileIds.isEmpty()) {
             session.setContextualMessage(ErrorMessageHelper.forTelegram(ErrorCode.E006));
@@ -179,6 +192,27 @@ public class MessageHandler {
             return;
         }
         handlePromptWithFileIds(prompt, fileIds, session, model);
+    }
+
+    private void validateImageSize(Long fileSize) {
+        if (fileSize != null && fileSize > maxImageSize.toBytes()) {
+            throw new FileTooLargeException("Изображение слишком большое. Максимальный размер — %s. Попробуйте отправить файл меньшего размера."
+                    .formatted(formatSize(maxImageSize.toBytes())));
+        }
+    }
+
+    private <T> void validateImageSizes(Iterable<T> items, java.util.function.Function<T, Long> sizeGetter) {
+        for (T item : items) {
+            Long size = sizeGetter.apply(item);
+            validateImageSize(size);
+        }
+    }
+
+    private static String formatSize(long bytes) {
+        if (bytes >= 1024 * 1024) {
+            return "%.0f МБ".formatted(bytes / (1024.0 * 1024));
+        }
+        return "%.0f КБ".formatted(bytes / 1024.0);
     }
 
 //    public List<PhotoSize> getBestPhotos(List<PhotoSize> photos, int photoCount) {
@@ -228,7 +262,6 @@ public class MessageHandler {
 
         try {
             handlePromptWithFileIds(prompt, fileIds, session, model);
-
             var historyRecord = userService.createGenerationHistoryRequested(session.getUser(), model, opts.getRequestInput());
             session.setOperationsHistoryIdForCurrentModel(model, historyRecord.getId());
             session.setRequestSource(TaskSource.CHAT);
@@ -237,6 +270,9 @@ public class MessageHandler {
                 session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E007));
                 panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
             }
+        } catch (FileTooLargeException e) {
+            session.setContextualMessage("⚠ " + e.getUserMessage());
+            panelRegistry.getChatPanel(PanelType.MAIN_SIMPLE_MESSAGE).execute(session);
         } catch (JsonProcessingException e) {
             log.error("Couldn't process media batch. Error -> {}", e.getMessage());
             session.setContextualMessage(ErrorMessageHelper.forTelegram(Operation.fromModel(model), ErrorCode.E005));
@@ -250,6 +286,7 @@ public class MessageHandler {
             GetFile getFileRequest = new GetFile();
             getFileRequest.setFileId(fileId);
             File file = fileExecutorProvider.getObject().executeFile(getFileRequest);
+            validateImageSize(file.getFileSize() != null ? (long) file.getFileSize() : null);
             imageUrls.add("https://api.telegram.org/file/bot" + botToken + "/" + file.getFilePath());
         }
         Map<String, Object> input = new HashMap<>();
