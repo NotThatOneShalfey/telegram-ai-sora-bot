@@ -38,7 +38,7 @@ public class OperationsHistoryService {
                 .map(user -> {
                     List<OperationsHistory> list = generationType == null
                             ? historyRepository.findByUserIdOrderByOperationTimestampDesc(user)
-                            : historyRepository.findSuccessfulOrProcessingByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
+                            : historyRepository.findByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
                     List<HistoryItemDTO> items = list.stream()
                             .map(this::toHistoryItemDTO)
                             .toList();
