@@ -49,7 +49,9 @@ public class ElevenLabsOptions implements IModelRequestOptions {
         Map<String, Object> input = new HashMap<>();
         input.put("dialogue", dialogue != null ? dialogue : List.of());
         input.put("stability", stability != null ? stability : DEFAULT_STABILITY);
-        input.put("language_code", (languageCode != null && !languageCode.isBlank()) ? languageCode : DEFAULT_LANGUAGE_CODE);
+        if (languageCode != null && !languageCode.isBlank() && !languageCode.equals(DEFAULT_LANGUAGE_CODE)) {
+            input.put("language_code",languageCode);
+        }
         return input;
     }
 
