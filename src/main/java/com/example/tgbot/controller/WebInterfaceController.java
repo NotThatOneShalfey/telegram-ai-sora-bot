@@ -158,6 +158,18 @@ public class WebInterfaceController {
     }
 
     /**
+     * Удаление записи истории (установка статуса DELETED). Запись перестаёт отображаться в интерфейсе,
+     * но остаётся в БД и учитывается в расчётах для амбассадоров.
+     *
+     * @param id ID записи из operations_history (UUID в формате String)
+     */
+    @DeleteMapping("/history/{id}")
+    public ResponseEntity<?> deleteHistoryRecord(@PathVariable("id") String id) {
+        boolean updated = operationsHistoryService.markHistoryRecordAsDeleted(id);
+        return updated ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    /**
      * Информация о пользователе по userId (telegram ID): баланс и статус амбассадора.
      * Ответ: {"balance": int, "ambassador": boolean}
      */

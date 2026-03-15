@@ -12,6 +12,8 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HistoryItemDTO {
+    /** ID записи в таблице operations_history (для удаления и т.д.). */
+    private String id;
     /** Опции запроса (параметры генерации). */
     private Map<String, Object> options;
     /** Изменение баланса (отрицательное при списании). */
@@ -28,4 +30,10 @@ public class HistoryItemDTO {
     /** ID задачи от внешнего API. null, если task_id ещё не получен. */
     @JsonProperty("taskId")
     private String taskId;
+
+    /** Конструктор без id (для обратной совместимости). */
+    public HistoryItemDTO(Map<String, Object> options, Float balanceChange, String date,
+                          List<?> resultItems, String model, String status, String taskId) {
+        this(null, options, balanceChange, date, resultItems, model, status, taskId);
+    }
 }
