@@ -2,6 +2,8 @@ package com.example.tgbot.service;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,6 +19,25 @@ public class SeedancePollingRegistry {
     public void register(String taskId) {
         entries.put(taskId, new PollEntry(System.currentTimeMillis()));
     }
+
+    /** Восстановление из БД: регистрирует задачу с сохранёнными временами. */
+    public void registerWithTimes(String taskId, long createdAt, Long lastPolledAt) {
+        PollEntry entry = new PollEntry(createdAt);
+        entry.setLastPolledAt(lastPolledAt);
+        entries.put(taskId, entry);
+    }
+
+    /** Снимок для сохранения в БД при shutdown. */
+    public List<PollSnapshot> getSnapshotForPersistence() {
+        List<PollSnapshot> list = new ArrayList<>();
+        for (Map.Entry<String, PollEntry> e : entries.entrySet()) {
+            PollEntry pe = e.getValue();
+            list.add(new PollSnapshot(e.getKey(), pe.getCreatedAt(), pe.getLastPolledAt()));
+        }
+        return list;
+    }
+
+    public record PollSnapshot(String taskId, long createdAt, Long lastPolledAt) {}
 
     public void unregister(String taskId) {
         entries.remove(taskId);

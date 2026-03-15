@@ -4,6 +4,7 @@ import com.example.tgbot.domain.enums.GenerationModel;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +27,11 @@ public class TaskResultRegistry {
 
     public TaskResultRecord remove(String taskId) {
         return completedResults.remove(taskId);
+    }
+
+    /** Снимок для сохранения в БД при shutdown. */
+    public Map<String, TaskResultRecord> getAllSnapshot() {
+        return new HashMap<>(completedResults);
     }
 
     @Data

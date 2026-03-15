@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,6 +48,10 @@ public class UploadService {
             "image/jpeg", "image/jpg", "image/png", "image/webp",
             "video/mp4", "video/quicktime"
     );
+
+    /** Допустимые расширения для изображений и видео. Файл сохраняется с расширением, URL содержит его. */
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpeg", "jpg", "png", "webp");
+    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of("mp4", "mov");
 
     /** Длительность видео для Motion Control: 3–30 сек (общий диапазон). */
     private static final int VIDEO_MIN_SECONDS = 3;
@@ -83,13 +88,15 @@ public class UploadService {
 
     /**
      * Сохраняет загруженные файлы и возвращает их публичные URL.
+     * Расширение берётся из имени файла (если допустимо) или из content-type; файл и URL содержат расширение.
      */
     public List<String> saveFiles(MultipartFile[] files) throws IOException {
         List<String> urls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
             validateFile(file);
-            String fileId = UUID.randomUUID().toString();
+            String extension = getExtensionForUpload(file);
+            String fileId = UUID.randomUUID().toString() + "." + extension;
             Path targetPath = uploadPath.resolve(fileId);
             file.transferTo(targetPath.toFile());
             if (isVideoContentType(file.getContentType())) {
@@ -101,6 +108,51 @@ public class UploadService {
             log.trace("Saved uploaded file: {} -> {}", fileId, url);
         }
         return urls;
+    }
+
+    /**
+     * Определяет расширение для сохранения: из имени файла (если допустимо для данного content-type)
+     * или по content-type.
+     */
+    private String getExtensionForUpload(MultipartFile file) {
+        String contentType = file.getContentType();
+        boolean isVideo = isVideoContentType(contentType);
+        Set<String> allowed = isVideo ? ALLOWED_VIDEO_EXTENSIONS : ALLOWED_IMAGE_EXTENSIONS;
+
+        String fromName = getExtensionFromFilename(file.getOriginalFilename());
+        if (fromName != null && allowed.contains(fromName)) {
+            return fromName;
+        }
+        return getDefaultExtensionForContentType(contentType);
+    }
+
+    /** Извлекает расширение из имени файла (нижний регистр), без точки. */
+    private String getExtensionFromFilename(String filename) {
+        if (filename == null || filename.isBlank()) return null;
+        String name = filename.trim();
+        int i = name.lastIndexOf('.');
+        if (i < 0 || i == name.length() - 1) return null;
+        return name.substring(i + 1).toLowerCase(Locale.ROOT);
+    }
+
+    /** Расширение по умолчанию по content-type. */
+    private String getDefaultExtensionForContentType(String contentType) {
+        if (contentType == null) return "bin";
+        switch (contentType.toLowerCase(Locale.ROOT)) {
+            case "image/jpeg":
+            case "image/jpg":
+                return "jpg";
+            case "image/png":
+                return "png";
+            case "image/webp":
+                return "webp";
+            case "video/mp4":
+                return "mp4";
+            case "video/quicktime":
+                return "mov";
+            default:
+                return "bin";
+        }
     }
 
     /**

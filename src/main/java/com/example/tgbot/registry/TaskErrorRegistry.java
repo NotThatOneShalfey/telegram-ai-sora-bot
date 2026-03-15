@@ -4,6 +4,7 @@ import com.example.tgbot.domain.value.ErrorCode;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +26,11 @@ public class TaskErrorRegistry {
 
     public TaskErrorRecord remove(String taskId) {
         return errors.remove(taskId);
+    }
+
+    /** Снимок для сохранения в БД при shutdown. */
+    public Map<String, TaskErrorRecord> getAllSnapshot() {
+        return new HashMap<>(errors);
     }
 
     @Data

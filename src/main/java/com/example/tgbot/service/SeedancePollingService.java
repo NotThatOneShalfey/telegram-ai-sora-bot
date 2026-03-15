@@ -38,6 +38,7 @@ public class SeedancePollingService {
             try {
                 String body = requestService.recordInfo(taskId);
                 SeedanceRecordInfoResponse resp = mapper.readValue(body, SeedanceRecordInfoResponse.class);
+                log.trace("Polling by taskId {} -> resp {}", taskId, resp);
                 pollingRegistry.markPolled(taskId);
                 String status = resp.getStatus();
                 if ("success".equals(status)) {
