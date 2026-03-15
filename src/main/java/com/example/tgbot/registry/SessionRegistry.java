@@ -5,7 +5,9 @@ import com.example.tgbot.telegram.session.UserSession;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,19 +25,29 @@ public class SessionRegistry {
         return w != null ? w.source : TaskSource.CHAT;
     }
 
-    public void putWaitingSession(String taskId, UserSession session) {
-        putWaitingSession(taskId, session, TaskSource.CHAT);
-    }
-
     public void putWaitingSession(String taskId, UserSession session, TaskSource source) {
         waitingTasks.put(taskId, new WaitingTask(session, source != null ? source : TaskSource.CHAT));
     }
 
     public void removeWaitingSession(String taskId) {
-        waitingTasks.remove(taskId);
+        WaitingTask w = waitingTasks.remove(taskId);
+        if (w != null && w.session() != null) {
+            w.session().removeRestoredPendingTask(taskId);
+        }
     }
 
     private record WaitingTask(UserSession session, TaskSource source) {}
+
+    /** Снимок для сохранения в БД при shutdown: taskId, session, source. */
+    public List<WaitingSessionSnapshot> getAllWaitingSnapshot() {
+        List<WaitingSessionSnapshot> list = new ArrayList<>();
+        for (Map.Entry<String, WaitingTask> e : waitingTasks.entrySet()) {
+            list.add(new WaitingSessionSnapshot(e.getKey(), e.getValue().session(), e.getValue().source()));
+        }
+        return list;
+    }
+
+    public record WaitingSessionSnapshot(String taskId, UserSession session, TaskSource source) {}
 
     /** Удаляет ожидающие сессии, не активные более заданного времени. */
     public int removeWaitingSessionsOlderThan(LocalDateTime cutoff) {

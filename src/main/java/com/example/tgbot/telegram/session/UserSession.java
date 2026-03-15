@@ -4,6 +4,7 @@ import com.example.tgbot.domain.model.User;
 import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.KlingMotionControlOptions;
 import com.example.tgbot.integration.config.ElevenLabsOptions;
+import com.example.tgbot.integration.config.RestoredRequestOptions;
 import com.example.tgbot.integration.config.SeedanceImageToVideoOptions;
 import com.example.tgbot.integration.config.*;
 import com.example.tgbot.integration.kieai.ReceivedFile;
@@ -15,6 +16,7 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @ToString
@@ -34,6 +36,8 @@ public class UserSession {
     @Setter
     private TaskSource requestSource;
     private final List<TelegramRequestConfiguration> requestConfigurationList = new ArrayList<>();
+    /** Восстановленные из БД ожидающие задачи (taskId → опции). Используется после restore в getRequestOptionsByTaskIdAndModel. */
+    private final Map<String, RestoredRequestOptions> restoredPendingTasks = new ConcurrentHashMap<>();
 
     public UserSession(User user) {
         this.user = user;
@@ -61,12 +65,26 @@ public class UserSession {
     }
 
     public IModelRequestOptions getRequestOptionsByTaskIdAndModel(String taskId) {
+        RestoredRequestOptions restored = restoredPendingTasks.get(taskId);
+        if (restored != null) {
+            return restored;
+        }
         for (TelegramRequestConfiguration configuration : requestConfigurationList) {
             if (Objects.equals(configuration.getTaskId(), taskId)) {
                 return configuration.getRequestOptions();
             }
         }
         return null;
+    }
+
+    /** Добавляет восстановленную из БД ожидающую задачу (вызывается при restore). */
+    public void putRestoredPendingTask(String taskId, GenerationModel model, Map<String, Object> requestInput) {
+        restoredPendingTasks.put(taskId, new RestoredRequestOptions(model, requestInput != null ? requestInput : Map.of()));
+    }
+
+    /** Удаляет восстановленную задачу после завершения (вызвать из callback при removeWaitingSession). */
+    public void removeRestoredPendingTask(String taskId) {
+        restoredPendingTasks.remove(taskId);
     }
 
     public void setOperationsHistoryIdForCurrentModel(GenerationModel model, UUID operationsHistoryId) {

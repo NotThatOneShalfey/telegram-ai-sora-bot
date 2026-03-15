@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-029-waiting-session-registry
+      author: Konstantin
+      changes:
+        - createTable:
+            tableName: app_registry_waiting_session
+            columns:
+              - column:
+                  name: task_id
+                  type: varchar(256)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: options_json
+                  type: text
