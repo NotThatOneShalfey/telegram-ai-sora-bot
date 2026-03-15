@@ -2,7 +2,11 @@ package com.example.tgbot.service;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.mp4parser.IsoFile;
+
+import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.io.SeekableByteChannel;
+import org.jcodec.containers.mp4.boxes.MovieBox;
+import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -252,13 +256,21 @@ public class UploadService {
     }
 
     private double getVideoDurationSeconds(Path filePath) throws Exception {
-        try (IsoFile isoFile = new IsoFile(filePath.toFile())) {
-            var movieBox = isoFile.getMovieBox();
-            if (movieBox == null) throw new IllegalStateException("No movie box");
-            var header = movieBox.getMovieHeaderBox();
-            long duration = header.getDuration();
-            long timescale = header.getTimescale();
+        SeekableByteChannel ch = null;
+        try {
+            ch = NIOUtils.readableFileChannel(filePath.toString());
+            MP4Demuxer demuxer = MP4Demuxer.createMP4Demuxer(ch);
+            MovieBox movie = demuxer.getMovie();
+            if (movie == null) {
+                throw new IllegalStateException("No movie box");
+            }
+            long duration = movie.getDuration();
+            int timescale = movie.getTimescale();
             return (double) duration / timescale;
+        } finally {
+            if (ch != null) {
+                NIOUtils.closeQuietly(ch);
+            }
         }
     }
 

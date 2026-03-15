@@ -49,11 +49,31 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Telegram Bots Spring Boot starter -->
+        <!-- Telegram Bots Spring Boot starter.
+             Исключаем Jackson: telegrambots тянет 2.14.2 (parent Bots), Spring Boot даёт 2.15.x.
+             Две версии в classpath дают InvalidDefinitionException (conflicting setDefaultPropertyInclusion). -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>${telegrambots.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                    <artifactId>jackson-jaxrs-json-provider</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.module</groupId>
+                    <artifactId>jackson-module-jaxb-annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Liquibase for database migrations -->
@@ -82,11 +102,11 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- MP4/MOV metadata (duration) for video validation -->
+        <!-- MP4/MOV metadata (duration) for video validation. Pure Java, no Jackson. -->
         <dependency>
-            <groupId>org.mp4parser</groupId>
-            <artifactId>isoparser</artifactId>
-            <version>1.9.56</version>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec</artifactId>
+            <version>0.2.5</version>
         </dependency>
     </dependencies>
 
