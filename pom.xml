@@ -50,13 +50,14 @@
         </dependency>
 
         <!-- Telegram Bots Spring Boot starter.
-             Исключаем Jackson: telegrambots тянет 2.14.2 (parent Bots), Spring Boot даёт 2.15.x.
-             Две версии в classpath дают InvalidDefinitionException (conflicting setDefaultPropertyInclusion). -->
+             Исключаем весь Jackson: telegrambots (и Bots parent) тянет 2.14.2, Spring Boot — 2.15.x.
+             Две версии дают InvalidDefinitionException (conflicting setDefaultPropertyInclusion). -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>${telegrambots.version}</version>
             <exclusions>
+                <!-- Jackson: telegrambots и parent Bots тянут 2.14.2 → конфликт с Spring Boot 2.15.x -->
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
@@ -66,12 +67,29 @@
                     <artifactId>jackson-annotations</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.jaxrs</groupId>
                     <artifactId>jackson-jaxrs-json-provider</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                    <artifactId>jackson-jaxrs-base</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-jaxb-annotations</artifactId>
+                </exclusion>
+                <!-- Стартер тянет spring-boot 2.7.12 → свой Jackson; используем наш Spring Boot 3.2.5 -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-autoconfigure</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
