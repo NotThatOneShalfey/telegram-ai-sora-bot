@@ -3,6 +3,7 @@ package com.example.tgbot.integration.config;
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.dto.api.DialogueItemDTO;
 import com.example.tgbot.dto.api.ElevenLabsOptionsDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +32,7 @@ public class ElevenLabsOptions implements IModelRequestOptions {
     private static final double DEFAULT_STABILITY = 0.5;
     private static final String DEFAULT_LANGUAGE_CODE = "auto";
 
+    @JsonIgnore
     private final ObjectMapper mapper = new JsonMapper();
 
     @Builder.Default
