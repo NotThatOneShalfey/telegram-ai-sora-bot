@@ -19,12 +19,8 @@ public interface OperationsHistoryRepository extends JpaRepository<OperationsHis
 
     List<OperationsHistory> findByUserIdOrderByOperationTimestampDesc(User user);
 
+    /** История по типу генерации для фронта: все статусы, включая FAILED. */
     List<OperationsHistory> findByUserIdAndGenerationTypeOrderByOperationTimestampDesc(User user, GenerationType generationType);
-
-    @Query("SELECT oh FROM OperationsHistory oh WHERE oh.userId = :user AND oh.generationType = :type " +
-            "AND (oh.status = 'SUCCESS' OR oh.status IS NULL) ORDER BY oh.operationTimestamp DESC")
-    List<OperationsHistory> findSuccessfulByUserIdAndGenerationTypeOrderByOperationTimestampDesc(
-            @Param("user") User user, @Param("type") GenerationType generationType);
 
     @Query("SELECT oh FROM OperationsHistory oh WHERE oh.userId = :user AND oh.generationType = :type " +
             "AND (oh.status = 'SUCCESS' OR oh.status = 'PROCESSING' OR oh.status IS NULL) ORDER BY oh.operationTimestamp DESC")
@@ -52,20 +48,6 @@ public interface OperationsHistoryRepository extends JpaRepository<OperationsHis
             @Param("users") List<User> users,
             @Param("from") Timestamp from,
             @Param("to") Timestamp to);
-
-    @Query("SELECT COALESCE(SUM(ABS(oh.balanceChange)), 0) FROM OperationsHistory oh " +
-            "WHERE oh.operationType = :opType AND oh.userId IN :users " +
-            "AND (oh.status = 'SUCCESS' OR oh.status IS NULL)")
-    double sumAbsBalanceChangeForGenerationAllTime(
-            @Param("opType") HistoryOperationType opType,
-            @Param("users") List<User> users);
-
-    @Query("SELECT COALESCE(SUM(oh.costRub), 0) FROM OperationsHistory oh " +
-            "WHERE oh.operationType = :opType AND oh.userId IN :users " +
-            "AND (oh.status = 'SUCCESS' OR oh.status IS NULL)")
-    BigDecimal sumCostRubForGenerationAllTime(
-            @Param("opType") HistoryOperationType opType,
-            @Param("users") List<User> users);
 
     @Query("SELECT COUNT(oh) FROM OperationsHistory oh " +
             "WHERE oh.operationType = :opType AND oh.userId IN :users " +

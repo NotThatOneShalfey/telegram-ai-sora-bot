@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-024-kling-motion-control-price-by-mode
+      author: Konstantin
+      changes:
+        - delete:
+            tableName: price_registry
+            where: pr_model='KLING_3_MOTION_CONTROL'
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_MOTION_CONTROL}
+              - column:
+                  name: pr_price_key
+                  value: '{"mode":"720p"}'
+              - column: {name: pr_base_price, valueNumeric: 0}
+              - column: {name: pr_cost_usd, valueNumeric: 0.06}
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: KLING_3_MOTION_CONTROL}
+              - column:
+                  name: pr_price_key
+                  value: '{"mode":"1080p"}'
+              - column: {name: pr_base_price, valueNumeric: 0}
+              - column: {name: pr_cost_usd, valueNumeric: 0.10}

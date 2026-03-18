@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-028-registry-persistence
+      author: Konstantin
+      changes:
+        - createTable:
+            tableName: app_registry_seedance_polling
+            columns:
+              - column:
+                  name: task_id
+                  type: varchar(256)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_polled_at
+                  type: bigint
+        - createTable:
+            tableName: app_registry_task_result
+            columns:
+              - column:
+                  name: task_id
+                  type: varchar(256)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: options_json
+                  type: text
+              - column:
+                  name: result_items_json
+                  type: text
+              - column:
+                  name: balance_change
+                  type: integer
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: app_registry_task_error
+            columns:
+              - column:
+                  name: task_id
+                  type: varchar(256)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_code
+                  type: varchar(32)
+                  constraints:
+                    nullable: false

@@ -1,5 +1,6 @@
 package com.example.tgbot.service;
 
+import com.example.tgbot.domain.enums.GenerationStatus;
 import com.example.tgbot.domain.enums.GenerationType;
 import com.example.tgbot.domain.model.OperationsHistory;
 import com.example.tgbot.dto.api.HistoryItemDTO;
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +40,9 @@ public class OperationsHistoryService {
                 .map(user -> {
                     List<OperationsHistory> list = generationType == null
                             ? historyRepository.findByUserIdOrderByOperationTimestampDesc(user)
-                            : historyRepository.findSuccessfulOrProcessingByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
+                            : historyRepository.findByUserIdAndGenerationTypeOrderByOperationTimestampDesc(user, generationType);
                     List<HistoryItemDTO> items = list.stream()
+                            .filter(oh -> oh.getStatus() != GenerationStatus.DELETED)
                             .map(this::toHistoryItemDTO)
                             .toList();
                     Integer balance = user.getBalance() != null ? user.getBalance() : 0;
@@ -56,7 +59,34 @@ public class OperationsHistoryService {
                 : null;
         String model = oh.getModel() != null ? oh.getModel().name() : null;
         String status = oh.getStatus() != null ? oh.getStatus().name() : null;
-        return new HistoryItemDTO(options, oh.getBalanceChange(), date, resultItems, model, status, oh.getTaskId());
+        String id = oh.getId() != null ? oh.getId().toString() : null;
+        return new HistoryItemDTO(id, options, oh.getBalanceChange(), date, resultItems, model, status, oh.getTaskId());
+    }
+
+    /**
+     * Помечает запись истории как удалённую (статус DELETED). Запись перестаёт отображаться в интерфейсе,
+     * но продолжает учитываться в расчётах для амбассадоров и т.д.
+     *
+     * @param idStr ID записи (UUID в формате String)
+     * @return true, если запись найдена и статус обновлён; false, если запись не найдена или id невалиден
+     */
+    public boolean markHistoryRecordAsDeleted(String idStr) {
+        if (idStr == null || idStr.isBlank()) {
+            return false;
+        }
+        try {
+            UUID id = UUID.fromString(idStr.trim());
+            return historyRepository.findById(id)
+                    .map(oh -> {
+                        oh.setStatus(GenerationStatus.DELETED);
+                        historyRepository.save(oh);
+                        return true;
+                    })
+                    .orElse(false);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid history record id for delete: {}", idStr);
+            return false;
+        }
     }
 
     private Map<String, Object> parseOptions(String json) {

@@ -6,7 +6,10 @@ import com.example.tgbot.domain.model.PriceRegistry;
 import com.example.tgbot.domain.model.User;
 import com.example.tgbot.domain.value.PriceCoefficient;
 import com.example.tgbot.integration.config.IModelRequestOptions;
+import com.example.tgbot.integration.config.KlingMotionControlOptions;
 import com.example.tgbot.integration.config.KlingOptions;
+import com.example.tgbot.integration.config.ElevenLabsOptions;
+import com.example.tgbot.integration.config.SeedanceImageToVideoOptions;
 import com.example.tgbot.repository.CurrencyRateRepository;
 import com.example.tgbot.repository.PriceRegistryRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class PriceRegistryService {
 
     private final PriceRegistryRepository priceRegistryRepository;
     private final CurrencyRateRepository currencyRateRepository;
+    private final UploadService uploadService;
 
     /**
      * Рассчитывает итоговую цену (с учётом коэффициента по модели и статусу амбассадора) для отображения, холда и списания.
@@ -48,6 +52,21 @@ public class PriceRegistryService {
                     ? PriceCoefficient.AMBASSADOR_KLING_COEFFICIENT.getCoefficient()
                     : PriceCoefficient.NON_AMBASSADOR_KLING_COEFFICIENT.getCoefficient();
         }
+        if (model == GenerationModel.KLING_3_MOTION_CONTROL) {
+            return ambassador
+                    ? PriceCoefficient.AMBASSADOR_KLING_MOTION_CONTROL_COEFFICIENT.getCoefficient()
+                    : PriceCoefficient.NON_AMBASSADOR_KLING_MOTION_CONTROL_COEFFICIENT.getCoefficient();
+        }
+        if (model == GenerationModel.SEEDANCE_2_0) {
+            return ambassador
+                    ? PriceCoefficient.AMBASSADOR_SEEDANCE_COEFFICIENT.getCoefficient()
+                    : PriceCoefficient.NON_AMBASSADOR_SEEDANCE_COEFFICIENT.getCoefficient();
+        }
+        if (model == GenerationModel.ELEVENLABS_V3) {
+            return ambassador
+                    ? PriceCoefficient.AMBASSADOR_ELEVENLABS_COEFFICIENT.getCoefficient()
+                    : PriceCoefficient.NON_AMBASSADOR_ELEVENLABS_COEFFICIENT.getCoefficient();
+        }
         return ambassador
                 ? PriceCoefficient.AMBASSADOR_FIXED_PRICE_COEFFICIENT.getCoefficient()
                 : 1f;
@@ -57,6 +76,15 @@ public class PriceRegistryService {
     private int calculateBasePrice(GenerationModel model, IModelRequestOptions options) {
         if (model == GenerationModel.KLING_3_0 && options instanceof KlingOptions kling) {
             return calculateKlingPrice(kling);
+        }
+        if (model == GenerationModel.KLING_3_MOTION_CONTROL && options instanceof KlingMotionControlOptions mc) {
+            return calculateKlingMotionControlPrice(mc);
+        }
+        if (model == GenerationModel.SEEDANCE_2_0 && options instanceof SeedanceImageToVideoOptions s) {
+            return calculateSeedancePrice(s);
+        }
+        if (model == GenerationModel.ELEVENLABS_V3 && options instanceof ElevenLabsOptions el) {
+            return calculateElevenLabsPrice(el);
         }
         return getFixedPrice(model);
     }
@@ -84,6 +112,23 @@ public class PriceRegistryService {
         return "{\"mode\":\"" + m + "\",\"with_sound\":" + withSound + "}";
     }
 
+    private static String buildKlingMotionControlPriceKey(String mode) {
+        String m = (mode != null && mode.equalsIgnoreCase("1080p")) ? "1080p" : "720p";
+        return "{\"mode\":\"" + m + "\"}";
+    }
+
+    private int calculateKlingMotionControlPrice(KlingMotionControlOptions mc) {
+        return getCostRub(GenerationModel.KLING_3_MOTION_CONTROL, mc).intValue();
+    }
+
+    private int calculateSeedancePrice(SeedanceImageToVideoOptions s) {
+        return getCostRub(GenerationModel.SEEDANCE_2_0, s).intValue();
+    }
+
+    private int calculateElevenLabsPrice(ElevenLabsOptions el) {
+        return getCostRub(GenerationModel.ELEVENLABS_V3, el).intValue();
+    }
+
     private int getFixedPrice(GenerationModel model) {
         GenerationModel lookupModel = model == GenerationModel.SORA_2_WITH_IMAGE ? GenerationModel.SORA_2 : model;
         Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKeyIsNull(lookupModel.name());
@@ -104,6 +149,15 @@ public class PriceRegistryService {
         if (model == GenerationModel.KLING_3_0 && options instanceof KlingOptions kling) {
             return getKlingCostUsd(kling);
         }
+        if (model == GenerationModel.KLING_3_MOTION_CONTROL && options instanceof KlingMotionControlOptions mc) {
+            return getKlingMotionControlCostUsd(mc);
+        }
+        if (model == GenerationModel.SEEDANCE_2_0 && options instanceof SeedanceImageToVideoOptions s) {
+            return getSeedanceCostUsd(s);
+        }
+        if (model == GenerationModel.ELEVENLABS_V3 && options instanceof ElevenLabsOptions el) {
+            return getElevenLabsCostUsd(el);
+        }
         return getFixedCostUsd(model);
     }
 
@@ -116,6 +170,54 @@ public class PriceRegistryService {
         }
         int duration = kling.getDuration() > 0 ? kling.getDuration() : 10;
         return reg.get().getCostUsd().multiply(BigDecimal.valueOf(duration));
+    }
+
+    private BigDecimal getKlingMotionControlCostUsd(KlingMotionControlOptions mc) {
+        String priceKey = buildKlingMotionControlPriceKey(mc.getMode());
+        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKey(
+                GenerationModel.KLING_3_MOTION_CONTROL.name(), priceKey);
+        if (reg.isEmpty() || reg.get().getCostUsd() == null) {
+            return BigDecimal.ZERO;
+        }
+        int duration = getKlingMotionControlDurationSeconds(mc);
+        return reg.get().getCostUsd().multiply(BigDecimal.valueOf(duration));
+    }
+
+    private BigDecimal getSeedanceCostUsd(SeedanceImageToVideoOptions s) {
+        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKeyIsNull(GenerationModel.SEEDANCE_2_0.name());
+        if (reg.isEmpty()) {
+            reg = priceRegistryRepository.findByModel(GenerationModel.SEEDANCE_2_0.name()).stream().findFirst();
+        }
+        if (reg.isEmpty() || reg.get().getCostUsd() == null) {
+            return BigDecimal.ZERO;
+        }
+        int duration = s.getDuration() != null && s.getDuration() > 0 ? s.getDuration() : 5;
+        return reg.get().getCostUsd().multiply(BigDecimal.valueOf(duration));
+    }
+
+    private BigDecimal getElevenLabsCostUsd(ElevenLabsOptions el) {
+        Optional<PriceRegistry> reg = priceRegistryRepository.findByModelAndPriceKeyIsNull(GenerationModel.ELEVENLABS_V3.name());
+        if (reg.isEmpty()) {
+            reg = priceRegistryRepository.findByModel(GenerationModel.ELEVENLABS_V3.name()).stream().findFirst();
+        }
+        if (reg.isEmpty() || reg.get().getCostUsd() == null) {
+            return BigDecimal.ZERO;
+        }
+        int totalChars = el.getTotalChars();
+        int multiplier = Math.max(1, (int) Math.ceil((double) totalChars / 1000));
+        return reg.get().getCostUsd().multiply(BigDecimal.valueOf(multiplier));
+    }
+
+    private int getKlingMotionControlDurationSeconds(KlingMotionControlOptions mc) {
+        var videoUrls = mc.getVideoUrls();
+        if (videoUrls == null || videoUrls.isEmpty()) {
+            return 10; // fallback
+        }
+        Double durationSec = uploadService.getVideoDurationSeconds(videoUrls.get(0));
+        if (durationSec == null || durationSec <= 0) {
+            return 10; // fallback
+        }
+        return (int) Math.ceil(durationSec);
     }
 
     private BigDecimal getFixedCostUsd(GenerationModel model) {

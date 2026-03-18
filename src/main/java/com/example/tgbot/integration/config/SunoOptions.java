@@ -3,6 +3,7 @@ package com.example.tgbot.integration.config;
 import com.example.tgbot.domain.enums.GenerationModel;
 import com.example.tgbot.dto.api.SunoOptionsDTO;
 import com.example.tgbot.telegram.button.enums.SunoMusicGenreEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,7 @@ import java.util.Map;
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SunoOptions implements IModelRequestOptions {
+    @JsonIgnore
     private final ObjectMapper mapper = new JsonMapper();
     @Builder.Default
     @Getter

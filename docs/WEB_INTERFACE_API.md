@@ -6,25 +6,26 @@
 
 **Общее:** все входные параметры (в т.ч. `userId` в body и query) принимаются как **строки**; маппинг на типы выполняется в бэкенде. Для `userId` допустима строка вида `"123456789"`.
 
-При успешной постановке задачи на генерацию (`POST /kling`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
+При успешной постановке задачи на генерацию (`POST /kling`, `/kling-motion-control`, `/seedance`, `/elevenlabs`, `/sora2`, `/suno`, `/nanobanana`) в ответе возвращаются `taskId` и актуальный `balance` пользователя (после списания стоимости).
 
 ---
 
-## 1. Загрузка изображений
+## 1. Загрузка файлов
 
 **`POST /v1/web/upload`**
 
-Загружает изображения и возвращает их публичные URL. Эти URL используются в полях `imageUrls` (Kling, Sora) или `imageInput` (NanoBanana) при запросах на генерацию.
+Загружает файлы (изображения и видео) и возвращает их публичные URL. Эти URL используются в полях `imageUrls` (Kling, Sora), `imageInput` (NanoBanana), `inputUrls` и `videoUrls` (Kling Motion Control), а также `urls` (Seedance image-to-video) при запросах на генерацию.
 
 ### Request
 
 - **Content-Type:** `multipart/form-data`
-- **Поле:** `images` (массив файлов)
+- **Поле:** `files` (массив файлов)
 
 ### Ограничения
 
-- Форматы: JPEG, PNG, WebP
-- Максимальный размер файла: задаётся в `spring.servlet.multipart.max-file-size` (по умолчанию 10MB)
+- Форматы: JPEG, PNG, WebP (изображения); MP4, MOV (видео — для Kling Motion Control)
+- Максимальный размер: изображения — 10 МБ, видео — 100 МБ
+- Длительность видео: 3–30 секунд
 
 ### Response
 
@@ -50,8 +51,8 @@ URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{file
 
 ```javascript
 const formData = new FormData();
-formData.append('images', file1);
-formData.append('images', file2);
+formData.append('files', file1);
+formData.append('files', file2);
 
 const response = await fetch('/v1/web/upload', {
   method: 'POST',
@@ -66,7 +67,7 @@ const { urls } = await response.json();
 
 **`GET /v1/web/files/{fileId}`**
 
-Отдаёт содержимое файла по его ID. Полный URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{fileId}` (`endpointVersion`: `dev-webhook` или `release-webhook`, см. раздел «Загрузка изображений»).
+Отдаёт содержимое файла по его ID. Полный URL формируется как `{baseUrl}{endpointVersion}/v1/web/files/{fileId}` (`endpointVersion`: `dev-webhook` или `release-webhook`, см. раздел «Загрузка файлов»).
 
 ### Request
 
@@ -130,7 +131,7 @@ const { urls } = await response.json();
 | taskId | string | ID задачи для опроса результата |
 | balance | number | Текущий баланс пользователя (после списания стоимости генерации) |
 
-**400 Bad Request** — текст ошибки парсинга JSON
+**400 Bad Request** — текст ошибки (парсинг JSON, валидация `userId`, валидация длительности видео для Motion Control и т.п.)
 
 При ошибке постановки задачи возвращается JSON `{code, description}` и соответствующий HTTP-статус:
 
@@ -141,6 +142,173 @@ const { urls } = await response.json();
 | 429 | E009 | Слишком много запросов |
 | 502 | E001, E002, E003, E007, E010, E011 | Ошибка генерации или сервис временно недоступен |
 | 500 | E008 | Внутренняя ошибка сервера |
+
+---
+
+## 3.1. Генерация Kling 3.0 Motion Control
+
+**`POST /v1/web/kling-motion-control`**
+
+Запускает генерацию видео через Kling 3.0 Motion Control (kie.ai) — перенос движения из референсного видео на изображение персонажа. Доступно только из web-интерфейса.
+
+### Request
+
+- **Content-Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "userId": "123456789",
+  "options": {
+    "inputUrls": ["https://..."],
+    "videoUrls": ["https://..."],
+    "prompt": "Описание желаемого результата",
+    "characterOrientation": "video",
+    "mode": "720p"
+  }
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|------|-----|-------------|----------|
+| userId | string | да | User.telegramId (строка) |
+| options.inputUrls | string[] | да | URL референсного изображения персонажа (результат `/upload`, JPEG/PNG/JPG) |
+| options.videoUrls | string[] | да | URL референсного видео с движением (результат `/upload`, MP4/MOV, 3–30 сек) |
+| options.prompt | string | нет | Текстовое описание (0–2500 символов) |
+| options.characterOrientation | string | нет | `"image"` — ориентация по изображению (видео 3–10 сек); `"video"` — по видео (3–30 сек). По умолчанию `"video"` |
+| options.mode | string | нет | Разрешение: `"720p"` (std) или `"1080p"` (pro). По умолчанию `"720p"` |
+
+### Response
+
+**200 OK**
+```json
+{
+  "taskId": "abc123-xyz-456",
+  "balance": 850
+}
+```
+
+**400 Bad Request** — при неверной длительности видео:
+- orientation «image» и видео > 10 сек: `"При orientation «image» видео должно быть 3–10 секунд. Ваше видео — X сек."`
+- orientation «video» и видео не в диапазоне 3–30 сек: `"Видео должно быть 3–30 секунд. Ваше видео — X сек."`
+- не удалось прочитать длительность: `"Не удалось определить длительность видео. Проверьте формат файла (MP4, MOV)."`
+
+**400 / 500** — см. Kling
+
+---
+
+## 3.2. Генерация Seedance 2.0
+
+**`POST /v1/web/seedance`**
+
+Запускает генерацию видео через Seedance 2.0 (text-to-video и image-to-video). Доступно только из web-интерфейса. Результат получается по polling (см. раздел «Получение результата»).
+
+### Request
+
+- **Content-Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "userId": "123456789",
+  "options": {
+    "prompt": "Текстовое описание сцены",
+    "duration": 5,
+    "resolution": "720x1280",
+    "aspectRatio": "9:16",
+    "urls": ["https://..."]
+  }
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|------|-----|-------------|----------|
+| userId | string | да | User.telegramId (строка) |
+| options.prompt | string | да | Описание сцены (max 5000 символов). Для image-to-video — опционально |
+| options.duration | number | нет | Длительность в секундах: **4**, **5**, **8**, **10** или **15**. По умолчанию 5. Стоимость зависит от длительности (см. таблицу ниже) |
+| options.resolution | string | нет | `1280x720`, `720x1280`, `720x720`, `960x720`, `720x960`, `1280x540` |
+| options.aspectRatio | string | нет | `16:9`, `9:16`, `1:1`, `3:4`, `4:3`, `21:9` |
+| options.urls | string[] | нет | URL изображений для image-to-video (1–2 изображения, результат `/upload`). При отсутствии — text-to-video |
+
+**Стоимость (себестоимость в USD, итоговая цена в рублях с учётом курса и коэффициентов):**
+
+| Длительность | 4 сек | 5 сек | 8 сек | 10 сек | 15 сек |
+|--------------|-------|-------|-------|--------|--------|
+| USD          | $0.80 | $1.00 | $1.60 | $2.00  | $3.00  |
+
+### Response
+
+**200 OK**
+```json
+{
+  "taskId": "task_xxxxxxxxxxxxx",
+  "balance": 850
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| taskId | string | ID задачи для опроса результата (GET /result) |
+| balance | number | Текущий баланс пользователя (после списания) |
+
+**400 / 500** — см. Kling
+
+---
+
+## 3.3. Генерация ElevenLabs V3 (Text-to-Dialogue)
+
+**`POST /v1/web/elevenlabs`**
+
+Запускает генерацию аудиодиалога через ElevenLabs Text-to-Dialogue V3 (kie.ai). Доступно только из web-интерфейса.
+
+### Request
+
+- **Content-Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "userId": "123456789",
+  "options": {
+    "dialogue": [
+      { "text": "Текст первой реплики", "voice": "Adam" },
+      { "text": "Текст второй реплики", "voice": "Brian" }
+    ],
+    "stability": 0.5,
+    "languageCode": "auto"
+  }
+}
+```
+
+| Поле | Тип | Обязательно | Описание |
+|------|-----|-------------|----------|
+| userId | string | да | User.telegramId (строка) |
+| options.dialogue | array | да | Массив реплик. Каждый элемент: `{ text, voice }`. Сумма символов во всех `text` не должна превышать 5000 |
+| options.dialogue[].text | string | да | Текст реплики |
+| options.dialogue[].voice | string | да | Код голоса (с фронтенда). См. [документацию kie.ai](https://docs.kie.ai/market/elevenlabs/text-to-dialogue-v3) |
+| options.stability | number | нет | Стабильность голоса. По умолчанию 0.5 |
+| options.languageCode | string | нет | Код языка. По умолчанию `"auto"` |
+
+### Response
+
+**200 OK**
+```json
+{
+  "taskId": "task_xxxxxxxxxxxxx",
+  "balance": 850
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| taskId | string | ID задачи для опроса результата (GET /result) |
+| balance | number | Текущий баланс пользователя (после списания) |
+
+**400 Bad Request** — при превышении лимита символов:
+- `"Сумма символов во всех репликах диалога не должна превышать 5000. У вас — X символов."`
+- `"Диалог не может быть пустым. Добавьте хотя бы одну реплику."`
+
+**400 / 500** — см. Kling
 
 ---
 
@@ -312,7 +480,7 @@ const { urls } = await response.json();
 
 ### Response
 
-**200 OK** (Kling, Sora, NanoBanana — объекты с полем `url`):
+**200 OK** (Kling, Kling Motion Control, Seedance, ElevenLabs, Sora, NanoBanana — объекты с полем `url`):
 ```json
 {
   "resultUrls": [
@@ -348,8 +516,8 @@ const { urls } = await response.json();
 
 | Поле | Описание |
 |------|----------|
-| resultUrls | Массив объектов. Для Kling/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
-| model | Модель генерации (`KLING_3_0`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/ElevenLabs/Sora/NanoBanana — `[{url}]`. Для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]` (text — текст трека/lyrics). |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `ELEVENLABS_V3`, `SORA_2`, `SUNO_V5`, `NANO_BANANA_PRO` и др.) |
 | balanceChange | Цена генерации (отрицательное число — списание с баланса) |
 | options | Опции, с которыми была запущена генерация |
 
@@ -411,13 +579,16 @@ const { urls } = await response.json();
 
 ---
 
-### POST /upload — загрузка изображений
+### POST /upload — загрузка файлов
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
-| Недопустимый Content-Type (не jpeg/png/webp) | `IllegalArgumentException` | **400** — текст: `"Invalid content type: ... Allowed: jpeg, png, webp"` |
-| Файл превышает лимит (`spring.servlet.multipart.max-file-size`) | `IllegalArgumentException` | **400** — текст: `"File too large. Max size: 15MB"` |
-| Spring multipart отклоняет (размер до валидации) | `MaxUploadSizeExceededException` | **500** — пустое тело |
+| Недопустимый формат файла | `IllegalArgumentException` | **400** — текст: `"Недопустимый формат файла. Разрешены: изображения (JPEG, PNG, WebP), видео (MP4, MOV)."` |
+| Изображение превышает 10 МБ | `IllegalArgumentException` | **400** — текст: `"Изображение слишком большое. Максимальный размер — 10 МБ. Ваш файл — X МБ."` |
+| Видео превышает 100 МБ | `IllegalArgumentException` | **400** — текст: `"Видео слишком большое. Максимальный размер — 100 МБ. Ваш файл — X МБ."` |
+| Видео не 3–30 сек | `IllegalArgumentException` | **400** — текст: `"Видео должно быть длительностью 3–30 секунд. Ваше видео — X сек."` |
+| Не удалось прочитать длительность видео | `IllegalArgumentException` | **400** — текст: `"Не удалось определить длительность видео. Проверьте формат файла (MP4, MOV)."` |
+| Spring multipart отклоняет (файл > 100 МБ) | `MaxUploadSizeExceededException` | **400** — текст: `"Файл слишком большой. Изображения — до 10 МБ, видео — до 100 МБ."` |
 | Любое другое исключение (IO, security) | `Exception` | **500** — пустое тело |
 
 ---
@@ -431,12 +602,13 @@ const { urls } = await response.json();
 
 ---
 
-### POST /kling, /sora2, /suno, /nanobanana — постановка задачи на генерацию
+### POST /kling, /kling-motion-control, /seedance, /elevenlabs, /sora2, /suno, /nanobanana — постановка задачи на генерацию
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
 | Невалидный JSON в body | `JsonProcessingException` | **400** — текст из `e.getMessage()` |
 | `userId` отсутствует или не число | `IllegalArgumentException` | **400** — текст: `"userId is required"` или `"userId must be a valid number"` |
+| Валидация (длительность видео для Motion Control и т.п.) | `IllegalArgumentException` | **400** — текст сообщения об ошибке |
 | Недостаточно баланса | `SubmitOutcome.fail(E004)` | **402** — `{ "code": "E004", "description": "Недостаточно средств на балансе" }` |
 | Сервис генерации недоступен или ошибка при создании задачи | `SubmitOutcome.fail(E007)` | **502** — `{ "code": "E007", "description": "Сервис генерации временно недоступен. Пожалуйста, обратитесь в поддержку." }` |
 | Необработанное исключение в цепочке | `SubmitOutcome.fail(E008)` | **500** — `{ "code": "E008", "description": "Произошла внутренняя ошибка. Пожалуйста, обратитесь в поддержку." }` |
@@ -454,7 +626,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 | Задача не найдена / ещё в работе / другой userId | `Optional.empty()` | **404** — пустое тело |
 | `userId` невалиден | `IllegalArgumentException` | **400** — текст: `"userId is required"` или `"userId must be a valid number"` |
 
-Коды в `getTaskResult`: E001 (видео), E002 (музыка), E003 (изображения), E007 (parse failure), E011 (callback failed) — см. CallbackHandler.
+Коды в `getTaskResult`: E001 (видео), E002 (аудио), E003 (изображения), E007 (parse failure), E011 (callback failed) — см. CallbackHandler.
 
 ---
 
@@ -468,14 +640,23 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 ---
 
-### GET /history/video, /history/music, /history/image — история операций
+### GET /history/video, /history/audio, /history/image — история операций
 
 | Причина | Обработка | Ответ на фронтенд |
 |---------|-----------|-------------------|
 | Успех | `HistoryResponseDTO` | **200** — `{ "balance": 850, "items": [...] }` |
 | `userId` невалиден | `IllegalArgumentException` | **400** — текст ошибки |
 
-При отсутствии пользователя: `{ "balance": null, "items": [] }` (200 OK).
+При отсутствии пользователя: `{ "balance": null, "items": [] }` (200 OK). В `items` не попадают записи со статусом **DELETED**.
+
+### DELETE /history/{id} — удаление записи истории
+
+| Причина | Обработка | Ответ на фронтенд |
+|---------|-----------|-------------------|
+| Запись найдена, статус обновлён на DELETED | — | **204** No Content |
+| Запись не найдена или невалидный id | — | **404** Not Found |
+
+Запись не удаляется из БД, а переводится в статус **DELETED** и перестаёт отображаться в истории; при этом учитывается в расчётах для амбассадоров и т.д.
 
 ---
 
@@ -497,7 +678,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 1. Проверять HTTP-статус; при 4xx/5xx — читать тело.
 2. При 400/402/429/500/502 с JSON — парсить `code` и `description` для пользовательских сообщений.
-3. При 400 с текстом (upload, parse) — показывать `e.getMessage()` как есть.
+3. При 400 с текстом (upload, parse, валидация) — показывать тело ответа как есть.
 4. При 404 — отображать «ресурс не найден»; тело обычно пустое.
 
 ---
@@ -507,7 +688,7 @@ E005, E006, E009 при постановке задачи из веб-интер
 | Код | Описание |
 |-----|----------|
 | E001 | Не удалось сгенерировать видео. Пожалуйста, обратитесь в поддержку. |
-| E002 | Не удалось сгенерировать музыку. Пожалуйста, обратитесь в поддержку. |
+| E002 | Не удалось сгенерировать аудио. Пожалуйста, обратитесь в поддержку. |
 | E003 | Не удалось сгенерировать изображение. Пожалуйста, обратитесь в поддержку. |
 | E004 | Недостаточно средств на балансе. Пожалуйста, пополните баланс. |
 | E005 | Проверьте введённые данные и попробуйте снова. |
@@ -522,21 +703,21 @@ E005, E006, E009 при постановке задачи из веб-интер
 
 ## 8. История операций
 
-История разделена по типу контента. Каждый эндпоинт возвращает текущий баланс пользователя и список операций (успешных и в процессе), отсортированный по дате по убыванию. В список попадают записи со статусом **SUCCESS** и **PROCESSING** (генерации в процессе).
+История разделена по типу контента. Каждый эндпоинт возвращает текущий баланс пользователя и список операций, отсортированный по дате по убыванию. В список попадают записи со статусом **SUCCESS**, **PROCESSING** и **FAILED**. Записи со статусом **DELETED** не возвращаются (но остаются в БД и учитываются в расчётах для амбассадоров).
 
-### 8.1. История видео (Sora, Kling)
+### 8.1. История видео (Sora, Kling, Kling Motion Control, Seedance)
 
 **`GET /v1/web/history/video`**
 
-### 8.2. История музыки (Suno)
+### 8.2. История аудио (Suno, ElevenLabs)
 
-**`GET /v1/web/history/music`**
+**`GET /v1/web/history/audio`**
 
 ### 8.3. История изображений (Nano Banana Pro)
 
 **`GET /v1/web/history/image`**
 
-### Request
+### Request (GET /history/...)
 
 - **Query параметры:**
   - `userId` (string) — User.telegramId
@@ -549,6 +730,7 @@ E005, E006, E009 при постановке задачи из веб-интер
   "balance": 850,
   "items": [
     {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "options": {
         "prompt": "Описание сцены",
         "mode": "pro",
@@ -565,6 +747,7 @@ E005, E006, E009 при постановке задачи из веб-интер
       "taskId": "abc123-xyz-456"
     },
     {
+      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
       "options": { "prompt": "...", ... },
       "balanceChange": null,
       "date": "2025-03-05T14:25:00+03:00",
@@ -580,18 +763,19 @@ E005, E006, E009 при постановке задачи из веб-интер
 | Поле | Описание |
 |------|----------|
 | balance | Текущий баланс пользователя |
-| items | Список операций (SUCCESS и PROCESSING), отсортирован по дате по убыванию |
+| items | Список операций (SUCCESS, PROCESSING, FAILED), отсортирован по дате по убыванию. Записи со статусом DELETED не возвращаются |
 
 Элемент в `items`:
 
 | Поле | Описание |
 |------|----------|
+| id | ID записи в таблице истории (UUID в формате string). Используется для вызова `DELETE /history/{id}` |
 | options | Опции запроса (параметры генерации), объект |
 | balanceChange | Изменение баланса (отрицательное при списании). null для записей со статусом PROCESSING |
 | date | Дата и время операции (ISO 8601) |
-| resultUrls | Массив объектов. Для Kling/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
-| model | Модель генерации (`KLING_3_0`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
-| status | Статус генерации: `SUCCESS`, `PROCESSING`. `null` для старых записей |
+| resultUrls | Массив объектов. Для Kling/Kling Motion Control/Seedance/ElevenLabs/Sora/NanoBanana — `[{url}]`; для SUNO_V5 — `[{audioUrl, imageUrl, title, text}]`. Пустой массив для PROCESSING |
+| model | Модель генерации (`KLING_3_0`, `KLING_3_MOTION_CONTROL`, `SEEDANCE_2_0`, `ELEVENLABS_V3`, `SORA_2`, `SORA_2_WITH_IMAGE`, `SUNO_V5`, `NANO_BANANA_PRO`) или `null` для не-генераций |
+| status | Статус генерации: `SUCCESS`, `PROCESSING`, `FAILED`. `null` для старых записей |
 | taskId | ID задачи для опроса результата. `null` для старых записей |
 
 При отсутствии пользователя возвращается `{ "balance": null, "items": [] }`.
@@ -601,19 +785,37 @@ E005, E006, E009 при постановке задачи из веб-интер
 - `PROCESSING` — генерация в процессе (есть `taskId`)
 - `SUCCESS` — генерация завершена, есть `resultUrls`
 - `FAILED` — ошибка на любом этапе
+- `DELETED` — запись «удалена» пользователем через API; не отображается в истории, но учитывается в расчётах
 
-В API истории возвращаются только записи со статусом `SUCCESS` и `PROCESSING`. По `taskId` можно опрашивать результат через `GET /result`.
+В API истории возвращаются записи со статусом `SUCCESS`, `PROCESSING` и `FAILED`. По `taskId` можно опрашивать результат через `GET /result`.
+
+### 8.4. Удаление записи истории (мягкое удаление)
+
+**`DELETE /v1/web/history/{id}`**
+
+Переводит запись истории в статус **DELETED**. Запись перестаёт отображаться в ответах `GET /history/video`, `/history/audio`, `/history/image`, но остаётся в БД и участвует в расчётах для амбассадоров и статистике.
+
+### Request
+
+- **Path параметр:** `id` (string) — ID записи из `items[].id` (UUID в формате string)
+
+### Response
+
+| Код | Описание |
+|-----|----------|
+| **204** No Content | Запись найдена, статус обновлён на DELETED |
+| **404** Not Found | Запись не найдена или передан невалидный id |
 
 ---
 
 ## Типовой сценарий
 
-1. **Загрузка изображений** (если нужны): `POST /upload` → получить `urls`
-2. **Запуск генерации**: `POST /kling` (или `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput` из шага 1)
+1. **Загрузка файлов** (если нужны): `POST /upload` с полем `files` → получить `urls`
+2. **Запуск генерации**: `POST /kling` (или `/kling-motion-control`, `/seedance`, `/elevenlabs`, `/sora2`, `/suno`, `/nanobanana`) с `userId`, `options` (в т.ч. `imageUrls`/`imageInput`/`inputUrls`+`videoUrls`/`urls`/`dialogue` из шага 1)
 3. **Получение `taskId` и `balance`** из ответа — обновите отображение баланса на фронте
 4. **Опрос результата**: `GET /result?userId=...&taskId=...` (polling или по событию)
 5. **Отображение/сохранение** ссылок из `response.resultUrls`
-6. **История** — по типу контента: `GET /history/video`, `/history/music`, `/history/image` с `userId`; в ответе — `balance` и `items` (с полями `status`, `taskId` для отображения завершённых и текущих генераций)
+6. **История** — по типу контента: `GET /history/video`, `/history/audio`, `/history/image` с `userId`; в ответе — `balance` и `items` (каждый элемент содержит `id`, `status`, `taskId` и др.). Удаление записи из отображения: `DELETE /history/{id}`, где `id` — значение `items[].id`
 
 ---
 

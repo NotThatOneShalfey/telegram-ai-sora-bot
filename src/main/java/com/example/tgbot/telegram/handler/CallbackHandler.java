@@ -7,6 +7,7 @@ import com.example.tgbot.domain.value.TaskSource;
 import com.example.tgbot.integration.config.IModelRequestOptions;
 import com.example.tgbot.integration.kieai.ReceivedFile;
 import com.example.tgbot.integration.kieai.RecordInfoResponse;
+import com.example.tgbot.integration.seedance.SeedanceRecordInfoResponse;
 import com.example.tgbot.integration.kieai.SunoInfoResponse;
 import com.example.tgbot.registry.ButtonRegistry;
 import com.example.tgbot.registry.PanelRegistry;
@@ -91,6 +92,20 @@ public class CallbackHandler {
         }
     }
 
+    /** Обработка результата polling Seedance (success/fail). */
+    public void handleSeedancePollResult(String taskId, String status,
+                                         List<SeedanceRecordInfoResponse.OutputItem> output, String error) {
+        if ("success".equals(status) && output != null && !output.isEmpty()) {
+            String url = output.get(0).getUrl();
+            if (url != null && !url.isBlank()) {
+                List<Object> resultItems = Collections.singletonList(Map.<String, Object>of("url", url));
+                processResultResponses(taskId, resultItems, List.of(url), GenerationModel.SEEDANCE_2_0);
+            }
+        } else if ("fail".equals(status)) {
+            processFailedResponse(taskId, ErrorCode.E001);
+        }
+    }
+
     public void handleApiCallback(SunoInfoResponse response, GenerationModel model) {
         SunoInfoResponse.SunoData data = response.getData();
         if (data == null || isErrorCode(response.getCode())) {
@@ -136,7 +151,7 @@ public class CallbackHandler {
         return switch (model != null ? model.getGenerationType() : null) {
             case VIDEO -> ErrorCode.E001;
             case IMAGE -> ErrorCode.E003;
-            case MUSIC -> ErrorCode.E002;
+            case AUDIO -> ErrorCode.E002;
             default -> ErrorCode.E011;
         };
     }

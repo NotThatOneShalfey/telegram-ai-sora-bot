@@ -18,11 +18,11 @@ import java.time.LocalDateTime;
 public class CleanupService {
 
     private static final int SESSION_STALE_DAYS = 14;
-    private static final int FILE_STALE_DAYS = 7;
+    private static final int FILE_STALE_DAYS = 3;
 
     private final TgBot tgBot;
     private final SessionRegistry sessionRegistry;
-    private final ImageUploadService imageUploadService;
+    private final UploadService uploadService;
 
     /** Удаление неактивных UserSession (старше 14 дней). Запуск раз в сутки. */
     @Scheduled(cron = "0 0 3 * * *") // 03:00 каждый день
@@ -36,10 +36,10 @@ public class CleanupService {
         }
     }
 
-    /** Удаление загруженных файлов старше 7 дней. Запуск раз в сутки. */
+    /** Удаление загруженных файлов старше 3 дней. Запуск раз в сутки. */
     @Scheduled(cron = "0 0 4 * * *") // 04:00 каждый день
     public void cleanOldUploadedFiles() {
         log.trace("Running old uploaded files cleanup");
-        imageUploadService.deleteFilesOlderThanDays(FILE_STALE_DAYS);
+        uploadService.deleteFilesOlderThanDays(FILE_STALE_DAYS);
     }
 }

@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-025-seedance-price
+      author: Konstantin
+      changes:
+        - insert:
+            tableName: price_registry
+            columns:
+              - column: {name: pr_model, value: SEEDANCE_2_0}
+              - column: {name: pr_base_price, valueNumeric: 0}
+              - column: {name: pr_cost_usd, valueNumeric: 0.20}

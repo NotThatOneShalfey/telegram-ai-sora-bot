@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: changelog-026-music-to-audio-generation-type
+      author: Konstantin
+      changes:
+        - update:
+            tableName: operations_history
+            columns:
+              - column:
+                  name: oh_generation_type
+                  value: AUDIO
+            where: oh_generation_type='MUSIC'

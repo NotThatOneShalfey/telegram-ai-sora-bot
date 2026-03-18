@@ -34,12 +34,16 @@ public class KeiAiRequestService {
     }
 
     public String sendPostRequest(String endpoint, String jsonPayload) throws Exception {
+        String url = baseUrl + endpoint;
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + endpoint))
+                .uri(URI.create(url))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                 .build();
+        // Логирование CURL
+        String curl = toCurl(url, jsonPayload);
+        log.debug("Kei AI request (curl): {}", curl);
 
         int lastAttempt = maxRetries + 1;
 
@@ -72,5 +76,15 @@ public class KeiAiRequestService {
             }
         }
         throw new IllegalStateException("Unreachable");
+    }
+
+    /** Собирает строку curl для запроса (API key в логе маскируется). */
+    private String toCurl(String url, String jsonPayload) {
+        String escaped = jsonPayload == null ? "" : jsonPayload.replace("'", "'\\''");
+        String authMask = apiKey == null || apiKey.isEmpty() ? "" : "Bearer ***";
+        return "curl -X POST '" + url + "' "
+                + "-H 'Content-Type: application/json' "
+                + "-H 'Authorization: " + authMask + "' "
+                + "-d '" + escaped + "'";
     }
 }
